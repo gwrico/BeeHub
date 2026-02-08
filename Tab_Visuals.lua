@@ -1,5 +1,5 @@
 -- ==============================================
--- 👁️ VISUALS TAB MODULE
+-- 👁️ VISUALS TAB MODULE (PET GAME VERSION)
 -- ==============================================
 
 local Visuals = {}
@@ -10,79 +10,195 @@ function Visuals.Init(Dependencies)
     local Rayfield = Dependencies.Rayfield
     
     local Variables = Shared.Variables
-    local Functions = Shared.Functions
+    local Functions = Shared.Functions or {}
     
-    print("👁️ Initializing Visuals tab...")
+    print("👁️ Initializing Visuals tab (Pets Edition)...")
     
-    -- ===== ORE ESP =====
-    local oreHighlights = {}
+    -- ===== EGG ESP (GANTI DARI ORE ESP) =====
+    local eggHighlights = {}
     Tab:CreateToggle({
-        Name = "OreESP",
-        Text = "👁️ Ore ESP",
+        Name = "EggESP",
+        Text = "🥚 Egg ESP",
         CurrentValue = false,
         Callback = function(value)
-            Variables.oreESPEnabled = value
+            Variables.eggESPEnabled = value
             
             if value then
                 Rayfield.Notify({
-                    Title = "Ore ESP",
-                    Content = "Ore ESP enabled!",
+                    Title = "Egg ESP",
+                    Content = "Egg ESP enabled! Find eggs easily",
                     Duration = 3
                 })
                 
-                print("✅ Ore ESP enabled")
+                print("✅ Egg ESP enabled")
                 
                 local rarityColors = {
-                    [1] = Color3.fromRGB(200, 200, 200),
-                    [2] = Color3.fromRGB(0, 200, 0),
-                    [3] = Color3.fromRGB(0, 150, 255),
-                    [4] = Color3.fromRGB(255, 0, 255),
-                    [5] = Color3.fromRGB(255, 165, 0),
-                    [6] = Color3.fromRGB(255, 255, 0),
-                    [7] = Color3.fromRGB(255, 0, 0),
-                    [8] = Color3.new(1, 0.5, 1)
+                    [1] = Color3.fromRGB(184, 115, 51),    -- Copper (coklat tembaga)
+                    [2] = Color3.fromRGB(192, 192, 192),   -- Silver (perak)
+                    [3] = Color3.fromRGB(255, 215, 0),     -- Gold (emas)
+                    [4] = Color3.fromRGB(80, 200, 120),    -- Emerald (hijau zamrud)
+                    [5] = Color3.fromRGB(224, 17, 95),     -- Ruby (merah ruby)
+                    [6] = Color3.fromRGB(185, 242, 255),   -- Diamond (biru diamond)
+                    [7] = Color3.fromRGB(16, 20, 31),      -- Obsidian (hitam obsidian)
+                    [8] = Color3.fromRGB(148, 0, 211)      -- Mystery (ungu)
                 }
                 
                 -- Clear existing highlights
-                for _, hl in pairs(oreHighlights) do
-                    Functions.safeDestroy(hl)
+                for _, hl in pairs(eggHighlights) do
+                    if Functions.safeDestroy then
+                        Functions.safeDestroy(hl)
+                    elseif hl and hl.Parent then
+                        pcall(function() hl:Destroy() end)
+                    end
                 end
-                oreHighlights = {}
+                eggHighlights = {}
                 
                 local highlighted = 0
-                for _, obj in pairs(Shared.Services.Workspace:GetChildren()) do
-                    if obj:IsA("BasePart") then
-                        for oreName, oreData in pairs(Shared.OreData) do
-                            if string.find(obj.Name, oreName) then
-                                local highlight = Functions.createHighlight(
-                                    obj, 
-                                    rarityColors[oreData.rarityId] or Color3.new(1, 1, 1),
-                                    0.7
-                                )
-                                highlight.Name = "OreESP_" .. oreName
-                                table.insert(oreHighlights, highlight)
+                
+                -- Cari semua object di workspace
+                for _, obj in pairs(Shared.Services.Workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
+                        local objName = obj.Name
+                        
+                        -- Cek untuk setiap egg dalam EggData
+                        for eggName, eggData in pairs(Shared.EggData) do
+                            -- Pattern matching fleksibel
+                            local patterns = {
+                                eggName,  -- "Copper Egg"
+                                eggName:gsub(" Egg", ""),  -- "Copper"
+                                eggName:gsub(" Lucky Block", ""),  -- "Gold"
+                                eggName:lower(),  -- "copper egg"
+                                eggName:gsub(" Egg", ""):lower()  -- "copper"
+                            }
+                            
+                            local isMatch = false
+                            for _, pattern in ipairs(patterns) do
+                                if objName:lower():find(pattern:lower(), 1, true) then
+                                    isMatch = true
+                                    break
+                                end
+                            end
+                            
+                            if isMatch then
+                                -- Create highlight
+                                local highlight
+                                if Functions.createHighlight then
+                                    highlight = Functions.createHighlight(
+                                        obj, 
+                                        rarityColors[eggData.rarityId] or Color3.new(1, 1, 1),
+                                        0.5  -- Kurangi transparency biar lebih jelas
+                                    )
+                                else
+                                    -- Fallback
+                                    highlight = Instance.new("Highlight")
+                                    highlight.Adornee = obj
+                                    highlight.FillColor = rarityColors[eggData.rarityId] or Color3.new(1, 1, 1)
+                                    highlight.FillTransparency = 0.5
+                                    highlight.OutlineColor = Color3.new(1, 1, 1)
+                                    highlight.OutlineTransparency = 0
+                                    highlight.Parent = game.CoreGui
+                                end
+                                
+                                highlight.Name = "EggESP_" .. eggName
+                                table.insert(eggHighlights, highlight)
                                 highlighted = highlighted + 1
+                                
+                                print("🎯 Found:", eggName, "->", objName)
                                 break
                             end
                         end
                     end
                 end
                 
-                print("📊 Highlighted", highlighted, "ores")
+                print("📊 Highlighted", highlighted, "eggs")
                 
             else
                 Rayfield.Notify({
-                    Title = "Ore ESP",
-                    Content = "Ore ESP disabled!",
+                    Title = "Egg ESP",
+                    Content = "Egg ESP disabled!",
                     Duration = 3
                 })
                 
-                print("❌ Ore ESP disabled")
+                print("❌ Egg ESP disabled")
                 
-                for _, hl in pairs(oreHighlights) do
-                    Functions.safeDestroy(hl)
+                -- Cleanup highlights
+                for _, hl in pairs(eggHighlights) do
+                    if Functions.safeDestroy then
+                        Functions.safeDestroy(hl)
+                    elseif hl and hl.Parent then
+                        pcall(function() hl:Destroy() end)
+                    end
                 end
-                oreHighlights = {}
+                eggHighlights = {}
+                
+                -- Juga clean semua highlight di CoreGui
+                for _, obj in pairs(game.CoreGui:GetChildren()) do
+                    if obj.Name:find("EggESP_") then
+                        if Functions.safeDestroy then
+                            Functions.safeDestroy(obj)
+                        elseif obj and obj.Parent then
+                            pcall(function() obj:Destroy() end)
+                        end
+                    end
+                end
+            end
+        end
+    })
+    
+    -- ===== PET ESP (TAMBAHAN UNTUK PET GAME) =====
+    Tab:CreateToggle({
+        Name = "PetESP",
+        Text = "🐾 Pet ESP",
+        CurrentValue = false,
+        Callback = function(value)
+            Variables.petESPEnabled = value
+            
+            if value then
+                Rayfield.Notify({
+                    Title = "Pet ESP",
+                    Content = "Pet ESP enabled! See all pets",
+                    Duration = 3
+                })
+                
+                print("✅ Pet ESP enabled")
+                
+                -- Cari semua pets di workspace (biasanya ada di folder Pets)
+                local petsFolder = Shared.Services.Workspace:FindFirstChild("Pets")
+                if petsFolder then
+                    for _, pet in pairs(petsFolder:GetDescendants()) do
+                        if pet:IsA("BasePart") or pet:IsA("Model") then
+                            local highlight
+                            if Functions.createHighlight then
+                                highlight = Functions.createHighlight(
+                                    pet,
+                                    Color3.fromRGB(255, 105, 180), -- Pink
+                                    0.3
+                                )
+                            end
+                            if highlight then
+                                highlight.Name = "PetESP_" .. pet.Name
+                            end
+                        end
+                    end
+                end
+                
+            else
+                Rayfield.Notify({
+                    Title = "Pet ESP",
+                    Content = "Pet ESP disabled!",
+                    Duration = 3
+                })
+                
+                print("❌ Pet ESP disabled")
+                
+                -- Cleanup pet highlights
+                for _, obj in pairs(game.CoreGui:GetChildren()) do
+                    if obj.Name:find("PetESP_") then
+                        if Functions.safeDestroy then
+                            Functions.safeDestroy(obj)
+                        end
+                    end
+                end
             end
         end
     })
@@ -191,22 +307,31 @@ function Visuals.Init(Dependencies)
                 
                 for _, player in pairs(Shared.Services.Players:GetPlayers()) do
                     if player ~= game.Players.LocalPlayer and player.Character then
-                        local highlight = Functions.createHighlight(
-                            player.Character,
-                            Color3.new(1, 0, 0),
-                            0.7
-                        )
-                        highlight.Name = "PlayerESP_" .. player.Name
+                        local highlight
+                        if Functions.createHighlight then
+                            highlight = Functions.createHighlight(
+                                player.Character,
+                                Color3.new(0, 0.5, 1), -- Biru muda
+                                0.7
+                            )
+                        end
+                        if highlight then
+                            highlight.Name = "PlayerESP_" .. player.Name
+                        end
                         
                         player.CharacterAdded:Connect(function(char)
                             if Variables.playerESPEnabled then
                                 task.wait(1)
-                                local newHighlight = Functions.createHighlight(
-                                    char,
-                                    Color3.new(1, 0, 0),
-                                    0.7
-                                )
-                                newHighlight.Name = "PlayerESP_" .. player.Name
+                                if Functions.createHighlight then
+                                    local newHighlight = Functions.createHighlight(
+                                        char,
+                                        Color3.new(0, 0.5, 1),
+                                        0.7
+                                    )
+                                    if newHighlight then
+                                        newHighlight.Name = "PlayerESP_" .. player.Name
+                                    end
+                                end
                             end
                         end)
                     end
@@ -223,14 +348,16 @@ function Visuals.Init(Dependencies)
                 
                 for _, obj in pairs(game.CoreGui:GetChildren()) do
                     if string.find(obj.Name, "PlayerESP_") then
-                        Functions.safeDestroy(obj)
+                        if Functions.safeDestroy then
+                            Functions.safeDestroy(obj)
+                        end
                     end
                 end
             end
         end
     })
     
-    print("✅ Visuals tab initialized")
+    print("✅ Visuals tab initialized (Pets Edition)")
 end
 
 return Visuals
