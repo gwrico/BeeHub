@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE
+-- 💰 AUTO FARM TAB MODULE (PET GAME VERSION)
 -- ==============================================
 
 local AutoFarm = {}
@@ -9,105 +9,132 @@ function AutoFarm.Init(Dependencies)
     local Shared = Dependencies.Shared
     local Rayfield = Dependencies.Rayfield
     
-    local Functions = Shared.Functions
     local Variables = Shared.Variables
+    local Functions = Shared.Functions or {}
     
-    print("💰 Initializing AutoFarm tab...")
+    print("💰 Initializing AutoFarm tab (Pets Edition)...")
     
-    -- ===== AUTO MINE TOGGLE =====
+    -- ===== AUTO COLLECT EGGS (GANTI DARI AUTO MINE) =====
     Tab:CreateToggle({
-        Name = "AutoMine",
-        Text = "⛏️ Hold-to-Mine",
+        Name = "AutoCollect",
+        Text = "🥚 Auto Collect Eggs",
         CurrentValue = false,
         Callback = function(value)
-            Variables.autoMineEnabled = value
+            Variables.autoCollectEnabled = value
             
             if value then
                 Rayfield.Notify({
-                    Title = "Hold-to-Mine",
-                    Content = "Click and hold to auto mine!",
+                    Title = "Auto Collect",
+                    Content = "Auto collecting eggs enabled!",
                     Duration = 3
                 })
                 
-                print("✅ Hold-to-Mine activated")
+                print("✅ Auto Collect enabled")
                 
-                local isMining = false
-                local mouse = game.Players.LocalPlayer:GetMouse()
-                
-                -- Mouse button down
-                mouse.Button1Down:Connect(function()
-                    if not Variables.autoMineEnabled then return end
-                    
-                    isMining = true
-                    print("🖱️ Mining started")
-                    
-                    -- Clear existing connection
-                    Variables.mineConnection = Shared.Functions.safeDisconnect(Variables.mineConnection)
-                    
-                    -- Start mining loop
-                    Variables.mineConnection = Shared.Services.RunService.Heartbeat:Connect(function()
-                        if not Variables.autoMineEnabled or not isMining then 
-                            Variables.mineConnection = Shared.Functions.safeDisconnect(Variables.mineConnection)
-                            return 
-                        end
+                -- Start auto collect loop
+                spawn(function()
+                    while Variables.autoCollectEnabled do
+                        -- Cari egg terdekat
+                        local closestEgg = nil
+                        local closestDistance = math.huge
+                        local player = game.Players.LocalPlayer
+                        local character = player.Character
                         
-                        local closestOre, distance = Functions.findClosestOre(100)
-                        
-                        if closestOre then
-                            -- Auto equip tool
-                            if not Variables.toolEquipped then
-                                Functions.autoEquipTool()
-                            end
-                            
-                            -- Teleport to ore
-                            Functions.teleportToPosition(closestOre.Position + Vector3.new(0, 3, 0))
-                            
-                            -- Punch
-                            Functions.performPunch()
-                            
-                            -- Touch ore
-                            local char = game.Players.LocalPlayer.Character
-                            if char then
-                                local hrp = char:FindFirstChild("HumanoidRootPart")
-                                if hrp then
-                                    firetouchinterest(hrp, closestOre, 0)
-                                    task.wait(0.05)
-                                    firetouchinterest(hrp, closestOre, 1)
+                        if character then
+                            local root = character:FindFirstChild("HumanoidRootPart")
+                            if root then
+                                local playerPos = root.Position
+                                
+                                -- Cari semua eggs
+                                for _, obj in pairs(Shared.Services.Workspace:GetDescendants()) do
+                                    if obj:IsA("BasePart") or obj:IsA("MeshPart") then
+                                        for eggName, _ in pairs(Shared.EggData) do
+                                            if obj.Name:lower():find(eggName:lower(), 1, true) then
+                                                local distance = (playerPos - obj.Position).Magnitude
+                                                if distance < closestDistance and distance < 50 then
+                                                    closestEgg = obj
+                                                    closestDistance = distance
+                                                end
+                                                break
+                                            end
+                                        end
+                                    end
+                                end
+                                
+                                -- Jika ketemu egg, collect
+                                if closestEgg then
+                                    print("🎯 Found egg:", closestEgg.Name, "Distance:", math.floor(closestDistance))
+                                    
+                                    -- Teleport ke egg
+                                    if Functions.teleportToPosition then
+                                        Functions.teleportToPosition(closestEgg.Position + Vector3.new(0, 3, 0))
+                                    end
+                                    
+                                    -- Cari ProximityPrompt untuk collect
+                                    task.wait(0.5)
+                                    local prompt = closestEgg:FindFirstChildOfClass("ProximityPrompt") or
+                                                  closestEgg.Parent:FindFirstChildOfClass("ProximityPrompt")
+                                    
+                                    if prompt then
+                                        fireproximityprompt(prompt)
+                                        print("📦 Collected:", closestEgg.Name)
+                                    end
                                 end
                             end
-                            
-                            task.wait(0.3)
-                        else
-                            Functions.performPunch()
-                            task.wait(0.5)
                         end
-                    end)
-                end)
-                
-                -- Mouse button up
-                mouse.Button1Up:Connect(function()
-                    isMining = false
-                    Variables.mineConnection = Shared.Functions.safeDisconnect(Variables.mineConnection)
-                    print("🖱️ Mining stopped")
+                        
+                        task.wait(1) -- Delay antar pencarian
+                    end
                 end)
                 
             else
                 Rayfield.Notify({
-                    Title = "Hold-to-Mine",
-                    Content = "Hold-to-Mine disabled",
+                    Title = "Auto Collect",
+                    Content = "Auto collecting disabled!",
                     Duration = 3
                 })
                 
-                print("❌ Hold-to-Mine disabled")
-                Variables.mineConnection = Shared.Functions.safeDisconnect(Variables.mineConnection)
+                print("❌ Auto Collect disabled")
             end
         end
     })
     
-    -- ===== AUTO PUNCH TOGGLE =====
+    -- ===== AUTO HATCH EGGS (TAMBAHAN) =====
+    Tab:CreateToggle({
+        Name = "AutoHatch",
+        Text = "🐣 Auto Hatch Eggs",
+        CurrentValue = false,
+        Callback = function(value)
+            Variables.autoHatchEnabled = value
+            
+            if value then
+                Rayfield.Notify({
+                    Title = "Auto Hatch",
+                    Content = "Auto hatching enabled!",
+                    Duration = 3
+                })
+                
+                print("✅ Auto Hatch enabled")
+                
+                -- Hatching logic bisa ditambahkan nanti
+                -- Bergantung pada UI game untuk hatching
+                
+            else
+                Rayfield.Notify({
+                    Title = "Auto Hatch",
+                    Content = "Auto hatching disabled!",
+                    Duration = 3
+                })
+                
+                print("❌ Auto Hatch disabled")
+            end
+        end
+    })
+    
+    -- ===== AUTO PUNCH (MASIH BISA DIPAKAI UNTUK BREAK OBJECT) =====
     Tab:CreateToggle({
         Name = "AutoPunch",
-        Text = "👊 Auto Punch/Swing",
+        Text = "👊 Auto Punch",
         CurrentValue = false,
         Callback = function(value)
             Variables.autoPunchEnabled = value
@@ -115,219 +142,38 @@ function AutoFarm.Init(Dependencies)
             if value then
                 Rayfield.Notify({
                     Title = "Auto Punch",
-                    Content = "Auto punching enabled!",
+                    Content = "Auto punch enabled!",
                     Duration = 3
                 })
                 
                 print("✅ Auto Punch enabled")
                 
-                -- Auto equip tool
-                if not Functions.checkToolEquipped() then
-                    Functions.autoEquipTool()
+                if Functions.performPunch then
+                    Variables.punchConnection = Shared.Services.RunService.Heartbeat:Connect(function()
+                        if Variables.autoPunchEnabled then
+                            Functions.performPunch()
+                        end
+                    end)
                 end
-                
-                -- Start punch loop
-                Variables.punchConnection = Shared.Functions.safeDisconnect(Variables.punchConnection)
-                Variables.punchConnection = Shared.Services.RunService.Heartbeat:Connect(function()
-                    if not Variables.autoPunchEnabled then 
-                        Variables.punchConnection = Shared.Functions.safeDisconnect(Variables.punchConnection)
-                        return 
-                    end
-                    
-                    Functions.performPunch()
-                    task.wait(0.2)
-                end)
                 
             else
                 Rayfield.Notify({
                     Title = "Auto Punch",
-                    Content = "Auto punching disabled!",
+                    Content = "Auto punch disabled!",
                     Duration = 3
                 })
                 
                 print("❌ Auto Punch disabled")
-                Variables.punchConnection = Shared.Functions.safeDisconnect(Variables.punchConnection)
-            end
-        end
-    })
-    
-    -- ===== EQUIP BEST TOOL =====
-    Tab:CreateButton({
-        Name = "EquipBestTool",
-        Text = "🛠️ Equip Best Tool",
-        Callback = function()
-            local player = game.Players.LocalPlayer
-            local character = player.Character
-            if not character then return end
-            
-            local humanoid = character:FindFirstChild("Humanoid")
-            if not humanoid then return end
-            
-            local bestTool = nil
-            local bestValue = 0
-            
-            for _, tool in pairs(player.Backpack:GetChildren()) do
-                if tool:IsA("Tool") then
-                    local toolName = tool.Name:lower()
-                    local value = 0
-                    
-                    if toolName:find("rainbow") or toolName:find("diamond") then
-                        value = 100
-                    elseif toolName:find("gold") or toolName:find("emerald") then
-                        value = 80
-                    elseif toolName:find("iron") or toolName:find("silver") then
-                        value = 60
-                    elseif toolName:find("bronze") or toolName:find("stone") then
-                        value = 40
-                    elseif toolName:find("pick") or toolName:find("axe") or toolName:find("hammer") then
-                        value = 30
-                    else
-                        value = 10
-                    end
-                    
-                    if tool:FindFirstChild("Handle") then
-                        value = value + 20
-                    end
-                    
-                    if value > bestValue then
-                        bestTool = tool
-                        bestValue = value
-                    end
-                end
-            end
-            
-            if bestTool then
-                humanoid:EquipTool(bestTool)
-                Variables.toolEquipped = true
-                print("🛠️ Equipped best tool:", bestTool.Name)
-                Rayfield.Notify({
-                    Title = "Tool Equipped",
-                    Content = "Equipped: " .. bestTool.Name,
-                    Duration = 3
-                })
-            else
-                Rayfield.Notify({
-                    Title = "Error",
-                    Content = "No tools found in backpack!",
-                    Duration = 3
-                })
-            end
-        end
-    })
-    
-    -- ===== TP TO BEST ORE =====
-    Tab:CreateButton({
-        Name = "TPBestOre",
-        Text = "📍 TP to Best Ore",
-        Callback = function()
-            local player = game.Players.LocalPlayer
-            local character = player.Character
-            if not character then return end
-            
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            if not humanoidRootPart then return end
-            
-            local playerPos = humanoidRootPart.Position
-            local bestOre = nil
-            local bestValue = 0
-            local bestDistance = math.huge
-            
-            for _, obj in pairs(Shared.Services.Workspace:GetChildren()) do
-                if obj:IsA("BasePart") then
-                    local distance = (playerPos - obj.Position).Magnitude
-                    if distance < 200 then
-                        for oreName, oreData in pairs(Shared.OreData) do
-                            if obj.Name:find(oreName) then
-                                local score = oreData.value / (distance + 1)
-                                if score > bestValue then
-                                    bestOre = obj
-                                    bestValue = score
-                                    bestDistance = distance
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-            
-            if bestOre then
-                Functions.teleportToPosition(bestOre.Position + Vector3.new(0, 5, 0))
                 
-                task.wait(0.5)
-                if not Variables.toolEquipped then
-                    Functions.autoEquipTool()
+                if Variables.punchConnection then
+                    Variables.punchConnection:Disconnect()
+                    Variables.punchConnection = nil
                 end
-                
-                print("📍 Teleported to:", bestOre.Name, "Distance:", math.floor(bestDistance))
-                Rayfield.Notify({
-                    Title = "Teleport",
-                    Content = "Teleported to " .. bestOre.Name .. "!",
-                    Duration = 3
-                })
-            else
-                Rayfield.Notify({
-                    Title = "Error",
-                    Content = "No ores found nearby!",
-                    Duration = 3
-                })
             end
         end
     })
     
-    -- ===== COLLECT NEARBY ORES =====
-    Tab:CreateButton({
-        Name = "CollectNearby",
-        Text = "💰 Collect Nearby",
-        Callback = function()
-            local player = game.Players.LocalPlayer
-            local character = player.Character
-            if not character then return end
-            
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            if not humanoidRootPart then return end
-            
-            local playerPos = humanoidRootPart.Position
-            local collected = 0
-            
-            -- Auto equip tool
-            if not Variables.toolEquipped then
-                Functions.autoEquipTool()
-            end
-            
-            for _, obj in pairs(Shared.Services.Workspace:GetChildren()) do
-                if obj:IsA("BasePart") then
-                    local distance = (playerPos - obj.Position).Magnitude
-                    if distance < 50 then
-                        for oreName, _ in pairs(Shared.OreData) do
-                            if obj.Name:find(oreName) then
-                                Functions.teleportToPosition(obj.Position + Vector3.new(0, 3, 0))
-                                task.wait(0.2)
-                                
-                                Functions.performPunch()
-                                
-                                firetouchinterest(humanoidRootPart, obj, 0)
-                                task.wait(0.1)
-                                firetouchinterest(humanoidRootPart, obj, 1)
-                                
-                                collected = collected + 1
-                                task.wait(0.3)
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-            
-            print("💰 Collected", collected, "ores")
-            Rayfield.Notify({
-                Title = "Collection",
-                Content = "Collected " .. collected .. " ores!",
-                Duration = 4
-            })
-        end
-    })
-    
-    print("✅ AutoFarm tab initialized")
+    print("✅ AutoFarm tab initialized (Pets Edition)")
 end
 
 return AutoFarm
