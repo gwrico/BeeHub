@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE (PET GAME VERSION)
+-- 💰 AUTO FARM TAB MODULE (CLEAN NO-WARNINGS VERSION)
 -- ==============================================
 
 local AutoFarm = {}
@@ -9,12 +9,45 @@ function AutoFarm.Init(Dependencies)
     local Shared = Dependencies.Shared
     local Rayfield = Dependencies.Rayfield
     
-    local Variables = Shared.Variables
-    local Functions = Shared.Functions or {}
+    local Variables = Shared.Variables or {}
+    local EggData = Shared.EggData or {}
     
-    print("💰 Initializing AutoFarm tab (Pets Edition)...")
+    print("💰 Initializing AutoFarm tab...")
     
-    -- ===== AUTO COLLECT EGGS (TELEPORT VERSION) =====
+    -- Get services
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    local ProximityPromptService = game:GetService("ProximityPromptService")
+    
+    -- Helper function to trigger prompt (NO fireproximityprompt)
+    local function triggerPrompt(prompt, player)
+        if not prompt or not prompt:IsA("ProximityPrompt") then
+            return false
+        end
+        
+        local playerObj = player or Players.LocalPlayer
+        
+        -- Try ProximityPromptService method
+        local success, err = pcall(function()
+            ProximityPromptService:PromptTriggered(prompt, playerObj)
+        end)
+        
+        if success then
+            return true
+        end
+        
+        -- Alternative: Simulate click
+        success, err = pcall(function()
+            -- Activate the prompt
+            prompt:InputHoldBegin()
+            task.wait(0.1)
+            prompt:InputHoldEnd()
+        end)
+        
+        return success
+    end
+    
+    -- ===== AUTO COLLECT EGGS =====
     local collectConnection = nil
     Tab:CreateToggle({
         Name = "AutoCollect",
@@ -26,17 +59,23 @@ function AutoFarm.Init(Dependencies)
             if value then
                 Rayfield.Notify({
                     Title = "Auto Collect",
-                    Content = "Auto collecting eggs enabled!",
+                    Content = "Auto collecting enabled!",
                     Duration = 3
                 })
                 
                 print("✅ Auto Collect enabled")
                 
-                -- Start auto collect loop
-                collectConnection = Shared.Services.RunService.Heartbeat:Connect(function()
-                    if not Variables.autoCollectEnabled then return end
+                -- Start collection loop
+                collectConnection = RunService.Heartbeat:Connect(function()
+                    if not Variables.autoCollectEnabled then 
+                        if collectConnection then
+                            collectConnection:Disconnect()
+                            collectConnection = nil
+                        end
+                        return 
+                    end
                     
-                    local player = game.Players.LocalPlayer
+                    local player = Players.LocalPlayer
                     local character = player.Character
                     if not character then return end
                     
@@ -45,41 +84,26 @@ function AutoFarm.Init(Dependencies)
                     
                     local playerPos = humanoidRootPart.Position
                     local closestEgg = nil
-                    local closestDistance = math.huge
-                    local maxDistance = 500  -- Jarak maksimal pencarian
+                    local closestDistance = 1000
                     
-                    -- Cari semua eggs di workspace
-                    for _, obj in pairs(Shared.Services.Workspace:GetDescendants()) do
-                        -- Cek jika obj adalah egg
+                    -- Find closest egg
+                    for _, obj in pairs(game.Workspace:GetDescendants()) do
                         if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
                             local objName = obj.Name:lower()
                             
-                            -- Cek untuk setiap egg dalam EggData
-                            for eggName, eggData in pairs(Shared.EggData) do
-                                local eggNameLower = eggName:lower()
-                                
-                                -- Pattern matching yang lebih fleksibel
-                                if objName:find(eggNameLower, 1, true) or
-                                   objName:find(eggNameLower:gsub(" egg", ""), 1, true) or
-                                   objName:find(eggNameLower:gsub(" lucky block", ""), 1, true) then
-                                    
-                                    -- Dapatkan posisi objek
+                            for eggName, _ in pairs(EggData) do
+                                if objName:find(eggName:lower(), 1, true) then
+                                    -- Get object position
                                     local objPos
                                     if obj:IsA("Model") then
                                         local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                                        if primaryPart then
-                                            objPos = primaryPart.Position
-                                        else
-                                            objPos = obj:GetPivot().Position
-                                        end
+                                        objPos = primaryPart and primaryPart.Position or obj:GetPivot().Position
                                     else
                                         objPos = obj.Position
                                     end
                                     
-                                    -- Hitung distance
                                     local distance = (playerPos - objPos).Magnitude
-                                    
-                                    if distance < closestDistance and distance < maxDistance then
+                                    if distance < closestDistance and distance < 500 then
                                         closestEgg = obj
                                         closestDistance = distance
                                     end
@@ -89,9 +113,9 @@ function AutoFarm.Init(Dependencies)
                         end
                     end
                     
-                    -- Jika ketemu egg terdekat
+                    -- Teleport to egg and collect
                     if closestEgg then
-                        -- Dapatkan posisi egg
+                        -- Get egg position
                         local eggPos
                         if closestEgg:IsA("Model") then
                             local primaryPart = closestEgg.PrimaryPart or closestEgg:FindFirstChildWhichIsA("BasePart")
@@ -100,37 +124,20 @@ function AutoFarm.Init(Dependencies)
                             eggPos = closestEgg.Position
                         end
                         
-                        -- Teleport ke posisi egg (sedikit di atas)
-                        local targetPos = eggPos + Vector3.new(0, 3, 0)
-                        humanoidRootPart.CFrame = CFrame.new(targetPos)
+                        -- Teleport
+                        humanoidRootPart.CFrame = CFrame.new(eggPos + Vector3.new(0, 5, 0))
+                        task.wait(0.2)
                         
-                        -- Cari ProximityPrompt untuk collect
-                        task.wait(0.2)  -- Tunggu sebentar setelah teleport
-                        
+                        -- Find and trigger prompt
                         local prompt = closestEgg:FindFirstChildOfClass("ProximityPrompt") or
-                                      closestEgg.Parent:FindFirstChildOfClass("ProximityPrompt") or
-                                      closestEgg:FindFirstAncestorOfClass("ProximityPrompt")
+                                      closestEgg.Parent:FindFirstChildOfClass("ProximityPrompt")
                         
                         if prompt then
-                            fireproximityprompt(prompt)
+                            triggerPrompt(prompt, player)
                             print("📦 Collected:", closestEgg.Name, "| Distance:", math.floor(closestDistance))
-                            
-                            -- Tunggu sebentar setelah collect
-                            task.wait(0.5)
-                        else
-                            print("⚠️ No ProximityPrompt found for:", closestEgg.Name)
                         end
-                    else
-                        -- Jika tidak ada egg dalam range, coba gerakkan random
-                        if math.random(1, 100) > 80 then  -- 20% chance
-                            local randomPos = playerPos + Vector3.new(
-                                math.random(-50, 50),
-                                0,
-                                math.random(-50, 50)
-                            )
-                            humanoidRootPart.CFrame = CFrame.new(randomPos)
-                            print("🔍 Searching for eggs...")
-                        end
+                        
+                        task.wait(0.5)
                     end
                 end)
                 
@@ -143,7 +150,6 @@ function AutoFarm.Init(Dependencies)
                 
                 print("❌ Auto Collect disabled")
                 
-                -- Stop connection
                 if collectConnection then
                     collectConnection:Disconnect()
                     collectConnection = nil
@@ -152,162 +158,62 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== AUTO HATCH EGGS =====
-    Tab:CreateToggle({
-        Name = "AutoHatch",
-        Text = "🐣 Auto Hatch Eggs",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.autoHatchEnabled = value
-            
-            if value then
-                Rayfield.Notify({
-                    Title = "Auto Hatch",
-                    Content = "Auto hatching enabled!",
-                    Duration = 3
-                })
-                
-                print("✅ Auto Hatch enabled")
-                
-                -- Simple auto hatch (sesuaikan dengan UI game)
-                spawn(function()
-                    while Variables.autoHatchEnabled do
-                        -- Cari hatch button di ScreenGui
-                        local gui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
-                        if gui then
-                            -- Cari button "Hatch", "Open", "Buy", etc
-                            local hatchButtons = {
-                                "HatchButton", "Hatch", "OpenButton", "Open",
-                                "BuyButton", "Purchase", "EggButton"
-                            }
-                            
-                            for _, btnName in pairs(hatchButtons) do
-                                local button = findButtonRecursive(gui, btnName)
-                                if button and button:IsA("TextButton") or button:IsA("ImageButton") then
-                                    -- Click button
-                                    fireclickdetector(button:FindFirstChildOfClass("ClickDetector"))
-                                    or button:Fire("Activated")
-                                    or (button:FindFirstChild("MouseClick") and button.MouseClick:Fire())
-                                    
-                                    print("🥚 Clicked hatch button:", btnName)
-                                    break
-                                end
-                            end
-                        end
-                        
-                        task.wait(5)  -- Delay 5 detik antar hatch
-                    end
-                end)
-                
-            else
-                Rayfield.Notify({
-                    Title = "Auto Hatch",
-                    Content = "Auto hatching disabled!",
-                    Duration = 3
-                })
-                
-                print("❌ Auto Hatch disabled")
-            end
-        end
-    })
-    
-    -- ===== FAST TELEPORT (UNTUK EXPLORASI CEPAT) =====
-    Tab:CreateToggle({
-        Name = "FastTeleport",
-        Text = "⚡ Fast Teleport Mode",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.fastTeleportEnabled = value
-            
-            if value then
-                Rayfield.Notify({
-                    Title = "Fast Teleport",
-                    Content = "Fast teleport enabled! Move 2x faster",
-                    Duration = 3
-                })
-                
-                print("✅ Fast Teleport enabled")
-                
-                -- Modifikasi WalkSpeed untuk teleport lebih cepat
-                local character = game.Players.LocalPlayer.Character
-                if character then
-                    local humanoid = character:FindFirstChild("Humanoid")
-                    if humanoid then
-                        humanoid.WalkSpeed = 50  -- 2-3x lebih cepat dari normal
-                    end
-                end
-                
-            else
-                Rayfield.Notify({
-                    Title = "Fast Teleport",
-                    Content = "Fast teleport disabled!",
-                    Duration = 3
-                })
-                
-                print("❌ Fast Teleport disabled")
-                
-                -- Reset WalkSpeed
-                local character = game.Players.LocalPlayer.Character
-                if character then
-                    local humanoid = character:FindFirstChild("Humanoid")
-                    if humanoid then
-                        humanoid.WalkSpeed = 16  -- Default speed
-                    end
-                end
-            end
-        end
-    })
-    
-    -- ===== COLLECT ALL NEARBY EGGS (ONE-TIME) =====
+    -- ===== COLLECT NEARBY EGGS =====
     Tab:CreateButton({
-        Name = "Collect Nearby Eggs",
+        Name = "CollectNearby",
         Text = "🌀 Collect Nearby Eggs",
         Callback = function()
-            print("🌀 Collecting all nearby eggs...")
+            print("🌀 Collecting nearby eggs...")
             
-            local collected = 0
-            local player = game.Players.LocalPlayer
+            local player = Players.LocalPlayer
             local character = player.Character
-            if not character then return end
+            if not character then 
+                Rayfield.Notify({
+                    Title = "Error",
+                    Content = "No character found!",
+                    Duration = 3
+                })
+                return 
+            end
             
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
             if not humanoidRootPart then return end
             
             local playerPos = humanoidRootPart.Position
+            local collected = 0
             
-            -- Kumpulkan semua eggs dalam radius
-            for _, obj in pairs(Shared.Services.Workspace:GetDescendants()) do
+            for _, obj in pairs(game.Workspace:GetDescendants()) do
                 if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
-                    for eggName, _ in pairs(Shared.EggData) do
-                        if obj.Name:lower():find(eggName:lower(), 1, true) then
-                            -- Dapatkan posisi objek
-                            local objPos
-                            if obj:IsA("Model") then
-                                local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                                objPos = primaryPart and primaryPart.Position or obj:GetPivot().Position
-                            else
-                                objPos = obj.Position
-                            end
-                            
-                            -- Cek jika dalam radius 100 studs
-                            local distance = (playerPos - objPos).Magnitude
-                            if distance < 100 then
-                                -- Teleport ke egg
-                                humanoidRootPart.CFrame = CFrame.new(objPos + Vector3.new(0, 3, 0))
+                    -- Get position
+                    local objPos
+                    if obj:IsA("Model") then
+                        local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                        objPos = primaryPart and primaryPart.Position or obj:GetPivot().Position
+                    else
+                        objPos = obj.Position
+                    end
+                    
+                    local distance = (playerPos - objPos).Magnitude
+                    
+                    if distance < 200 then
+                        for eggName, _ in pairs(EggData) do
+                            if obj.Name:lower():find(eggName:lower(), 1, true) then
+                                -- Teleport
+                                humanoidRootPart.CFrame = CFrame.new(objPos + Vector3.new(0, 5, 0))
                                 task.wait(0.1)
                                 
-                                -- Coba collect
+                                -- Find prompt
                                 local prompt = obj:FindFirstChildOfClass("ProximityPrompt") or
                                               obj.Parent:FindFirstChildOfClass("ProximityPrompt")
                                 
                                 if prompt then
-                                    fireproximityprompt(prompt)
+                                    triggerPrompt(prompt, player)
                                     collected = collected + 1
-                                    print("📦 Collected nearby:", obj.Name)
+                                    print("✅ Collected:", obj.Name)
                                     task.wait(0.2)
                                 end
+                                break
                             end
-                            break
                         end
                     end
                 end
@@ -315,7 +221,7 @@ function AutoFarm.Init(Dependencies)
             
             Rayfield.Notify({
                 Title = "Collection Complete",
-                Content = "Collected " .. collected .. " nearby eggs!",
+                Content = "Collected " .. collected .. " eggs nearby!",
                 Duration = 5
             })
             
@@ -323,23 +229,55 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- Helper function untuk mencari button
-    local function findButtonRecursive(parent, buttonName)
-        for _, child in pairs(parent:GetChildren()) do
-            if (child.Name:lower():find(buttonName:lower(), 1, true) or 
-                (child:IsA("TextButton") and child.Text:lower():find(buttonName:lower(), 1, true))) then
-                return child
-            end
+    -- ===== FAST MOVE =====
+    Tab:CreateToggle({
+        Name = "FastMove",
+        Text = "⚡ Fast Move (Speed 50)",
+        CurrentValue = false,
+        Callback = function(value)
+            Variables.fastMoveEnabled = value
             
-            if #child:GetChildren() > 0 then
-                local found = findButtonRecursive(child, buttonName)
-                if found then return found end
+            local player = Players.LocalPlayer
+            local character = player.Character
+            
+            if value then
+                Rayfield.Notify({
+                    Title = "Fast Move",
+                    Content = "Fast move enabled!",
+                    Duration = 3
+                })
+                
+                print("✅ Fast Move enabled")
+                
+                -- Set speed
+                if character then
+                    local humanoid = character:FindFirstChild("Humanoid")
+                    if humanoid then
+                        humanoid.WalkSpeed = 50
+                    end
+                end
+                
+            else
+                Rayfield.Notify({
+                    Title = "Fast Move",
+                    Content = "Fast move disabled!",
+                    Duration = 3
+                })
+                
+                print("❌ Fast Move disabled")
+                
+                -- Reset speed
+                if character then
+                    local humanoid = character:FindFirstChild("Humanoid")
+                    if humanoid then
+                        humanoid.WalkSpeed = 16
+                    end
+                end
             end
         end
-        return nil
-    end
+    })
     
-    print("✅ AutoFarm tab initialized (Pets Edition)")
+    print("✅ AutoFarm tab initialized successfully")
 end
 
 return AutoFarm
