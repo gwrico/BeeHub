@@ -1,7 +1,7 @@
 -- ==============================================
 -- 🎮 BEEHUB v4.0 - MODULAR SYSTEM (MAIN)
 -- ==============================================
-print("🔧 Loadng BeeHub Modular System v4.0...")
+print("🔧 Loading BeeHub Modular System v4.0...")
 
 -- Configuration
 local CONFIG = {
@@ -17,7 +17,7 @@ local GUI = SimpleGUI.new()
 
 -- Create main window
 local Window = GUI:CreateWindow({
-    Name = "⚡ BeeHub v4.0",
+    Name = "⚡ BeeHub v4.0 - PETS EDITION",
     Size = UDim2.new(0, 600, 0, 500),
     TitleBarHeight = 28,
     MinimizeHeight = 25,
@@ -36,25 +36,20 @@ local Rayfield = {
     end
 }
 
--- Ore data
-local OreData = {
-    Stone = {value = 1, rarityId = 1},
-    Coal = {value = 25, rarityId = 2},
-    ["Bronze Ore"] = {value = 30, rarityId = 2},
-    ["Iron Ore"] = {value = 35, rarityId = 2},
-    ["Silver Ore"] = {value = 120, rarityId = 3},
-    ["Gold Ore"] = {value = 135, rarityId = 3},
-    Sapphire = {value = 150, rarityId = 3},
-    Ruby = {value = 360, rarityId = 4},
-    Emerald = {value = 420, rarityId = 4},
-    Diamond = {value = 480, rarityId = 4},
-    Tungstine = {value = 1800, rarityId = 5},
-    ["Black Opal"] = {value = 2400, rarityId = 5},
-    Painite = {value = 3200, rarityId = 5},
-    Alexandrite = {value = 12000, rarityId = 6},
-    Taaffeite = {value = 30000, rarityId = 6},
-    Kyawthuite = {value = 75000, rarityId = 7},
-    Rainbow = {value = 300000, rarityId = 8}
+-- 🥚 EGG DATA (GANTI DARI ORE DATA) 🥚
+local EggData = {
+    ["Copper Egg"] = {value = 10, rarityId = 1},
+    ["Silver Egg"] = {value = 25, rarityId = 2},
+    ["Gold Egg"] = {value = 100, rarityId = 3},
+    ["Emerald Egg"] = {value = 250, rarityId = 4},
+    ["Ruby Egg"] = {value = 1000, rarityId = 5},
+    ["Diamond Egg"] = {value = 10000, rarityId = 6},
+    ["Obsidian Egg"] = {value = 50000, rarityId = 7},
+    ["Mystery Egg"] = {value = 250000, rarityId = 8},
+    ["Lava Egg"] = {value = 250000, rarityId = 8},
+    ["Galaxy Egg"] = {value = 250000, rarityId = 8},
+    ["Gold Lucky Block"] = {value = 250000, rarityId = 8},
+    ["Diamond Lucky Block"] = {value = 250000, rarityId = 8}
 }
 
 -- Shared state container
@@ -64,8 +59,8 @@ local Shared = {
     GUI = GUI,
     Rayfield = Rayfield,
     
-    -- Data
-    OreData = OreData,
+    -- Data (GANTI OreData -> EggData)
+    EggData = EggData,
     
     -- Services
     Services = {
@@ -75,17 +70,15 @@ local Shared = {
         Players = game:GetService("Players"),
         Workspace = game:GetService("Workspace"),
         TeleportService = game:GetService("TeleportService"),
-        ReplicatedStorage = game:GetService("ReplicatedStorage")
+        ReplicatedStorage = game:GetService("ReplicatedStorage"),
+        MarketplaceService = game:GetService("MarketplaceService")
     },
     
-    -- Shared variables
+    -- Shared variables (update nama variable)
     Variables = {
-        autoMineEnabled = false,
+        autoCollectEnabled = false,      -- Ganti: autoMineEnabled
         autoPunchEnabled = false,
-        toolEquipped = false,
-        mineConnection = nil,
-        punchConnection = nil,
-        oreESPEnabled = false,
+        eggESPEnabled = false,           -- Ganti: oreESPEnabled
         xrayEnabled = false,
         playerESPEnabled = false,
         antiAfkEnabled = false,
@@ -93,7 +86,8 @@ local Shared = {
         jumpHackEnabled = false,
         noclipEnabled = false,
         infiniteJumpEnabled = false,
-        flyEnabled = false
+        flyEnabled = false,
+        autoHatchEnabled = false         -- TAMBAH: untuk auto hatch
     },
     
     -- Tab references (will be filled by modules)
