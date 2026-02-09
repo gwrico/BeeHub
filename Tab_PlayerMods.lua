@@ -145,6 +145,159 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
+    -- ===== FLY HACK =====
+    local flySpeed = 50
+    local flyToggle = Tab:CreateToggle({
+        Name = "FlyHack",
+        Text = "✈️ Fly Hack",
+        CurrentValue = false,
+        Callback = function(value)
+            Variables.flyEnabled = value
+            
+            if value then
+                Rayfield.Notify({
+                    Title = "Fly Hack",
+                    Content = "Fly hack enabled! (" .. flySpeed .. " speed)",
+                    Duration = 3
+                })
+                
+                print("✅ Fly hack enabled:", flySpeed)
+                
+                -- Initialize fly variables
+                local player = game.Players.LocalPlayer
+                local character = player.Character or player.CharacterAdded:Wait()
+                local humanoid = character:WaitForChild("Humanoid")
+                
+                -- Create fly body velocity
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                bodyVelocity.P = 1000
+                bodyVelocity.Name = "FlyHackBodyVelocity"
+                bodyVelocity.Parent = character.PrimaryPart or character:FindFirstChild("HumanoidRootPart")
+                
+                -- Fly control function
+                local flyConnection
+                flyConnection = Services.RunService.Heartbeat:Connect(function()
+                    if not Variables.flyEnabled or not character or not character:FindFirstChild("HumanoidRootPart") then
+                        flyConnection:Disconnect()
+                        if bodyVelocity then bodyVelocity:Destroy() end
+                        return
+                    end
+                    
+                    local root = character.HumanoidRootPart
+                    if not bodyVelocity or not bodyVelocity.Parent then
+                        bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                        bodyVelocity.P = 1000
+                        bodyVelocity.Name = "FlyHackBodyVelocity"
+                        bodyVelocity.Parent = root
+                    end
+                    
+                    -- Get input for flying
+                    local camera = workspace.CurrentCamera
+                    local forward = camera.CFrame.LookVector
+                    local right = camera.CFrame.RightVector
+                    local up = Vector3.new(0, 1, 0)
+                    
+                    local direction = Vector3.new(0, 0, 0)
+                    
+                    -- W (forward)
+                    if Services.UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                        direction = direction + forward
+                    end
+                    -- S (backward)
+                    if Services.UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                        direction = direction - forward
+                    end
+                    -- A (left)
+                    if Services.UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                        direction = direction - right
+                    end
+                    -- D (right)
+                    if Services.UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                        direction = direction + right
+                    end
+                    -- Space (up)
+                    if Services.UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                        direction = direction + up
+                    end
+                    -- LeftShift (down)
+                    if Services.UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        direction = direction - up
+                    end
+                    
+                    -- Normalize and apply speed
+                    if direction.Magnitude > 0 then
+                        direction = direction.Unit * flySpeed
+                    end
+                    
+                    -- Apply velocity
+                    bodyVelocity.Velocity = direction
+                    
+                    -- Zero out gravity while flying
+                    if character:FindFirstChild("Humanoid") then
+                        character.Humanoid.PlatformStand = true
+                    end
+                end)
+                
+                -- Handle character respawn
+                local characterAddedConnection
+                characterAddedConnection = player.CharacterAdded:Connect(function(newChar)
+                    character = newChar
+                    humanoid = newChar:WaitForChild("Humanoid")
+                    
+                    if Variables.flyEnabled then
+                        wait(1)
+                        if bodyVelocity then bodyVelocity:Destroy() end
+                        bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                        bodyVelocity.P = 1000
+                        bodyVelocity.Name = "FlyHackBodyVelocity"
+                        bodyVelocity.Parent = newChar.PrimaryPart or newChar:FindFirstChild("HumanoidRootPart")
+                    end
+                end)
+                
+            else
+                Rayfield.Notify({
+                    Title = "Fly Hack",
+                    Content = "Fly hack disabled!",
+                    Duration = 3
+                })
+                
+                print("❌ Fly hack disabled")
+                
+                -- Clean up fly objects
+                local char = game.Players.LocalPlayer.Character
+                if char then
+                    -- Remove body velocity
+                    local bodyVelocity = char:FindFirstChild("FlyHackBodyVelocity")
+                    if bodyVelocity then
+                        bodyVelocity:Destroy()
+                    end
+                    
+                    -- Reset platform stand
+                    if char:FindFirstChild("Humanoid") then
+                        char.Humanoid.PlatformStand = false
+                    end
+                end
+            end
+        end
+    })
+    
+    Tab:CreateSlider({
+        Name = "Fly Speed",
+        Range = {10, 200},
+        Increment = 5,
+        CurrentValue = 50,
+        Callback = function(value)
+            flySpeed = value
+            print("📊 Fly speed set to:", value)
+        end
+    })
+    
     -- ===== NOCLIP =====
     Tab:CreateToggle({
         Name = "Noclip",
@@ -263,6 +416,15 @@ function PlayerMods.Init(Dependencies)
             if char and char:FindFirstChild("Humanoid") then
                 char.Humanoid.WalkSpeed = 16
                 char.Humanoid.JumpPower = 50
+                
+                -- Remove fly body velocity
+                local bodyVelocity = char:FindFirstChild("FlyHackBodyVelocity")
+                if bodyVelocity then
+                    bodyVelocity:Destroy()
+                end
+                
+                -- Reset platform stand
+                char.Humanoid.PlatformStand = false
             end
             
             Rayfield.Notify({
