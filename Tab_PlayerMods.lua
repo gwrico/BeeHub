@@ -298,8 +298,12 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
+    -- ===== SEPARATOR =====
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    Tab:CreateLabel("⚡ CHARACTER MODIFIER")
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    
     -- ===== CHARACTER MODIFIER =====
-    Tab:CreateSection("Character Modifier")
     
     -- Character Size Slider
     local characterSize = 1
@@ -442,8 +446,12 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
+    -- ===== SEPARATOR =====
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    Tab:CreateLabel("🌈 RAINBOW EFFECTS")
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    
     -- ===== RAINBOW CHARACTER =====
-    Tab:CreateSection("Rainbow Effects")
     
     -- Rainbow Character Toggle
     local rainbowSpeed = 1
@@ -581,6 +589,11 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
+    -- ===== SEPARATOR =====
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    Tab:CreateLabel("🎮 OTHER MODS")
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    
     -- ===== NOCLIP =====
     Tab:CreateToggle({
         Name = "Noclip",
@@ -677,6 +690,11 @@ function PlayerMods.Init(Dependencies)
             end
         end
     })
+    
+    -- ===== SEPARATOR =====
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    Tab:CreateLabel("⚠️ SYSTEM")
+    Tab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
     -- ===== DISABLE ALL HACKS =====
     Tab:CreateButton({
