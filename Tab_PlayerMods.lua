@@ -1,39 +1,33 @@
 -- ==============================================
--- 👤 PLAYER MODS TAB MODULE (SimpleGUI v4.0 Compatible)
+-- 👤 PLAYER MODS TAB MODULE
 -- ==============================================
 
 local PlayerMods = {}
 
 function PlayerMods.Init(Dependencies)
-    local Window = Dependencies.Window
-    local SimpleGUI = Dependencies.SimpleGUI
-    local Services = Dependencies.Services
-    local Variables = Dependencies.Variables
-    local Functions = Dependencies.Functions
+    local Tab = Dependencies.Tab
+    local Shared = Dependencies.Shared
+    local Rayfield = Dependencies.Rayfield
     
-    print("👤 Initializing PlayerMods tab for SimpleGUI v4.0...")
+    local Services = Shared.Services
+    local Variables = Shared.Variables
+    local Functions = Shared.Functions
     
-    -- Create PlayerMods Tab
-    local PlayerTab = Window:CreateTab("Player Mods")
+    print("👤 Initializing PlayerMods tab...")
     
     -- ===== SPEED HACK =====
     local customSpeed = 100
-    local speedHackEnabled = false
-    
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "🏃 SPEED HACK", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    local speedToggle = PlayerTab:CreateToggle({
+    local speedToggle = Tab:CreateToggle({
         Name = "SpeedHack",
+        Text = "🏃 Speed Hack",
         CurrentValue = false,
         Callback = function(value)
-            speedHackEnabled = value
+            Variables.speedHackEnabled = value
             
             if value then
-                SimpleGUI:ShowNotification({
-                    Message = "Speed hack enabled! (" .. customSpeed .. " walk speed)",
-                    Type = "Success",
+                Rayfield.Notify({
+                    Title = "Speed Hack",
+                    Content = "Speed hack enabled! (" .. customSpeed .. " walk speed)",
                     Duration = 3
                 })
                 
@@ -41,7 +35,7 @@ function PlayerMods.Init(Dependencies)
                 
                 local connection
                 connection = Services.RunService.Heartbeat:Connect(function()
-                    if not speedHackEnabled then
+                    if not Variables.speedHackEnabled then
                         connection:Disconnect()
                         return
                     end
@@ -53,9 +47,9 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                SimpleGUI:ShowNotification({
-                    Message = "Speed hack disabled!",
-                    Type = "Warning",
+                Rayfield.Notify({
+                    Title = "Speed Hack",
+                    Content = "Speed hack disabled!",
                     Duration = 3
                 })
                 
@@ -69,13 +63,14 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    local speedSlider = PlayerTab:CreateSlider({
+    Tab:CreateSlider({
         Name = "Speed Value",
         Range = {16, 500},
+        Increment = 1,
         CurrentValue = 100,
         Callback = function(value)
             customSpeed = value
-            if speedHackEnabled then
+            if Variables.speedHackEnabled then
                 local char = game.Players.LocalPlayer.Character
                 if char and char:FindFirstChild("Humanoid") then
                     char.Humanoid.WalkSpeed = value
@@ -87,22 +82,17 @@ function PlayerMods.Init(Dependencies)
     
     -- ===== JUMP HACK =====
     local customJump = 150
-    local jumpHackEnabled = false
-    
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "🦘 JUMP HACK", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    local jumpToggle = PlayerTab:CreateToggle({
+    local jumpToggle = Tab:CreateToggle({
         Name = "JumpHack",
+        Text = "🦘 Jump Hack",
         CurrentValue = false,
         Callback = function(value)
-            jumpHackEnabled = value
+            Variables.jumpHackEnabled = value
             
             if value then
-                SimpleGUI:ShowNotification({
-                    Message = "Jump hack enabled! (" .. customJump .. " jump power)",
-                    Type = "Success",
+                Rayfield.Notify({
+                    Title = "Jump Hack",
+                    Content = "Jump hack enabled! (" .. customJump .. " jump power)",
                     Duration = 3
                 })
                 
@@ -110,7 +100,7 @@ function PlayerMods.Init(Dependencies)
                 
                 local connection
                 connection = Services.RunService.Heartbeat:Connect(function()
-                    if not jumpHackEnabled then
+                    if not Variables.jumpHackEnabled then
                         connection:Disconnect()
                         return
                     end
@@ -122,9 +112,9 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                SimpleGUI:ShowNotification({
-                    Message = "Jump hack disabled!",
-                    Type = "Warning",
+                Rayfield.Notify({
+                    Title = "Jump Hack",
+                    Content = "Jump hack disabled!",
                     Duration = 3
                 })
                 
@@ -138,13 +128,14 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    local jumpSlider = PlayerTab:CreateSlider({
+    Tab:CreateSlider({
         Name = "Jump Value",
         Range = {50, 500},
+        Increment = 5,
         CurrentValue = 150,
         Callback = function(value)
             customJump = value
-            if jumpHackEnabled then
+            if Variables.jumpHackEnabled then
                 local char = game.Players.LocalPlayer.Character
                 if char and char:FindFirstChild("Humanoid") then
                     char.Humanoid.JumpPower = value
@@ -156,63 +147,52 @@ function PlayerMods.Init(Dependencies)
     
     -- ===== FLY HACK =====
     local flySpeed = 50
-    local flyEnabled = false
-    local flyBodyVelocity = nil
-    local flyConnection = nil
-    
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "✈️ FLY HACK", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    local flyToggle = PlayerTab:CreateToggle({
+    local flyToggle = Tab:CreateToggle({
         Name = "FlyHack",
+        Text = "✈️ Fly Hack",
         CurrentValue = false,
         Callback = function(value)
-            flyEnabled = value
+            Variables.flyEnabled = value
             
             if value then
-                SimpleGUI:ShowNotification({
-                    Message = "Fly hack enabled! (" .. flySpeed .. " speed)",
-                    Type = "Success",
+                Rayfield.Notify({
+                    Title = "Fly Hack",
+                    Content = "Fly hack enabled! (" .. flySpeed .. " speed)",
                     Duration = 3
                 })
                 
                 print("✅ Fly hack enabled:", flySpeed)
                 
-                -- Initialize fly
+                -- Initialize fly variables
                 local player = game.Players.LocalPlayer
                 local character = player.Character or player.CharacterAdded:Wait()
+                local humanoid = character:WaitForChild("Humanoid")
                 
                 -- Create fly body velocity
-                flyBodyVelocity = Instance.new("BodyVelocity")
-                flyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                flyBodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                flyBodyVelocity.P = 1000
-                flyBodyVelocity.Name = "FlyHackBodyVelocity"
-                flyBodyVelocity.Parent = character.PrimaryPart or character:FindFirstChild("HumanoidRootPart")
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                bodyVelocity.P = 1000
+                bodyVelocity.Name = "FlyHackBodyVelocity"
+                bodyVelocity.Parent = character.PrimaryPart or character:FindFirstChild("HumanoidRootPart")
                 
                 -- Fly control function
+                local flyConnection
                 flyConnection = Services.RunService.Heartbeat:Connect(function()
-                    if not flyEnabled or not character or not character:FindFirstChild("HumanoidRootPart") then
-                        if flyConnection then
-                            flyConnection:Disconnect()
-                            flyConnection = nil
-                        end
-                        if flyBodyVelocity then
-                            flyBodyVelocity:Destroy()
-                            flyBodyVelocity = nil
-                        end
+                    if not Variables.flyEnabled or not character or not character:FindFirstChild("HumanoidRootPart") then
+                        flyConnection:Disconnect()
+                        if bodyVelocity then bodyVelocity:Destroy() end
                         return
                     end
                     
                     local root = character.HumanoidRootPart
-                    if not flyBodyVelocity or not flyBodyVelocity.Parent then
-                        flyBodyVelocity = Instance.new("BodyVelocity")
-                        flyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                        flyBodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                        flyBodyVelocity.P = 1000
-                        flyBodyVelocity.Name = "FlyHackBodyVelocity"
-                        flyBodyVelocity.Parent = root
+                    if not bodyVelocity or not bodyVelocity.Parent then
+                        bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                        bodyVelocity.P = 1000
+                        bodyVelocity.Name = "FlyHackBodyVelocity"
+                        bodyVelocity.Parent = root
                     end
                     
                     -- Get input for flying
@@ -254,7 +234,7 @@ function PlayerMods.Init(Dependencies)
                     end
                     
                     -- Apply velocity
-                    flyBodyVelocity.Velocity = direction
+                    bodyVelocity.Velocity = direction
                     
                     -- Zero out gravity while flying
                     if character:FindFirstChild("Humanoid") then
@@ -263,51 +243,54 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
                 -- Handle character respawn
-                player.CharacterAdded:Connect(function(newChar)
+                local characterAddedConnection
+                characterAddedConnection = player.CharacterAdded:Connect(function(newChar)
                     character = newChar
-                    if flyEnabled then
-                        task.wait(1)
-                        if flyBodyVelocity then flyBodyVelocity:Destroy() end
-                        flyBodyVelocity = Instance.new("BodyVelocity")
-                        flyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                        flyBodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                        flyBodyVelocity.P = 1000
-                        flyBodyVelocity.Name = "FlyHackBodyVelocity"
-                        flyBodyVelocity.Parent = newChar.PrimaryPart or newChar:FindFirstChild("HumanoidRootPart")
+                    humanoid = newChar:WaitForChild("Humanoid")
+                    
+                    if Variables.flyEnabled then
+                        wait(1)
+                        if bodyVelocity then bodyVelocity:Destroy() end
+                        bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                        bodyVelocity.P = 1000
+                        bodyVelocity.Name = "FlyHackBodyVelocity"
+                        bodyVelocity.Parent = newChar.PrimaryPart or newChar:FindFirstChild("HumanoidRootPart")
                     end
                 end)
                 
             else
-                SimpleGUI:ShowNotification({
-                    Message = "Fly hack disabled!",
-                    Type = "Warning",
+                Rayfield.Notify({
+                    Title = "Fly Hack",
+                    Content = "Fly hack disabled!",
                     Duration = 3
                 })
                 
                 print("❌ Fly hack disabled")
                 
-                -- Clean up
-                if flyConnection then
-                    flyConnection:Disconnect()
-                    flyConnection = nil
-                end
-                
-                if flyBodyVelocity then
-                    flyBodyVelocity:Destroy()
-                    flyBodyVelocity = nil
-                end
-                
+                -- Clean up fly objects
                 local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid.PlatformStand = false
+                if char then
+                    -- Remove body velocity
+                    local bodyVelocity = char:FindFirstChild("FlyHackBodyVelocity")
+                    if bodyVelocity then
+                        bodyVelocity:Destroy()
+                    end
+                    
+                    -- Reset platform stand
+                    if char:FindFirstChild("Humanoid") then
+                        char.Humanoid.PlatformStand = false
+                    end
                 end
             end
         end
     })
     
-    local flySpeedSlider = PlayerTab:CreateSlider({
+    Tab:CreateSlider({
         Name = "Fly Speed",
         Range = {10, 200},
+        Increment = 5,
         CurrentValue = 50,
         Callback = function(value)
             flySpeed = value
@@ -316,16 +299,13 @@ function PlayerMods.Init(Dependencies)
     })
     
     -- ===== CHARACTER MODIFIER =====
+    
+    -- Character Size Slider
     local characterSize = 1
-    local invisibleEnabled = false
-    
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "⚡ CHARACTER MODIFIER", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    local sizeSlider = PlayerTab:CreateSlider({
+    local sizeSlider = Tab:CreateSlider({
         Name = "Character Size",
         Range = {0.1, 10},
+        Increment = 0.1,
         CurrentValue = 1,
         Callback = function(value)
             characterSize = value
@@ -356,11 +336,13 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    PlayerTab:CreateButton({
+    -- Reset Size Button
+    Tab:CreateButton({
+        Name = "ResetSize",
         Text = "🔄 Reset Size",
         Callback = function()
             characterSize = 1
-            sizeSlider.Set(1)
+            sizeSlider:Set(1)
             
             local player = game.Players.LocalPlayer
             local character = player.Character
@@ -376,9 +358,9 @@ function PlayerMods.Init(Dependencies)
                 end
             end
             
-            SimpleGUI:ShowNotification({
-                Message = "Character size reset to normal!",
-                Type = "Info",
+            Rayfield.Notify({
+                Title = "Character Size",
+                Content = "Character size reset to normal!",
                 Duration = 3
             })
             
@@ -386,16 +368,18 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    local invisibleToggle = PlayerTab:CreateToggle({
-        Name = "Invisible Character",
+    -- Invisible Character Toggle
+    Tab:CreateToggle({
+        Name = "Invisible",
+        Text = "👻 Invisible Character",
         CurrentValue = false,
         Callback = function(value)
-            invisibleEnabled = value
+            Variables.invisibleEnabled = value
             
             if value then
-                SimpleGUI:ShowNotification({
-                    Message = "Character is now invisible!",
-                    Type = "Success",
+                Rayfield.Notify({
+                    Title = "Invisible",
+                    Content = "Character is now invisible!",
                     Duration = 3
                 })
                 
@@ -403,7 +387,7 @@ function PlayerMods.Init(Dependencies)
                 
                 local connection
                 connection = Services.RunService.Heartbeat:Connect(function()
-                    if not invisibleEnabled then
+                    if not Variables.invisibleEnabled then
                         connection:Disconnect()
                         return
                     end
@@ -428,9 +412,9 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                SimpleGUI:ShowNotification({
-                    Message = "Character is now visible!",
-                    Type = "Info",
+                Rayfield.Notify({
+                    Title = "Invisible",
+                    Content = "Character is now visible!",
                     Duration = 3
                 })
                 
@@ -458,23 +442,20 @@ function PlayerMods.Init(Dependencies)
     })
     
     -- ===== RAINBOW CHARACTER =====
+    
+    -- Rainbow Character Toggle
     local rainbowSpeed = 1
-    local rainbowEnabled = false
-    
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "🌈 RAINBOW EFFECTS", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    local rainbowToggle = PlayerTab:CreateToggle({
-        Name = "Rainbow Character",
+    Tab:CreateToggle({
+        Name = "RainbowCharacter",
+        Text = "🌈 Rainbow Character",
         CurrentValue = false,
         Callback = function(value)
-            rainbowEnabled = value
+            Variables.rainbowCharacterEnabled = value
             
             if value then
-                SimpleGUI:ShowNotification({
-                    Message = "Rainbow mode enabled!",
-                    Type = "Success",
+                Rayfield.Notify({
+                    Title = "Rainbow Character",
+                    Content = "Rainbow mode enabled!",
                     Duration = 3
                 })
                 
@@ -483,7 +464,7 @@ function PlayerMods.Init(Dependencies)
                 local hue = 0
                 local connection
                 connection = Services.RunService.Heartbeat:Connect(function(deltaTime)
-                    if not rainbowEnabled then
+                    if not Variables.rainbowCharacterEnabled then
                         connection:Disconnect()
                         -- Reset colors
                         local char = game.Players.LocalPlayer.Character
@@ -522,9 +503,9 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                SimpleGUI:ShowNotification({
-                    Message = "Rainbow mode disabled!",
-                    Type = "Info",
+                Rayfield.Notify({
+                    Title = "Rainbow Character",
+                    Content = "Rainbow mode disabled!",
                     Duration = 3
                 })
                 
@@ -543,9 +524,11 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    local rainbowSlider = PlayerTab:CreateSlider({
+    -- Rainbow Speed Slider
+    Tab:CreateSlider({
         Name = "Rainbow Speed",
         Range = {0.1, 10},
+        Increment = 0.1,
         CurrentValue = 1,
         Callback = function(value)
             rainbowSpeed = value
@@ -553,10 +536,12 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    PlayerTab:CreateButton({
+    -- Reset Colors Button
+    Tab:CreateButton({
+        Name = "ResetColors",
         Text = "🎨 Reset Colors",
         Callback = function()
-            rainbowEnabled = false
+            Variables.rainbowCharacterEnabled = false
             
             local char = game.Players.LocalPlayer.Character
             if char then
@@ -567,9 +552,9 @@ function PlayerMods.Init(Dependencies)
                 end
             end
             
-            SimpleGUI:ShowNotification({
-                Message = "Character colors reset to default!",
-                Type = "Info",
+            Rayfield.Notify({
+                Title = "Colors",
+                Content = "Character colors reset to default!",
                 Duration = 3
             })
             
@@ -578,22 +563,17 @@ function PlayerMods.Init(Dependencies)
     })
     
     -- ===== NOCLIP =====
-    local noclipEnabled = false
-    
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "👻 NOCLIP", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    local noclipToggle = PlayerTab:CreateToggle({
+    Tab:CreateToggle({
         Name = "Noclip",
+        Text = "👻 Noclip",
         CurrentValue = false,
         Callback = function(value)
-            noclipEnabled = value
+            Variables.noclipEnabled = value
             
             if value then
-                SimpleGUI:ShowNotification({
-                    Message = "Noclip enabled!",
-                    Type = "Success",
+                Rayfield.Notify({
+                    Title = "Noclip",
+                    Content = "Noclip enabled!",
                     Duration = 3
                 })
                 
@@ -601,7 +581,7 @@ function PlayerMods.Init(Dependencies)
                 
                 local connection
                 connection = Services.RunService.Stepped:Connect(function()
-                    if not noclipEnabled then
+                    if not Variables.noclipEnabled then
                         connection:Disconnect()
                         return
                     end
@@ -617,9 +597,9 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                SimpleGUI:ShowNotification({
-                    Message = "Noclip disabled!",
-                    Type = "Warning",
+                Rayfield.Notify({
+                    Title = "Noclip",
+                    Content = "Noclip disabled!",
                     Duration = 3
                 })
                 
@@ -638,22 +618,17 @@ function PlayerMods.Init(Dependencies)
     })
     
     -- ===== INFINITE JUMP =====
-    local infiniteJumpEnabled = false
-    
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "∞ INFINITE JUMP", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    local infiniteJumpToggle = PlayerTab:CreateToggle({
-        Name = "Infinite Jump",
+    Tab:CreateToggle({
+        Name = "InfiniteJump",
+        Text = "∞ Infinite Jump",
         CurrentValue = false,
         Callback = function(value)
-            infiniteJumpEnabled = value
+            Variables.infiniteJumpEnabled = value
             
             if value then
-                SimpleGUI:ShowNotification({
-                    Message = "Infinite jump enabled!",
-                    Type = "Success",
+                Rayfield.Notify({
+                    Title = "Infinite Jump",
+                    Content = "Infinite jump enabled!",
                     Duration = 3
                 })
                 
@@ -661,7 +636,7 @@ function PlayerMods.Init(Dependencies)
                 
                 local connection
                 connection = Services.UserInputService.JumpRequest:Connect(function()
-                    if not infiniteJumpEnabled then
+                    if not Variables.infiniteJumpEnabled then
                         connection:Disconnect()
                         return
                     end
@@ -673,9 +648,9 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                SimpleGUI:ShowNotification({
-                    Message = "Infinite jump disabled!",
-                    Type = "Warning",
+                Rayfield.Notify({
+                    Title = "Infinite Jump",
+                    Content = "Infinite jump disabled!",
                     Duration = 3
                 })
                 
@@ -685,36 +660,22 @@ function PlayerMods.Init(Dependencies)
     })
     
     -- ===== DISABLE ALL HACKS =====
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    PlayerTab:CreateLabel({Text = "⚠️ SYSTEM", TextSize = 16})
-    PlayerTab:CreateLabel({Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"})
-    
-    PlayerTab:CreateButton({
+    Tab:CreateButton({
+        Name = "DisableAll",
         Text = "🔴 Disable All Hacks",
         Callback = function()
             print("\n🔴 DISABLING ALL HACKS...")
             
             -- Disable all toggles
-            speedHackEnabled = false
-            speedToggle.Set(false)
-            
-            jumpHackEnabled = false
-            jumpToggle.Set(false)
-            
-            noclipEnabled = false
-            noclipToggle.Set(false)
-            
-            infiniteJumpEnabled = false
-            infiniteJumpToggle.Set(false)
-            
-            flyEnabled = false
-            flyToggle.Set(false)
-            
-            rainbowEnabled = false
-            rainbowToggle.Set(false)
-            
-            invisibleEnabled = false
-            invisibleToggle.Set(false)
+            Variables.speedHackEnabled = false
+            Variables.jumpHackEnabled = false
+            Variables.noclipEnabled = false
+            Variables.infiniteJumpEnabled = false
+            Variables.flyEnabled = false
+            Variables.rainbowCharacterEnabled = false
+            Variables.invisibleEnabled = false
+            Variables.autoMineEnabled = false
+            Variables.autoPunchEnabled = false
             
             -- Reset character stats
             local char = game.Players.LocalPlayer.Character
@@ -748,9 +709,9 @@ function PlayerMods.Init(Dependencies)
                 end
             end
             
-            SimpleGUI:ShowNotification({
-                Message = "All hacks have been disabled!",
-                Type = "Info",
+            Rayfield.Notify({
+                Title = "All Hacks",
+                Content = "All hacks have been disabled!",
                 Duration = 4
             })
             
@@ -758,21 +719,7 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    print("✅ PlayerMods tab initialized for SimpleGUI v4.0")
-    
-    -- Return the PlayerTab for external access if needed
-    return {
-        Tab = PlayerTab,
-        Variables = {
-            speedHackEnabled = speedHackEnabled,
-            jumpHackEnabled = jumpHackEnabled,
-            noclipEnabled = noclipEnabled,
-            infiniteJumpEnabled = infiniteJumpEnabled,
-            flyEnabled = flyEnabled,
-            rainbowEnabled = rainbowEnabled,
-            invisibleEnabled = invisibleEnabled
-        }
-    }
+    print("✅ PlayerMods tab initialized")
 end
 
 return PlayerMods
