@@ -7,7 +7,7 @@ local Misc = {}
 function Misc.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
-    local Rayfield = Dependencies.Rayfield
+    local Bdev = Dependencies.Bdev
     local Window = Dependencies.Window
     
     local Variables = Shared.Variables
@@ -26,7 +26,7 @@ function Misc.Init(Dependencies)
             Variables.antiAfkEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Anti-AFK",
                     Content = "Anti-AFK enabled! You won't be kicked for AFK.",
                     Duration = 3
@@ -87,7 +87,7 @@ function Misc.Init(Dependencies)
                 antiAFKConnection = cameraMove
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Anti-AFK",
                     Content = "Anti-AFK disabled!",
                     Duration = 3
@@ -113,7 +113,7 @@ function Misc.Init(Dependencies)
             Variables.noclipEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "No Clip",
                     Content = "No Clip enabled! You can walk through walls.",
                     Duration = 3
@@ -147,7 +147,7 @@ function Misc.Init(Dependencies)
                 end
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "No Clip",
                     Content = "No Clip disabled!",
                     Duration = 3
@@ -167,7 +167,7 @@ function Misc.Init(Dependencies)
             Variables.infiniteJumpEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Infinite Jump",
                     Content = "Infinite Jump enabled! Hold Space to fly.",
                     Duration = 3
@@ -186,7 +186,7 @@ function Misc.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Infinite Jump",
                     Content = "Infinite Jump disabled!",
                     Duration = 3
@@ -205,7 +205,7 @@ function Misc.Init(Dependencies)
             if Window and Window.MainFrame then
                 Window.MainFrame.Visible = false
                 print("🗑️ GUI destroyed")
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "GUI",
                     Content = "GUI destroyed!",
                     Duration = 3
@@ -219,7 +219,7 @@ function Misc.Init(Dependencies)
         Name = "RejoinServer",
         Text = "🔄 Rejoin Server",
         Callback = function()
-            Rayfield.Notify({
+            Bdev.Notify({
                 Title = "Rejoin",
                 Content = "Rejoining server...",
                 Duration = 3
@@ -238,7 +238,7 @@ function Misc.Init(Dependencies)
         Name = "ServerHop",
         Text = "🌐 Server Hop",
         Callback = function()
-            Rayfield.Notify({
+            Bdev.Notify({
                 Title = "Server Hop",
                 Content = "Finding new server...",
                 Duration = 3
@@ -330,7 +330,7 @@ function Misc.Init(Dependencies)
             
             print(string.rep("=", 40))
             
-            Rayfield.Notify({
+            Bdev.Notify({
                 Title = "Game Info",
                 Content = "Check console (F9) for detailed information!",
                 Duration = 5
@@ -389,13 +389,13 @@ function Misc.Init(Dependencies)
             print("📋 Discord link:", discordLink)
             
             if copied then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Discord",
                     Content = "Discord link copied to clipboard!",
                     Duration = 4
                 })
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Discord",
                     Content = "Discord link: " .. discordLink .. "\nCheck console (F9) to copy!",
                     Duration = 6
@@ -431,7 +431,7 @@ function Misc.Init(Dependencies)
             
             if copied then
                 print("🎮 Game ID copied:", gameId)
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Game ID",
                     Content = "Game ID copied to clipboard!",
                     Duration = 3
@@ -442,7 +442,7 @@ function Misc.Init(Dependencies)
                 print(gameId)
                 print(string.rep("=", 40))
                 
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Game ID",
                     Content = "Game ID: " .. gameId .. "\nCheck console to copy!",
                     Duration = 5

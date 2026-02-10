@@ -7,7 +7,7 @@ local AutoFarm = {}
 function AutoFarm.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
-    local Rayfield = Dependencies.Rayfield
+    local Bdev = Dependencies.Bdev
     
     local Variables = Shared.Variables or {}
     local EggData = Shared.EggData or {}
@@ -57,7 +57,7 @@ function AutoFarm.Init(Dependencies)
             Variables.autoCollectEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Auto Collect",
                     Content = "Auto collecting enabled!",
                     Duration = 3
@@ -142,7 +142,7 @@ function AutoFarm.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Auto Collect",
                     Content = "Auto collecting disabled!",
                     Duration = 3
@@ -168,7 +168,7 @@ function AutoFarm.Init(Dependencies)
             local player = Players.LocalPlayer
             local character = player.Character
             if not character then 
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Error",
                     Content = "No character found!",
                     Duration = 3
@@ -219,7 +219,7 @@ function AutoFarm.Init(Dependencies)
                 end
             end
             
-            Rayfield.Notify({
+            Bdev.Notify({
                 Title = "Collection Complete",
                 Content = "Collected " .. collected .. " eggs nearby!",
                 Duration = 5
@@ -241,7 +241,7 @@ function AutoFarm.Init(Dependencies)
             local character = player.Character
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Fast Move",
                     Content = "Fast move enabled!",
                     Duration = 3
@@ -258,7 +258,7 @@ function AutoFarm.Init(Dependencies)
                 end
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Fast Move",
                     Content = "Fast move disabled!",
                     Duration = 3

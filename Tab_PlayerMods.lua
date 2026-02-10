@@ -7,7 +7,7 @@ local PlayerMods = {}
 function PlayerMods.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
-    local Rayfield = Dependencies.Rayfield
+    local Bdev = Dependencies.Bdev
     
     local Services = Shared.Services
     local Variables = Shared.Variables
@@ -25,7 +25,7 @@ function PlayerMods.Init(Dependencies)
             Variables.speedHackEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Speed Hack",
                     Content = "Speed hack enabled! (" .. customSpeed .. " walk speed)",
                     Duration = 3
@@ -47,7 +47,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Speed Hack",
                     Content = "Speed hack disabled!",
                     Duration = 3
@@ -90,7 +90,7 @@ function PlayerMods.Init(Dependencies)
             Variables.jumpHackEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Jump Hack",
                     Content = "Jump hack enabled! (" .. customJump .. " jump power)",
                     Duration = 3
@@ -112,7 +112,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Jump Hack",
                     Content = "Jump hack disabled!",
                     Duration = 3
@@ -155,7 +155,7 @@ function PlayerMods.Init(Dependencies)
             Variables.flyEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Fly Hack",
                     Content = "Fly hack enabled! (" .. flySpeed .. " speed)",
                     Duration = 3
@@ -261,7 +261,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Fly Hack",
                     Content = "Fly hack disabled!",
                     Duration = 3
@@ -307,7 +307,7 @@ function PlayerMods.Init(Dependencies)
             Variables.noclipEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Noclip",
                     Content = "Noclip enabled!",
                     Duration = 3
@@ -333,7 +333,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Noclip",
                     Content = "Noclip disabled!",
                     Duration = 3
@@ -362,7 +362,7 @@ function PlayerMods.Init(Dependencies)
             Variables.infiniteJumpEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Infinite Jump",
                     Content = "Infinite jump enabled!",
                     Duration = 3
@@ -384,7 +384,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Infinite Jump",
                     Content = "Infinite jump disabled!",
                     Duration = 3
@@ -427,7 +427,7 @@ function PlayerMods.Init(Dependencies)
                 char.Humanoid.PlatformStand = false
             end
             
-            Rayfield.Notify({
+            Bdev.Notify({
                 Title = "All Hacks",
                 Content = "All hacks have been disabled!",
                 Duration = 4

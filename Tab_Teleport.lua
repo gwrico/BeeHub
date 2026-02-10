@@ -7,7 +7,7 @@ local Teleport = {}
 function Teleport.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
-    local Rayfield = Dependencies.Rayfield
+    local Bdev = Dependencies.Bdev
     
     local Functions = Shared.Functions
     
@@ -41,7 +41,7 @@ function Teleport.Init(Dependencies)
                     end
                 end
                 print("📍 Teleported to spawn")
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Teleport",
                     Content = "Teleported to spawn!",
                     Duration = 3
@@ -49,7 +49,7 @@ function Teleport.Init(Dependencies)
             else
                 Functions.teleportToPosition(Vector3.new(0, 50, 0))
                 print("📍 Teleported to default spawn (0,50,0)")
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Teleport",
                     Content = "Teleported to default spawn!",
                     Duration = 3
@@ -74,7 +74,7 @@ function Teleport.Init(Dependencies)
         Text = "👤 TP to Player",
         Callback = function()
             if targetPlayerName == "" then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Error",
                     Content = "Please enter a player name!",
                     Duration = 3
@@ -92,20 +92,20 @@ function Teleport.Init(Dependencies)
                 if targetHRP and humanoidRootPart then
                     humanoidRootPart.CFrame = targetHRP.CFrame
                     print("📍 Teleported to player:", targetPlayerName)
-                    Rayfield.Notify({
+                    Bdev.Notify({
                         Title = "Teleport",
                         Content = "Teleported to " .. targetPlayerName .. "!",
                         Duration = 3
                     })
                 else
-                    Rayfield.Notify({
+                    Bdev.Notify({
                         Title = "Error",
                         Content = "Could not teleport to player!",
                         Duration = 3
                     })
                 end
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Error",
                     Content = "Player '" .. targetPlayerName .. "' not found!",
                     Duration = 3
@@ -135,20 +135,20 @@ function Teleport.Init(Dependencies)
                             if targetHRP and humanoidRootPart then
                                 humanoidRootPart.CFrame = targetHRP.CFrame
                                 print("📍 Teleported to player:", player.Name)
-                                Rayfield.Notify({
+                                Bdev.Notify({
                                     Title = "Teleport",
                                     Content = "Teleported to " .. player.Name .. "!",
                                     Duration = 3
                                 })
                             else
-                                Rayfield.Notify({
+                                Bdev.Notify({
                                     Title = "Error",
                                     Content = "Cannot teleport to " .. player.Name .. "!",
                                     Duration = 3
                                 })
                             end
                         else
-                            Rayfield.Notify({
+                            Bdev.Notify({
                                 Title = "Error",
                                 Content = player.Name .. " has no character!",
                                 Duration = 3
@@ -176,7 +176,7 @@ function Teleport.Init(Dependencies)
         Name = "RefreshPlayers",
         Text = "🔄 Refresh Player List",
         Callback = function()
-            Rayfield.Notify({
+            Bdev.Notify({
                 Title = "Refresh",
                 Content = "Please re-open Teleport tab to refresh player list",
                 Duration = 4

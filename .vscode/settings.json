@@ -1,0 +1,8 @@
+{
+    "robloxLsp.diagnostics.globals": [
+        "windowObj",
+        "toclipboard",
+        "setclipboard",
+        "writeclipboard"
+    ]
+}

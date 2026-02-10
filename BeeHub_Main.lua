@@ -26,7 +26,7 @@ local Window = GUI:CreateWindow({
 })
 
 -- Notification system
-local Rayfield = {
+local Bdev = {
     Notify = function(notification)
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = notification.Title,
@@ -57,7 +57,7 @@ local Shared = {
     -- GUI
     Window = Window,
     GUI = GUI,
-    Rayfield = Rayfield,
+    Bdev = Bdev,
     
     -- Data (GANTI OreData -> EggData)
     EggData = EggData,
@@ -117,7 +117,7 @@ function Shared.LoadModule(moduleName, urlSuffix)
         local errMsg = "❌ Failed to load " .. moduleName .. ": " .. tostring(result)
         print(errMsg)
         Shared.Modules.Errors[moduleName] = errMsg
-        Rayfield.Notify({
+        Bdev.Notify({
             Title = "Module Error",
             Content = "Failed to load " .. moduleName,
             Duration = 5
@@ -157,7 +157,7 @@ function Shared.InitializeModules()
                 Tab = tab,
                 Shared = Shared,
                 Window = Window,
-                Rayfield = Rayfield
+                Bdev = Bdev
             })
             
             print("✅ Tab initialized: " .. moduleInfo.TabName)
@@ -194,7 +194,7 @@ task.spawn(function()
     print("\n🎉 BeeHub Modular System v4.0 fully loaded!")
     print("⏱️ Load time: " .. string.format("%.2f", loadTime) .. " seconds")
     
-    Rayfield.Notify({
+    Bdev.Notify({
         Title = "BeeHub v4.0",
         Content = "Modular system loaded successfully!\n" .. 
                   "Tabs: " .. #Shared.Tabs .. " | Time: " .. string.format("%.1f", loadTime) .. "s",

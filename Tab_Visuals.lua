@@ -7,7 +7,7 @@ local Visuals = {}
 function Visuals.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
-    local Rayfield = Dependencies.Rayfield
+    local Bdev = Dependencies.Bdev
     
     local Variables = Shared.Variables
     local Functions = Shared.Functions or {}
@@ -24,7 +24,7 @@ function Visuals.Init(Dependencies)
             Variables.eggESPEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Egg ESP",
                     Content = "Egg ESP enabled! Find eggs easily",
                     Duration = 3
@@ -113,7 +113,7 @@ function Visuals.Init(Dependencies)
                 print("📊 Highlighted", highlighted, "eggs")
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Egg ESP",
                     Content = "Egg ESP disabled!",
                     Duration = 3
@@ -154,7 +154,7 @@ function Visuals.Init(Dependencies)
             Variables.petESPEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Pet ESP",
                     Content = "Pet ESP enabled! See all pets",
                     Duration = 3
@@ -183,7 +183,7 @@ function Visuals.Init(Dependencies)
                 end
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Pet ESP",
                     Content = "Pet ESP disabled!",
                     Duration = 3
@@ -213,7 +213,7 @@ function Visuals.Init(Dependencies)
             Variables.xrayEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Simple X-Ray",
                     Content = "X-Ray enabled! Non-player objects are transparent",
                     Duration = 3
@@ -265,7 +265,7 @@ function Visuals.Init(Dependencies)
                 end)
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Simple X-Ray",
                     Content = "X-Ray disabled!",
                     Duration = 3
@@ -297,7 +297,7 @@ function Visuals.Init(Dependencies)
             Variables.playerESPEnabled = value
             
             if value then
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Player ESP",
                     Content = "Player ESP enabled!",
                     Duration = 3
@@ -338,7 +338,7 @@ function Visuals.Init(Dependencies)
                 end
                 
             else
-                Rayfield.Notify({
+                Bdev.Notify({
                     Title = "Player ESP",
                     Content = "Player ESP disabled!",
                     Duration = 3
