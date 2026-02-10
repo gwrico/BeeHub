@@ -1,5 +1,5 @@
 -- ==============================================
--- ⚡ MISC TAB MODULE - DUAL INVINCIBILITY SYSTEM
+-- ⚡ MISC TAB MODULE - FIXED SYNTAX VERSION
 -- ==============================================
 
 local Misc = {}
@@ -12,15 +12,13 @@ function Misc.Init(Dependencies)
     local Variables = Shared.Variables
     local Services = Shared.Services
     
-    print("⚡ Initializing Misc tab with dual invincibility...")
+    print("⚡ Initializing Misc tab...")
     
-    -- Tambahkan variabel ke Shared jika belum ada
-    if Variables.godModeEnabled == nil then Variables.godModeEnabled = false end
-    if Variables.invincibleEnabled == nil then Variables.invincibleEnabled = false end
-    Variables.invincibleConnection = nil
-    Variables.invincibleCharAdded = nil
+    -- Initialize variables
+    Variables.godModeEnabled = Variables.godModeEnabled or false
+    Variables.invincibleEnabled = Variables.invincibleEnabled or false
     Variables.godModeConnection = nil
-    Variables.godModeCharAdded = nil
+    Variables.invincibleLoop = nil
     
     -- ===== ANTI-AFK =====
     local antiAFKConnection
@@ -185,41 +183,7 @@ function Misc.Init(Dependencies)
         end
     })
     
-    -- ===== 🛡️ GOD MODE (FULL POWER) =====
-    local function enableGodMode()
-        if Variables.godModeConnection then
-            Variables.godModeConnection:Disconnect()
-        end
-        
-        Variables.godModeConnection = Services.RunService.Heartbeat:Connect(function()
-            if not Variables.godModeEnabled then return end
-            
-            local player = Services.Players.LocalPlayer
-            local character = player.Character
-            
-            if character then
-                local humanoid = character:FindFirstChild("Humanoid")
-                if humanoid then
-                    -- Set health to maximum
-                    humanoid.MaxHealth = 99999
-                    humanoid.Health = 99999
-                    
-                    -- Prevent death
-                    if humanoid.Health <= 0 then
-                        humanoid.Health = 99999
-                    end
-                    
-                    -- Try to disable damage (if possible)
-                    pcall(function()
-                        for _, connection in pairs(getconnections(humanoid.Died)) do
-                            connection:Disable()
-                        end
-                    end)
-                end
-            end
-        end)
-    end
-    
+    -- ===== 🛡️ GOD MODE =====
     Tab:CreateToggle({
         Name = "GodMode",
         Text = "🛡️ God Mode",
@@ -236,18 +200,22 @@ function Misc.Init(Dependencies)
                 
                 print("✅ God Mode enabled")
                 
-                -- Enable god mode
-                enableGodMode()
-                
-                -- Also apply to new characters
-                if Variables.godModeCharAdded then
-                    Variables.godModeCharAdded:Disconnect()
+                -- Disable old connection
+                if Variables.godModeConnection then
+                    Variables.godModeConnection:Disconnect()
                 end
                 
-                Variables.godModeCharAdded = Services.Players.LocalPlayer.CharacterAdded:Connect(function()
-                    if Variables.godModeEnabled then
-                        task.wait(1)
-                        enableGodMode()
+                -- Infinite health loop
+                Variables.godModeConnection = Services.RunService.Heartbeat:Connect(function()
+                    if not Variables.godModeEnabled then return end
+                    
+                    local character = Services.Players.LocalPlayer.Character
+                    if character then
+                        local humanoid = character:FindFirstChild("Humanoid")
+                        if humanoid then
+                            humanoid.MaxHealth = 999999
+                            humanoid.Health = 999999
+                        end
                     end
                 end)
                 
@@ -260,63 +228,15 @@ function Misc.Init(Dependencies)
                 
                 print("❌ God Mode disabled")
                 
-                -- Clean up
                 if Variables.godModeConnection then
                     Variables.godModeConnection:Disconnect()
                     Variables.godModeConnection = nil
-                end
-                
-                if Variables.godModeCharAdded then
-                    Variables.godModeCharAdded:Disconnect()
-                    Variables.godModeCharAdded = nil
-                end
-                
-                -- Restore normal health
-                local character = Services.Players.LocalPlayer.Character
-                if character then
-                    local humanoid = character:FindFirstChild("Humanoid")
-                    if humanoid then
-                        humanoid.MaxHealth = 100
-                        humanoid.Health = math.min(humanoid.Health, 100)
-                        
-                        -- Re-enable damage
-                        pcall(function()
-                            for _, connection in pairs(getconnections(humanoid.Died)) do
-                                connection:Enable()
-                            end
-                        end)
-                    end
                 end
             end
         end
     })
     
-    -- ===== 💪 INVINCIBLE (SAFE MODE) =====
-    local function enableInvincible()
-        local player = Services.Players.LocalPlayer
-        local character = player.Character
-        
-        if character then
-            local humanoid = character:FindFirstChild("Humanoid")
-            if humanoid then
-                -- Set high health
-                humanoid.MaxHealth = 1000
-                humanoid.Health = 1000
-                
-                -- Auto-heal when damaged
-                if Variables.invincibleConnection then
-                    Variables.invincibleConnection:Disconnect()
-                end
-                
-                Variables.invincibleConnection = humanoid.HealthChanged:Connect(function(newHealth)
-                    if Variables.invincibleEnabled and newHealth < 1000 then
-                        humanoid.Health = 1000
-                    end
-                end)
-            end
-        end
-    end
-    
+    -- ===== 💪 INVINCIBLE =====
     Tab:CreateToggle({
         Name = "Invincible",
         Text = "💪 Invincible",
@@ -333,18 +253,49 @@ function Misc.Init(Dependencies)
                 
                 print("✅ Invincibility enabled")
                 
-                -- Enable invincibility
-                enableInvincible()
-                
-                -- Apply to new characters
-                if Variables.invincibleCharAdded then
-                    Variables.invincibleCharAdded:Disconnect()
+                -- Stop old loop
+                if Variables.invincibleLoop then
+                    Variables.invincibleLoop:Disconnect()
                 end
                 
-                Variables.invincibleCharAdded = Services.Players.LocalPlayer.CharacterAdded:Connect(function()
+                -- Constant Health Check
+                Variables.invincibleLoop = Services.RunService.Heartbeat:Connect(function()
+                    if not Variables.invincibleEnabled then return end
+                    
+                    local player = Services.Players.LocalPlayer
+                    local character = player.Character
+                    
+                    if character then
+                        local humanoid = character:FindFirstChild("Humanoid")
+                        if humanoid then
+                            -- Maintain health
+                            if humanoid.Health < 500 then
+                                humanoid.Health = 500
+                            end
+                            
+                            -- Increase max health
+                            if humanoid.MaxHealth < 500 then
+                                humanoid.MaxHealth = 500
+                            end
+                            
+                            -- Revive if dead
+                            if humanoid.Health <= 0 then
+                                humanoid.Health = 500
+                            end
+                        end
+                    end
+                end)
+                
+                -- Apply to new characters
+                Services.Players.LocalPlayer.CharacterAdded:Connect(function()
                     if Variables.invincibleEnabled then
-                        task.wait(1)
-                        enableInvincible()
+                        task.wait(2)
+                        local newChar = Services.Players.LocalPlayer.Character
+                        if newChar then
+                            local humanoid = newChar:WaitForChild("Humanoid")
+                            humanoid.Health = 500
+                            humanoid.MaxHealth = 500
+                        end
                     end
                 end)
                 
@@ -358,23 +309,58 @@ function Misc.Init(Dependencies)
                 print("❌ Invincibility disabled")
                 
                 -- Clean up
-                if Variables.invincibleConnection then
-                    Variables.invincibleConnection:Disconnect()
-                    Variables.invincibleConnection = nil
+                if Variables.invincibleLoop then
+                    Variables.invincibleLoop:Disconnect()
+                    Variables.invincibleLoop = nil
                 end
                 
-                if Variables.invincibleCharAdded then
-                    Variables.invincibleCharAdded:Disconnect()
-                    Variables.invincibleCharAdded = nil
-                end
-                
-                -- Restore normal health
+                -- Restore normal values
                 local character = Services.Players.LocalPlayer.Character
                 if character then
                     local humanoid = character:FindFirstChild("Humanoid")
                     if humanoid then
                         humanoid.MaxHealth = 100
                         humanoid.Health = math.min(humanoid.Health, 100)
+                    end
+                end
+            end
+        end
+    })
+    
+    -- ===== TEST INVINCIBILITY =====
+    Tab:CreateButton({
+        Name = "TestInvincible",
+        Text = "🔄 Test Invincibility",
+        Callback = function()
+            local character = Services.Players.LocalPlayer.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    print("🧪 Testing Invincibility...")
+                    print("Current Health:", humanoid.Health)
+                    print("Max Health:", humanoid.MaxHealth)
+                    
+                    -- Test: Take small damage
+                    pcall(function()
+                        humanoid:TakeDamage(10)
+                        print("Took 10 damage")
+                        print("New Health:", humanoid.Health)
+                    end)
+                    
+                    if humanoid.Health <= 0 then
+                        print("❌ TEST FAILED: Character died!")
+                        Bdev:Notify({
+                            Title = "Test Failed",
+                            Content = "Invincibility not working!",
+                            Duration = 3
+                        })
+                    else
+                        print("✅ TEST PASSED: Character survived!")
+                        Bdev:Notify({
+                            Title = "Test Passed",
+                            Content = "Invincibility is working!",
+                            Duration = 3
+                        })
                     end
                 end
             end
@@ -396,26 +382,30 @@ function Misc.Init(Dependencies)
             Variables.invincibleEnabled = false
             
             -- Disconnect all connections
-            local connections = {
-                antiAFKConnection, noclipConnection, infiniteJumpConnection,
-                Variables.godModeConnection, Variables.invincibleConnection,
-                Variables.godModeCharAdded, Variables.invincibleCharAdded
-            }
-            
-            for _, conn in pairs(connections) do
-                if conn then
-                    pcall(function() conn:Disconnect() end)
-                end
+            if antiAFKConnection then
+                antiAFKConnection:Disconnect()
+                antiAFKConnection = nil
             end
             
-            -- Reset variables
-            antiAFKConnection = nil
-            noclipConnection = nil
-            infiniteJumpConnection = nil
-            Variables.godModeConnection = nil
-            Variables.invincibleConnection = nil
-            Variables.godModeCharAdded = nil
-            Variables.invincibleCharAdded = nil
+            if noclipConnection then
+                noclipConnection:Disconnect()
+                noclipConnection = nil
+            end
+            
+            if infiniteJumpConnection then
+                infiniteJumpConnection:Disconnect()
+                infiniteJumpConnection = nil
+            end
+            
+            if Variables.godModeConnection then
+                Variables.godModeConnection:Disconnect()
+                Variables.godModeConnection = nil
+            end
+            
+            if Variables.invincibleLoop then
+                Variables.invincibleLoop:Disconnect()
+                Variables.invincibleLoop = nil
+            end
             
             Bdev:Notify({
                 Title = "Misc Features",
@@ -427,26 +417,7 @@ function Misc.Init(Dependencies)
         end
     })
     
-    -- ===== CLEANUP ON RESPAWN =====
-    Services.Players.LocalPlayer.CharacterAdded:Connect(function()
-        -- Disable auto features on respawn (optional)
-        -- Variables.antiAfkEnabled = false
-        -- Variables.noclipEnabled = false
-        -- Variables.infiniteJumpEnabled = false
-        
-        -- But keep god mode/invincible if enabled
-        if Variables.godModeEnabled then
-            task.wait(1)
-            enableGodMode()
-        end
-        
-        if Variables.invincibleEnabled then
-            task.wait(1)
-            enableInvincible()
-        end
-    end)
-    
-    print("✅ Misc tab with dual invincibility initialized")
+    print("✅ Misc tab initialized")
 end
 
 return Misc
