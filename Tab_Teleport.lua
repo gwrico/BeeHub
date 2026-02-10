@@ -13,9 +13,6 @@ function Teleport.Init(Dependencies)
     
     -- Variables for player list management
     local playerButtons = {}
-    local targetPlayerName = ""
-    local searchActive = false
-    local searchResultsFrame = nil
     
     -- ===== TP TO SPAWN =====
     Tab:CreateButton({
@@ -292,7 +289,7 @@ function Teleport.Init(Dependencies)
     
     SearchBox.FocusLost:Connect(function()
         if SearchBox.Text ~= "" then
-            SearchButton.MouseButton1Click:Connect()
+            SearchButton.MouseButton1Click:Fire()
         end
     end)
     
@@ -364,109 +361,6 @@ function Teleport.Init(Dependencies)
         end
     })
     
-    -- ===== QUICK LOCATIONS =====
-    Tab:CreateLabel({
-        Name = "QuickLocLabel",
-        Text = "⚡ Quick Locations:",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    local quickLocations = {
-        {"🔼 High Up", Vector3.new(0, 500, 0)},
-        {"📍 Origin", Vector3.new(0, 5, 0)},
-        {"⬅️ Left", Vector3.new(-200, 50, 0)},
-        {"➡️ Right", Vector3.new(200, 50, 0)},
-        {"🔙 Back", Vector3.new(0, 50, -200)},
-        {"⭐ VIP Area", Vector3.new(100, 100, 100)}
-    }
-    
-    for i, location in ipairs(quickLocations) do
-        local name, pos = location[1], location[2]
-        
-        Tab:CreateButton({
-            Name = "Quick_" .. i,
-            Text = name,
-            Callback = function()
-                local player = game.Players.LocalPlayer
-                local character = player.Character
-                local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-                
-                if humanoidRootPart then
-                    humanoidRootPart.CFrame = CFrame.new(pos)
-                    
-                    Bdev:Notify({
-                        Title = "Teleport",
-                        Content = "Teleported to " .. name,
-                        Duration = 3
-                    })
-                end
-            end
-        })
-    end
-    
-    -- ===== AUTO-TP TO EGGS =====
-    Tab:CreateLabel({
-        Name = "EggTPLabel",
-        Text = "🥚 Auto-TP to Eggs:",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    local autoTPEnabled = false
-    local autoTPConnection = nil
-    
-    if Tab.CreateToggle then
-        Tab:CreateToggle({
-            Name = "AutoTPEggs",
-            Text = "🔁 Auto-TP to Nearest Egg",
-            CurrentValue = false,
-            Callback = function(value)
-                autoTPEnabled = value
-                
-                if value then
-                    Bdev:Notify({
-                        Title = "Auto-TP",
-                        Content = "Auto-TP enabled!",
-                        Duration = 3
-                    })
-                    
-                    if autoTPConnection then
-                        autoTPConnection:Disconnect()
-                    end
-                    
-                    autoTPConnection = Shared.Services.RunService.Heartbeat:Connect(function()
-                        if not autoTPEnabled then return end
-                        
-                        local player = game.Players.LocalPlayer
-                        local character = player.Character
-                        local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-                        
-                        if humanoidRootPart then
-                            -- Simple logic: teleport to random position near player
-                            local randomPos = humanoidRootPart.Position + Vector3.new(
-                                math.random(-50, 50),
-                                0,
-                                math.random(-50, 50)
-                            )
-                            humanoidRootPart.CFrame = CFrame.new(randomPos)
-                        end
-                    end)
-                    
-                else
-                    Bdev:Notify({
-                        Title = "Auto-TP",
-                        Content = "Auto-TP disabled!",
-                        Duration = 3
-                    })
-                    
-                    if autoTPConnection then
-                        autoTPConnection:Disconnect()
-                        autoTPConnection = nil
-                    end
-                end
-            end
-        })
-    end
-    
     -- ===== CLEANUP =====
     -- Auto-refresh on player join/leave
     local Players = Shared.Services.Players
@@ -485,7 +379,7 @@ function Teleport.Init(Dependencies)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             if searchResultsContainer.Visible then
                 local mouse = game:GetService("Players").LocalPlayer:GetMouse()
-                local pos = mouse.X, mouse.Y
+                local pos = Vector2.new(mouse.X, mouse.Y)
                 
                 local searchBoxAbs = SearchBox.AbsolutePosition
                 local searchBoxSize = SearchBox.AbsoluteSize
@@ -505,7 +399,7 @@ function Teleport.Init(Dependencies)
         end
     end)
     
-    print("✅ Teleport tab initialized for SimpleGUI v6.3")
+    print("✅ Teleport tab initialized")
 end
 
 return Teleport
