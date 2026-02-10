@@ -1,7 +1,7 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v6.3 - SIDEBAR TABS (VERTICAL) - COMPLETE VERSION
+-- 🎨 SIMPLEGUI v6.3 - SIDEBAR TABS (VERTICAL) - FIXED VERSION
 -- ==============================================
-print("🔧 Loading SimpleGUI v6.3 - Sidebar Tabs...")
+print("🔧 Loading SimpleGUI v6.3 - Fixed Version...")
 
 local SimpleGUI = {}
 SimpleGUI.__index = SimpleGUI
@@ -39,62 +39,6 @@ SimpleGUI.Themes = {
         SliderTrack = Color3.fromRGB(60, 60, 80),
         SliderFill = Color3.fromRGB(98, 147, 255),
         Sidebar = Color3.fromRGB(40, 40, 55)
-    },
-    LIGHT = {
-        Name = "Light",
-        Primary = Color3.fromRGB(245, 245, 250),
-        Secondary = Color3.fromRGB(230, 230, 240),
-        Accent = Color3.fromRGB(65, 105, 225),
-        Text = Color3.fromRGB(30, 30, 40),
-        TextSecondary = Color3.fromRGB(100, 100, 120),
-        Success = Color3.fromRGB(60, 200, 80),
-        Warning = Color3.fromRGB(230, 180, 0),
-        Error = Color3.fromRGB(220, 50, 40),
-        Border = Color3.fromRGB(200, 200, 220),
-        Hover = Color3.fromRGB(210, 210, 230),
-        Active = Color3.fromRGB(80, 120, 200),
-        
-        -- UI Specific
-        WindowBg = Color3.fromRGB(245, 245, 250),
-        TitleBar = Color3.fromRGB(230, 230, 240),
-        TabNormal = Color3.fromRGB(220, 220, 235),
-        TabActive = Color3.fromRGB(65, 105, 225),
-        ContentBg = Color3.fromRGB(250, 250, 255),
-        Button = Color3.fromRGB(210, 210, 230),
-        InputBg = Color3.fromRGB(230, 230, 245),
-        ToggleOff = Color3.fromRGB(200, 200, 220),
-        ToggleOn = Color3.fromRGB(65, 105, 225),
-        SliderTrack = Color3.fromRGB(220, 220, 235),
-        SliderFill = Color3.fromRGB(65, 105, 225),
-        Sidebar = Color3.fromRGB(235, 235, 245)
-    },
-    PURPLE = {
-        Name = "Purple",
-        Primary = Color3.fromRGB(40, 30, 50),
-        Secondary = Color3.fromRGB(60, 40, 80),
-        Accent = Color3.fromRGB(180, 120, 255),
-        Text = Color3.fromRGB(245, 240, 250),
-        TextSecondary = Color3.fromRGB(200, 180, 220),
-        Success = Color3.fromRGB(140, 255, 180),
-        Warning = Color3.fromRGB(255, 220, 100),
-        Error = Color3.fromRGB(255, 100, 120),
-        Border = Color3.fromRGB(90, 70, 110),
-        Hover = Color3.fromRGB(80, 60, 100),
-        Active = Color3.fromRGB(200, 140, 255),
-        
-        -- UI Specific
-        WindowBg = Color3.fromRGB(40, 30, 50),
-        TitleBar = Color3.fromRGB(60, 40, 80),
-        TabNormal = Color3.fromRGB(70, 50, 90),
-        TabActive = Color3.fromRGB(180, 120, 255),
-        ContentBg = Color3.fromRGB(50, 35, 65),
-        Button = Color3.fromRGB(80, 60, 100),
-        InputBg = Color3.fromRGB(70, 50, 90),
-        ToggleOff = Color3.fromRGB(90, 70, 110),
-        ToggleOn = Color3.fromRGB(180, 120, 255),
-        SliderTrack = Color3.fromRGB(80, 60, 100),
-        SliderFill = Color3.fromRGB(180, 120, 255),
-        Sidebar = Color3.fromRGB(50, 35, 65)
     }
 }
 
@@ -474,7 +418,7 @@ function SimpleGUI:CreateWindow(options)
         setupButtonHover(MinimizeButton)
         setupButtonHover(CloseButton)
         
-        -- ===== TAB BUILDER METHODS =====
+        -- ===== TAB BUILDER METHODS - DIPERBAIKI =====
         local tabObj = {
             Button = TabButton,
             Content = TabContent,
@@ -596,6 +540,7 @@ function SimpleGUI:CreateWindow(options)
                 return InputBox
             end,
             
+            -- ===== CREATE TOGGLE - FIXED VERSION =====
             CreateToggle = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -607,14 +552,16 @@ function SimpleGUI:CreateWindow(options)
                 ToggleFrame.LayoutOrder = #self.Elements + 1
                 ToggleFrame.Parent = TabContent
                 
-                -- Toggle container
-                local ToggleContainer = Instance.new("Frame")
+                -- Toggle container - PASTIKAN TextButton untuk MouseButton1Click
+                local ToggleContainer = Instance.new("TextButton")  -- TEXTBUTTON BUKAN FRAME
                 ToggleContainer.Name = "ToggleContainer"
                 ToggleContainer.Size = UDim2.new(0, 60 * scale, 0, 30 * scale)
                 ToggleContainer.Position = UDim2.new(0, 0, 0.5, -15 * scale)
+                ToggleContainer.Text = ""
                 ToggleContainer.BackgroundColor3 = theme.ToggleOff
                 ToggleContainer.BackgroundTransparency = 0
                 ToggleContainer.BorderSizePixel = 0
+                ToggleContainer.AutoButtonColor = false
                 ToggleContainer.Parent = ToggleFrame
                 
                 local ContainerCorner = Instance.new("UICorner")
@@ -635,8 +582,8 @@ function SimpleGUI:CreateWindow(options)
                 CircleCorner.CornerRadius = UDim.new(0.5, 0)
                 CircleCorner.Parent = ToggleCircle
                 
-                -- Toggle label
-                local ToggleLabel = Instance.new("TextLabel")
+                -- Toggle label - PASTIKAN TextButton untuk MouseButton1Click
+                local ToggleLabel = Instance.new("TextButton")  -- TEXTBUTTON BUKAN TextLabel
                 ToggleLabel.Name = "ToggleLabel"
                 ToggleLabel.Size = UDim2.new(1, -70 * scale, 1, 0)
                 ToggleLabel.Position = UDim2.new(0, 70 * scale, 0, 0)
@@ -646,6 +593,7 @@ function SimpleGUI:CreateWindow(options)
                 ToggleLabel.TextSize = 14 * scale
                 ToggleLabel.Font = Enum.Font.SourceSansSemibold
                 ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                ToggleLabel.AutoButtonColor = false
                 ToggleLabel.Parent = ToggleFrame
                 
                 -- Toggle state
@@ -665,7 +613,7 @@ function SimpleGUI:CreateWindow(options)
                 -- Initial state
                 updateToggle()
                 
-                -- Toggle click
+                -- Toggle click - SEKARANG VALID karena ToggleContainer adalah TextButton
                 ToggleContainer.MouseButton1Click:Connect(function()
                     isToggled = not isToggled
                     updateToggle()
@@ -675,7 +623,7 @@ function SimpleGUI:CreateWindow(options)
                     end
                 end)
                 
-                -- Label click also toggles
+                -- Label click - SEKARANG VALID karena ToggleLabel adalah TextButton
                 ToggleLabel.MouseButton1Click:Connect(function()
                     isToggled = not isToggled
                     updateToggle()
@@ -701,6 +649,7 @@ function SimpleGUI:CreateWindow(options)
                 }
             end,
             
+            -- ===== CREATE SLIDER =====
             CreateSlider = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -764,7 +713,7 @@ function SimpleGUI:CreateWindow(options)
                 FillCorner.CornerRadius = UDim.new(0, 10 * scale)
                 FillCorner.Parent = SliderFill
                 
-                -- Slider thumb
+                -- Slider thumb (TextButton untuk mouse events)
                 local SliderThumb = Instance.new("TextButton")
                 SliderThumb.Name = "SliderThumb"
                 SliderThumb.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
@@ -843,16 +792,18 @@ function SimpleGUI:CreateWindow(options)
                 end)
                 
                 -- Click on track to set value
-                SliderTrack.MouseButton1Down:Connect(function()
-                    local mousePos = UserInputService:GetMouseLocation()
-                    local trackPos = SliderTrack.AbsolutePosition
-                    local trackSize = SliderTrack.AbsoluteSize
-                    
-                    local relativeX = (mousePos.X - trackPos.X) / trackSize.X
-                    relativeX = math.clamp(relativeX, 0, 1)
-                    
-                    local value = range[1] + (relativeX * (range[2] - range[1]))
-                    updateSliderPosition(value)
+                SliderTrack.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        local mousePos = UserInputService:GetMouseLocation()
+                        local trackPos = SliderTrack.AbsolutePosition
+                        local trackSize = SliderTrack.AbsoluteSize
+                        
+                        local relativeX = (mousePos.X - trackPos.X) / trackSize.X
+                        relativeX = math.clamp(relativeX, 0, 1)
+                        
+                        local value = range[1] + (relativeX * (range[2] - range[1]))
+                        updateSliderPosition(value)
+                    end
                 end)
                 
                 table.insert(self.Elements, SliderFrame)
@@ -865,170 +816,6 @@ function SimpleGUI:CreateWindow(options)
                     GetValue = function() return currentValue end,
                     SetValue = function(value)
                         updateSliderPosition(value)
-                    end
-                }
-            end,
-            
-            CreateDropdown = function(self, options)
-                local opts = options or {}
-                local scale = windowData.Scale
-                
-                local DropdownFrame = Instance.new("Frame")
-                DropdownFrame.Name = opts.Name or "Dropdown_" .. #self.Elements + 1
-                DropdownFrame.Size = UDim2.new(0.9, 0, 0, 40 * scale)
-                DropdownFrame.BackgroundTransparency = 1
-                DropdownFrame.LayoutOrder = #self.Elements + 1
-                DropdownFrame.ClipsDescendants = true
-                DropdownFrame.Parent = TabContent
-                
-                -- Main dropdown button
-                local DropdownButton = Instance.new("TextButton")
-                DropdownButton.Name = "Button"
-                DropdownButton.Size = UDim2.new(1, 0, 0, 40 * scale)
-                DropdownButton.Text = opts.PlaceholderText or "Select..."
-                DropdownButton.TextColor3 = theme.Text
-                DropdownButton.BackgroundColor3 = theme.InputBg
-                DropdownButton.BackgroundTransparency = 0
-                DropdownButton.TextSize = 14 * scale
-                DropdownButton.Font = Enum.Font.SourceSans
-                DropdownButton.TextXAlignment = Enum.TextXAlignment.Left
-                DropdownButton.AutoButtonColor = false
-                DropdownButton.Parent = DropdownFrame
-                
-                local ButtonCorner = Instance.new("UICorner")
-                ButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
-                ButtonCorner.Parent = DropdownButton
-                
-                local ButtonPadding = Instance.new("UIPadding")
-                ButtonPadding.PaddingLeft = UDim.new(0, 12 * scale)
-                ButtonPadding.PaddingRight = UDim.new(0, 35 * scale)
-                ButtonPadding.Parent = DropdownButton
-                
-                -- Arrow icon
-                local Arrow = Instance.new("TextLabel")
-                Arrow.Name = "Arrow"
-                Arrow.Size = UDim2.new(0, 20 * scale, 0, 20 * scale)
-                Arrow.Position = UDim2.new(1, -25 * scale, 0.5, -10 * scale)
-                Arrow.Text = "▼"
-                Arrow.TextColor3 = theme.TextSecondary
-                Arrow.BackgroundTransparency = 1
-                Arrow.TextSize = 12 * scale
-                Arrow.Font = Enum.Font.SourceSans
-                Arrow.Parent = DropdownFrame
-                
-                -- Options frame (hidden)
-                local OptionsFrame = Instance.new("Frame")
-                OptionsFrame.Name = "Options"
-                OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
-                OptionsFrame.Position = UDim2.new(0, 0, 1, 5 * scale)
-                OptionsFrame.BackgroundColor3 = theme.InputBg
-                OptionsFrame.BackgroundTransparency = 0
-                OptionsFrame.BorderSizePixel = 0
-                OptionsFrame.ClipsDescendants = true
-                OptionsFrame.Visible = false
-                OptionsFrame.Parent = DropdownFrame
-                
-                local OptionsCorner = Instance.new("UICorner")
-                OptionsCorner.CornerRadius = UDim.new(0, 8 * scale)
-                OptionsCorner.Parent = OptionsFrame
-                
-                local OptionsLayout = Instance.new("UIListLayout")
-                OptionsLayout.Padding = UDim.new(0, 2 * scale)
-                OptionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-                OptionsLayout.Parent = OptionsFrame
-                
-                local OptionsPadding = Instance.new("UIPadding")
-                OptionsPadding.PaddingTop = UDim.new(0, 5 * scale)
-                OptionsPadding.PaddingBottom = UDim.new(0, 5 * scale)
-                OptionsPadding.PaddingLeft = UDim.new(0, 5 * scale)
-                OptionsPadding.PaddingRight = UDim.new(0, 5 * scale)
-                OptionsPadding.Parent = OptionsFrame
-                
-                local isOpen = false
-                local selectedOption = nil
-                local optionButtons = {}
-                
-                -- Function to toggle dropdown
-                local function toggleDropdown()
-                    isOpen = not isOpen
-                    
-                    if isOpen then
-                        OptionsFrame.Visible = true
-                        local optionCount = opts.Options and #opts.Options or 0
-                        local maxHeight = math.min(optionCount * 35 * scale, 200 * scale)
-                        tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, maxHeight)})
-                        Arrow.Text = "▲"
-                        tween(DropdownButton, {BackgroundColor3 = theme.Hover})
-                    else
-                        tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)})
-                        task.wait(0.2)
-                        OptionsFrame.Visible = false
-                        Arrow.Text = "▼"
-                        tween(DropdownButton, {BackgroundColor3 = theme.InputBg})
-                    end
-                end
-                
-                -- Create option buttons
-                if opts.Options then
-                    for i, option in ipairs(opts.Options) do
-                        local OptionButton = Instance.new("TextButton")
-                        OptionButton.Name = "Option_" .. i
-                        OptionButton.Size = UDim2.new(1, -10 * scale, 0, 32 * scale)
-                        OptionButton.Text = option
-                        OptionButton.TextColor3 = theme.Text
-                        OptionButton.BackgroundColor3 = theme.Button
-                        OptionButton.BackgroundTransparency = 0
-                        OptionButton.TextSize = 13 * scale
-                        OptionButton.Font = Enum.Font.SourceSans
-                        OptionButton.AutoButtonColor = false
-                        OptionButton.LayoutOrder = i
-                        OptionButton.Parent = OptionsFrame
-                        
-                        local OptionCorner = Instance.new("UICorner")
-                        OptionCorner.CornerRadius = UDim.new(0, 6 * scale)
-                        OptionCorner.Parent = OptionButton
-                        
-                        -- Hover effect
-                        OptionButton.MouseEnter:Connect(function()
-                            tween(OptionButton, {BackgroundColor3 = theme.Hover})
-                        end)
-                        
-                        OptionButton.MouseLeave:Connect(function()
-                            tween(OptionButton, {BackgroundColor3 = theme.Button})
-                        end)
-                        
-                        -- Click handler
-                        OptionButton.MouseButton1Click:Connect(function()
-                            selectedOption = option
-                            DropdownButton.Text = option
-                            toggleDropdown()
-                            
-                            if opts.Callback then
-                                pcall(opts.Callback, option)
-                            end
-                        end)
-                        
-                        table.insert(optionButtons, OptionButton)
-                    end
-                end
-                
-                -- Main button click
-                DropdownButton.MouseButton1Click:Connect(toggleDropdown)
-                
-                -- Hover effect for main button
-                setupButtonHover(DropdownButton)
-                
-                table.insert(self.Elements, DropdownFrame)
-                
-                -- Return dropdown object
-                return {
-                    Frame = DropdownFrame,
-                    Button = DropdownButton,
-                    Options = OptionsFrame,
-                    GetSelected = function() return selectedOption end,
-                    SetSelected = function(option)
-                        selectedOption = option
-                        DropdownButton.Text = option or opts.PlaceholderText
                     end
                 }
             end
@@ -1110,13 +897,11 @@ function SimpleGUI:CreateWindow(options)
         local ThemeTab = windowObj:CreateTab("🎨 Theme")
         ThemeTab:CreateLabel({Text = "Select Theme:", Alignment = Enum.TextXAlignment.Center})
         ThemeTab:CreateButton({Text = "🌙 Dark", Callback = function() self:SetTheme("DARK") end})
-        ThemeTab:CreateButton({Text = "☀️ Light", Callback = function() self:SetTheme("LIGHT") end})
-        ThemeTab:CreateButton({Text = "💜 Purple", Callback = function() self:SetTheme("PURPLE") end})
     end
     
     print("✅ Created window with sidebar tabs: " .. windowData.Name)
     return windowObj
 end
 
-print("🎉 SimpleGUI v6.3 - COMPLETE VERSION loaded!")
+print("🎉 SimpleGUI v6.3 - FIXED VERSION loaded!")
 return SimpleGUI
