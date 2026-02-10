@@ -1,5 +1,5 @@
 -- ==============================================
--- 🎮 BEEHUB v4.0 - MODULAR SYSTEM (MAIN)
+-- 🎮 BEEHUB v4.0 - MODULAR SYSTEM (MAIN) - UPDATED FOR SIMPLEGUI v6.3
 -- ==============================================
 print("🔧 Loading BeeHub Modular System v4.0...")
 
@@ -10,24 +10,29 @@ local CONFIG = {
     LOAD_TIMEOUT = 10 -- seconds
 }
 
--- Load SimpleGUI
-print("🖼️ Loading SimpleGUI...")
-local SimpleGUI = loadstring(game:HttpGet(CONFIG.SIMPLEGUI_URL))()
+-- Load SimpleGUI v6.3
+print("🖼️ Loading SimpleGUI v6.3...")
+local success, SimpleGUI = pcall(function()
+    return loadstring(game:HttpGet(CONFIG.SIMPLEGUI_URL))()
+end)
+
+if not success then
+    warn("❌ Failed to load SimpleGUI:", SimpleGUI)
+    return
+end
+
 local GUI = SimpleGUI.new()
 
--- Create main window
+-- Create main window with SIDEBAR TABS
 local Window = GUI:CreateWindow({
     Name = "⚡ BeeHub v4.0 - Prototype Edition",
-    Size = UDim2.new(0, 600, 0, 500),
-    TitleBarHeight = 28,
-    MinimizeHeight = 25,
-    Resizable = true,
-    ShowThemeTab = true
+    Size = UDim2.new(0, 700, 0, 500),  -- Wider for sidebar
+    ShowThemeTab = true  -- ✅ PARAMETER YANG BENAR
 })
 
--- Notification system
+-- Notification system - FIXED (using colon)
 local Bdev = {
-    Notify = function(notification)
+    Notify = function(self, notification)
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = notification.Title,
             Text = notification.Content,
@@ -36,7 +41,7 @@ local Bdev = {
     end
 }
 
--- 🥚 EGG DATA (GANTI DARI ORE DATA) 🥚
+-- 🥚 EGG DATA
 local EggData = {
     ["Copper Egg"] = {value = 10, rarityId = 1},
     ["Silver Egg"] = {value = 25, rarityId = 2},
@@ -59,7 +64,7 @@ local Shared = {
     GUI = GUI,
     Bdev = Bdev,
     
-    -- Data (GANTI OreData -> EggData)
+    -- Data
     EggData = EggData,
     
     -- Services
@@ -74,11 +79,11 @@ local Shared = {
         MarketplaceService = game:GetService("MarketplaceService")
     },
     
-    -- Shared variables (update nama variable)
+    -- Shared variables
     Variables = {
-        autoCollectEnabled = false,      -- Ganti: autoMineEnabled
+        autoCollectEnabled = false,
         autoPunchEnabled = false,
-        eggESPEnabled = false,           -- Ganti: oreESPEnabled
+        eggESPEnabled = false,
         xrayEnabled = false,
         playerESPEnabled = false,
         antiAfkEnabled = false,
@@ -87,7 +92,7 @@ local Shared = {
         noclipEnabled = false,
         infiniteJumpEnabled = false,
         flyEnabled = false,
-        autoHatchEnabled = false         -- TAMBAH: untuk auto hatch
+        autoHatchEnabled = false
     },
     
     -- Tab references (will be filled by modules)
@@ -117,7 +122,7 @@ function Shared.LoadModule(moduleName, urlSuffix)
         local errMsg = "❌ Failed to load " .. moduleName .. ": " .. tostring(result)
         print(errMsg)
         Shared.Modules.Errors[moduleName] = errMsg
-        Bdev.Notify({
+        Bdev:Notify({  -- ✅ FIXED: menggunakan titik dua
             Title = "Module Error",
             Content = "Failed to load " .. moduleName,
             Duration = 5
@@ -148,7 +153,7 @@ function Shared.InitializeModules()
     for _, moduleInfo in ipairs(tabModules) do
         local module = Shared.LoadModule(moduleInfo.Name, moduleInfo.File)
         if module and module.Init then
-            -- Create tab first
+            -- Create tab in sidebar
             local tab = Window:CreateTab(moduleInfo.TabName)
             Shared.Tabs[moduleInfo.Name] = tab
             
@@ -156,7 +161,7 @@ function Shared.InitializeModules()
             module.Init({
                 Tab = tab,
                 Shared = Shared,
-                Window = Window,
+                GUI = GUI,  -- ✅ TAMBAHIN GUI
                 Bdev = Bdev
             })
             
@@ -194,7 +199,7 @@ task.spawn(function()
     print("\n🎉 BeeHub Modular System v4.0 fully loaded!")
     print("⏱️ Load time: " .. string.format("%.2f", loadTime) .. " seconds")
     
-    Bdev.Notify({
+    Bdev:Notify({  -- ✅ FIXED: menggunakan titik dua
         Title = "BeeHub v4.0",
         Content = "Modular system loaded successfully!\n" .. 
                   "Tabs: " .. #Shared.Tabs .. " | Time: " .. string.format("%.1f", loadTime) .. "s",
@@ -220,5 +225,3 @@ end)
 
 -- Return shared for debugging
 return Shared
-
-
