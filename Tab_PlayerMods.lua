@@ -1,5 +1,5 @@
 -- ==============================================
--- 👤 PLAYER MODS TAB MODULE - FIXED
+-- 👤 PLAYER MODS TAB MODULE - SIMPLE VERSION FOR SIMPLEGUI v6.3
 -- ==============================================
 
 local PlayerMods = {}
@@ -11,47 +11,65 @@ function PlayerMods.Init(Dependencies)
     
     local Services = Shared.Services
     local Variables = Shared.Variables
-    local Functions = Shared.Functions
     
-    print("👤 Initializing PlayerMods tab...")
+    print("👤 Initializing PlayerMods tab for SimpleGUI v6.3...")
+    
+    -- State variables
+    local speedEnabled = false
+    local jumpEnabled = false
+    local noclipEnabled = false
+    local infiniteJumpEnabled = false
+    local flyEnabled = false
+    
+    local currentSpeed = 100
+    local currentJump = 150
+    local currentFlySpeed = 50
+    
+    -- Connections
+    local speedConnection = nil
+    local jumpConnection = nil
+    local noclipConnection = nil
+    local infiniteJumpConnection = nil
+    local flyConnection = nil
     
     -- ===== SPEED HACK =====
-    local customSpeed = 100
-    local speedConnection = nil
+    Tab:CreateLabel({
+        Name = "SpeedLabel",
+        Text = "🏃 Speed Hack:",
+        Alignment = Enum.TextXAlignment.Left
+    })
     
-    local speedToggle = Tab:CreateToggle({
-        Name = "SpeedHack",
-        Text = "🏃 Speed Hack",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.speedHackEnabled = value
+    -- Speed toggle button (ON/OFF)
+    local speedToggleBtn = Tab:CreateButton({
+        Name = "SpeedToggle",
+        Text = speedEnabled and "✅ Speed ON" or "❌ Speed OFF",
+        Callback = function()
+            speedEnabled = not speedEnabled
+            Variables.speedHackEnabled = speedEnabled
             
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+            if speedEnabled then
+                speedToggleBtn.Text = "✅ Speed ON"
+                Bdev:Notify({
                     Title = "Speed Hack",
-                    Content = "Speed hack enabled! (" .. customSpeed .. " walk speed)",
+                    Content = "Speed hack enabled! (" .. currentSpeed .. " walk speed)",
                     Duration = 3
                 })
                 
-                print("✅ Speed hack enabled:", customSpeed)
+                print("✅ Speed hack enabled:", currentSpeed)
                 
                 if speedConnection then
                     speedConnection:Disconnect()
                 end
                 
                 speedConnection = Services.RunService.Heartbeat:Connect(function()
-                    if not Variables.speedHackEnabled then
-                        return
-                    end
-                    
                     local char = game.Players.LocalPlayer.Character
                     if char and char:FindFirstChild("Humanoid") then
-                        char.Humanoid.WalkSpeed = customSpeed
+                        char.Humanoid.WalkSpeed = currentSpeed
                     end
                 end)
-                
             else
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+                speedToggleBtn.Text = "❌ Speed OFF"
+                Bdev:Notify({
                     Title = "Speed Hack",
                     Content = "Speed hack disabled!",
                     Duration = 3
@@ -72,61 +90,89 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    Tab:CreateSlider({
-        Name = "SpeedValue",
-        Text = "Speed: " .. customSpeed,
-        Range = {16, 500},
-        Increment = 1,
-        CurrentValue = 100,
-        Callback = function(value)
-            customSpeed = value
-            if Variables.speedHackEnabled then
-                local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid.WalkSpeed = value
-                end
-            end
-            print("📊 Speed set to:", value)
-        end
+    -- Speed value buttons (instead of slider)
+    Tab:CreateLabel({
+        Name = "SpeedValueLabel",
+        Text = "Speed Value: " .. currentSpeed,
+        Alignment = Enum.TextXAlignment.Left
     })
     
-    -- ===== JUMP HACK =====
-    local customJump = 150
-    local jumpConnection = nil
+    -- Quick speed buttons
+    local speedButtons = {
+        {"16 (Normal)", 16},
+        {"50 (Fast)", 50},
+        {"100 (Very Fast)", 100},
+        {"200 (Extreme)", 200}
+    }
     
-    local jumpToggle = Tab:CreateToggle({
-        Name = "JumpHack",
-        Text = "🦘 Jump Hack",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.jumpHackEnabled = value
+    for i, speedInfo in ipairs(speedButtons) do
+        local text, value = speedInfo[1], speedInfo[2]
+        
+        Tab:CreateButton({
+            Name = "SpeedBtn" .. i,
+            Text = text,
+            Callback = function()
+                currentSpeed = value
+                
+                -- Update label
+                for _, element in pairs(Tab.Elements) do
+                    if element.Name == "SpeedValueLabel" then
+                        element.Text = "Speed Value: " .. currentSpeed
+                        break
+                    end
+                end
+                
+                -- Apply if enabled
+                if speedEnabled then
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("Humanoid") then
+                        char.Humanoid.WalkSpeed = currentSpeed
+                    end
+                end
+                
+                print("📊 Speed set to:", value)
+            end
+        })
+    end
+    
+    -- ===== JUMP HACK =====
+    Tab:CreateLabel({
+        Name = "JumpLabel",
+        Text = "🦘 Jump Hack:",
+        Alignment = Enum.TextXAlignment.Left
+    })
+    
+    -- Jump toggle button
+    local jumpToggleBtn = Tab:CreateButton({
+        Name = "JumpToggle",
+        Text = jumpEnabled and "✅ Jump ON" or "❌ Jump OFF",
+        Callback = function()
+            jumpEnabled = not jumpEnabled
+            Variables.jumpHackEnabled = jumpEnabled
             
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+            if jumpEnabled then
+                jumpToggleBtn.Text = "✅ Jump ON"
+                Bdev:Notify({
                     Title = "Jump Hack",
-                    Content = "Jump hack enabled! (" .. customJump .. " jump power)",
+                    Content = "Jump hack enabled! (" .. currentJump .. " jump power)",
                     Duration = 3
                 })
                 
-                print("✅ Jump hack enabled:", customJump)
+                print("✅ Jump hack enabled:", currentJump)
                 
                 if jumpConnection then
                     jumpConnection:Disconnect()
                 end
                 
                 jumpConnection = Services.RunService.Heartbeat:Connect(function()
-                    if not Variables.jumpHackEnabled then
-                        return
-                    end
-                    
                     local char = game.Players.LocalPlayer.Character
                     if char and char:FindFirstChild("Humanoid") then
-                        char.Humanoid.JumpPower = customJump
+                        char.Humanoid.JumpPower = currentJump
                     end
                 end)
-                
             else
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+                jumpToggleBtn.Text = "❌ Jump OFF"
+                Bdev:Notify({
                     Title = "Jump Hack",
                     Content = "Jump hack disabled!",
                     Duration = 3
@@ -147,114 +193,68 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    Tab:CreateSlider({
-        Name = "JumpValue",
-        Text = "Jump: " .. customJump,
-        Range = {50, 500},
-        Increment = 5,
-        CurrentValue = 150,
-        Callback = function(value)
-            customJump = value
-            if Variables.jumpHackEnabled then
-                local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid.JumpPower = value
-                end
-            end
-            print("📊 Jump power set to:", value)
-        end
+    -- Jump value label
+    Tab:CreateLabel({
+        Name = "JumpValueLabel",
+        Text = "Jump Value: " .. currentJump,
+        Alignment = Enum.TextXAlignment.Left
     })
     
-    -- ===== SIMPLE FLY HACK =====
-    local flySpeed = 50
-    local flyEnabled = false
-    local flyConnection = nil
+    -- Quick jump buttons
+    local jumpButtons = {
+        {"50 (Normal)", 50},
+        {"100 (High)", 100},
+        {"150 (Very High)", 150},
+        {"300 (Extreme)", 300}
+    }
     
-    Tab:CreateToggle({
-        Name = "FlyHack",
-        Text = "✈️ Simple Fly",
-        CurrentValue = false,
-        Callback = function(value)
-            flyEnabled = value
-            Variables.flyEnabled = value
-            
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
-                    Title = "Fly Hack",
-                    Content = "Simple fly enabled! (Press Space/Shift)",
-                    Duration = 3
-                })
+    for i, jumpInfo in ipairs(jumpButtons) do
+        local text, value = jumpInfo[1], jumpInfo[2]
+        
+        Tab:CreateButton({
+            Name = "JumpBtn" .. i,
+            Text = text,
+            Callback = function()
+                currentJump = value
                 
-                print("✅ Simple fly enabled")
-                
-                if flyConnection then
-                    flyConnection:Disconnect()
-                end
-                
-                flyConnection = Services.RunService.Heartbeat:Connect(function()
-                    if not flyEnabled then return end
-                    
-                    local char = game.Players.LocalPlayer.Character
-                    if not char then return end
-                    
-                    local humanoid = char:FindFirstChild("Humanoid")
-                    local root = char:FindFirstChild("HumanoidRootPart")
-                    if not humanoid or not root then return end
-                    
-                    -- Simple fly: just increase jump power and enable no gravity
-                    humanoid.JumpPower = flySpeed * 2
-                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end)
-                
-            else
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
-                    Title = "Fly Hack",
-                    Content = "Fly disabled!",
-                    Duration = 3
-                })
-                
-                print("❌ Fly disabled")
-                
-                if flyConnection then
-                    flyConnection:Disconnect()
-                    flyConnection = nil
-                end
-                
-                local char = game.Players.LocalPlayer.Character
-                if char then
-                    local humanoid = char:FindFirstChild("Humanoid")
-                    if humanoid then
-                        humanoid.JumpPower = 50
+                -- Update label
+                for _, element in pairs(Tab.Elements) do
+                    if element.Name == "JumpValueLabel" then
+                        element.Text = "Jump Value: " .. currentJump
+                        break
                     end
                 end
+                
+                -- Apply if enabled
+                if jumpEnabled then
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("Humanoid") then
+                        char.Humanoid.JumpPower = currentJump
+                    end
+                end
+                
+                print("📊 Jump set to:", value)
             end
-        end
+        })
+    end
+    
+    -- ===== NOCLIP =====
+    Tab:CreateLabel({
+        Name = "NoclipLabel",
+        Text = "👻 Noclip:",
+        Alignment = Enum.TextXAlignment.Left
     })
     
-    Tab:CreateSlider({
-        Name = "FlySpeed",
-        Text = "Fly Speed: " .. flySpeed,
-        Range = {10, 200},
-        Increment = 5,
-        CurrentValue = 50,
-        Callback = function(value)
-            flySpeed = value
-            print("📊 Fly speed set to:", value)
-        end
-    })
-    
-    -- ===== SIMPLE NOCLIP =====
-    local noclipConnection = nil
-    
-    Tab:CreateToggle({
-        Name = "Noclip",
-        Text = "👻 Simple Noclip",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.noclipEnabled = value
+    local noclipToggleBtn = Tab:CreateButton({
+        Name = "NoclipToggle",
+        Text = noclipEnabled and "✅ Noclip ON" or "❌ Noclip OFF",
+        Callback = function()
+            noclipEnabled = not noclipEnabled
+            Variables.noclipEnabled = noclipEnabled
             
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+            if noclipEnabled then
+                noclipToggleBtn.Text = "✅ Noclip ON"
+                Bdev:Notify({
                     Title = "Noclip",
                     Content = "Noclip enabled!",
                     Duration = 3
@@ -267,10 +267,6 @@ function PlayerMods.Init(Dependencies)
                 end
                 
                 noclipConnection = Services.RunService.Stepped:Connect(function()
-                    if not Variables.noclipEnabled then
-                        return
-                    end
-                    
                     local char = game.Players.LocalPlayer.Character
                     if char then
                         for _, part in pairs(char:GetDescendants()) do
@@ -280,9 +276,9 @@ function PlayerMods.Init(Dependencies)
                         end
                     end
                 end)
-                
             else
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+                noclipToggleBtn.Text = "❌ Noclip OFF"
+                Bdev:Notify({
                     Title = "Noclip",
                     Content = "Noclip disabled!",
                     Duration = 3
@@ -308,17 +304,22 @@ function PlayerMods.Init(Dependencies)
     })
     
     -- ===== INFINITE JUMP =====
-    local infiniteJumpConnection = nil
+    Tab:CreateLabel({
+        Name = "InfJumpLabel",
+        Text = "∞ Infinite Jump:",
+        Alignment = Enum.TextXAlignment.Left
+    })
     
-    Tab:CreateToggle({
-        Name = "InfiniteJump",
-        Text = "∞ Infinite Jump",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.infiniteJumpEnabled = value
+    local infiniteJumpToggleBtn = Tab:CreateButton({
+        Name = "InfJumpToggle",
+        Text = infiniteJumpEnabled and "✅ Inf Jump ON" or "❌ Inf Jump OFF",
+        Callback = function()
+            infiniteJumpEnabled = not infiniteJumpEnabled
+            Variables.infiniteJumpEnabled = infiniteJumpEnabled
             
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+            if infiniteJumpEnabled then
+                infiniteJumpToggleBtn.Text = "✅ Inf Jump ON"
+                Bdev:Notify({
                     Title = "Infinite Jump",
                     Content = "Infinite jump enabled!",
                     Duration = 3
@@ -331,16 +332,14 @@ function PlayerMods.Init(Dependencies)
                 end
                 
                 infiniteJumpConnection = Services.UserInputService.JumpRequest:Connect(function()
-                    if Variables.infiniteJumpEnabled then
-                        local char = game.Players.LocalPlayer.Character
-                        if char and char:FindFirstChild("Humanoid") then
-                            char.Humanoid:ChangeState("Jumping")
-                        end
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("Humanoid") then
+                        char.Humanoid:ChangeState("Jumping")
                     end
                 end)
-                
             else
-                Bdev:Notify({  -- ✅ FIXED: Titik dua
+                infiniteJumpToggleBtn.Text = "❌ Inf Jump OFF"
+                Bdev:Notify({
                     Title = "Infinite Jump",
                     Content = "Infinite jump disabled!",
                     Duration = 3
@@ -356,71 +355,33 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    -- ===== QUICK SPEED =====
-    Tab:CreateButton({
-        Name = "QuickSpeed",
-        Text = "⚡ Quick Speed 100",
-        Callback = function()
-            customSpeed = 100
-            
-            if not Variables.speedHackEnabled then
-                speedToggle:Set(true)  -- Enable if not enabled
-            else
-                local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid.WalkSpeed = 100
-                end
-            end
-            
-            Bdev:Notify({
-                Title = "Quick Speed",
-                Content = "Speed set to 100!",
-                Duration = 3
-            })
-        end
-    })
-    
-    -- ===== QUICK JUMP =====
-    Tab:CreateButton({
-        Name = "QuickJump",
-        Text = "⚡ Quick Jump 150",
-        Callback = function()
-            customJump = 150
-            
-            if not Variables.jumpHackEnabled then
-                jumpToggle:Set(true)  -- Enable if not enabled
-            else
-                local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid.JumpPower = 150
-                end
-            end
-            
-            Bdev:Notify({
-                Title = "Quick Jump",
-                Content = "Jump set to 150!",
-                Duration = 3
-            })
-        end
-    })
-    
-    -- ===== DISABLE ALL HACKS =====
+    -- ===== DISABLE ALL =====
     Tab:CreateButton({
         Name = "DisableAll",
         Text = "🔴 Disable All Hacks",
         Callback = function()
             print("\n🔴 DISABLING ALL HACKS...")
             
-            -- Disable all toggles
+            -- Disable all
+            speedEnabled = false
+            jumpEnabled = false
+            noclipEnabled = false
+            infiniteJumpEnabled = false
+            flyEnabled = false
+            
             Variables.speedHackEnabled = false
             Variables.jumpHackEnabled = false
             Variables.noclipEnabled = false
             Variables.infiniteJumpEnabled = false
             Variables.flyEnabled = false
-            Variables.autoCollectEnabled = false
-            Variables.autoPunchEnabled = false
             
-            -- Disconnect all connections
+            -- Update button texts
+            speedToggleBtn.Text = "❌ Speed OFF"
+            jumpToggleBtn.Text = "❌ Jump OFF"
+            noclipToggleBtn.Text = "❌ Noclip OFF"
+            infiniteJumpToggleBtn.Text = "❌ Inf Jump OFF"
+            
+            -- Disconnect connections
             if speedConnection then
                 speedConnection:Disconnect()
                 speedConnection = nil
@@ -429,11 +390,6 @@ function PlayerMods.Init(Dependencies)
             if jumpConnection then
                 jumpConnection:Disconnect()
                 jumpConnection = nil
-            end
-            
-            if flyConnection then
-                flyConnection:Disconnect()
-                flyConnection = nil
             end
             
             if noclipConnection then
@@ -446,7 +402,12 @@ function PlayerMods.Init(Dependencies)
                 infiniteJumpConnection = nil
             end
             
-            -- Reset character stats
+            if flyConnection then
+                flyConnection:Disconnect()
+                flyConnection = nil
+            end
+            
+            -- Reset character
             local char = game.Players.LocalPlayer.Character
             if char and char:FindFirstChild("Humanoid") then
                 char.Humanoid.WalkSpeed = 16
@@ -454,7 +415,7 @@ function PlayerMods.Init(Dependencies)
                 char.Humanoid.PlatformStand = false
             end
             
-            Bdev:Notify({  -- ✅ FIXED: Titik dua
+            Bdev:Notify({
                 Title = "All Hacks",
                 Content = "All hacks have been disabled!",
                 Duration = 4
@@ -464,7 +425,7 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    print("✅ PlayerMods tab initialized")
+    print("✅ PlayerMods tab initialized for SimpleGUI v6.3")
 end
 
 return PlayerMods
