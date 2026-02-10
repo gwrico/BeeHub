@@ -38,9 +38,64 @@ SimpleGUI.Themes = {
         ToggleOn = Color3.fromRGB(98, 147, 255),
         SliderTrack = Color3.fromRGB(60, 60, 80),
         SliderFill = Color3.fromRGB(98, 147, 255),
-        Sidebar = Color3.fromRGB(40, 40, 55)  -- New: Sidebar color
+        Sidebar = Color3.fromRGB(40, 40, 55)
+    },
+    LIGHT = {
+        Name = "Light",
+        Primary = Color3.fromRGB(245, 245, 250),
+        Secondary = Color3.fromRGB(230, 230, 240),
+        Accent = Color3.fromRGB(65, 105, 225),
+        Text = Color3.fromRGB(30, 30, 40),
+        TextSecondary = Color3.fromRGB(100, 100, 120),
+        Success = Color3.fromRGB(60, 200, 80),
+        Warning = Color3.fromRGB(230, 180, 0),
+        Error = Color3.fromRGB(220, 50, 40),
+        Border = Color3.fromRGB(200, 200, 220),
+        Hover = Color3.fromRGB(210, 210, 230),
+        Active = Color3.fromRGB(80, 120, 200),
+        
+        -- UI Specific
+        WindowBg = Color3.fromRGB(245, 245, 250),
+        TitleBar = Color3.fromRGB(230, 230, 240),
+        TabNormal = Color3.fromRGB(220, 220, 235),
+        TabActive = Color3.fromRGB(65, 105, 225),
+        ContentBg = Color3.fromRGB(250, 250, 255),
+        Button = Color3.fromRGB(210, 210, 230),
+        InputBg = Color3.fromRGB(230, 230, 245),
+        ToggleOff = Color3.fromRGB(200, 200, 220),
+        ToggleOn = Color3.fromRGB(65, 105, 225),
+        SliderTrack = Color3.fromRGB(220, 220, 235),
+        SliderFill = Color3.fromRGB(65, 105, 225),
+        Sidebar = Color3.fromRGB(235, 235, 245)
+    },
+    PURPLE = {
+        Name = "Purple",
+        Primary = Color3.fromRGB(40, 30, 50),
+        Secondary = Color3.fromRGB(60, 40, 80),
+        Accent = Color3.fromRGB(180, 120, 255),
+        Text = Color3.fromRGB(245, 240, 250),
+        TextSecondary = Color3.fromRGB(200, 180, 220),
+        Success = Color3.fromRGB(140, 255, 180),
+        Warning = Color3.fromRGB(255, 220, 100),
+        Error = Color3.fromRGB(255, 100, 120),
+        Border = Color3.fromRGB(90, 70, 110),
+        Hover = Color3.fromRGB(80, 60, 100),
+        Active = Color3.fromRGB(200, 140, 255),
+        
+        -- UI Specific
+        WindowBg = Color3.fromRGB(40, 30, 50),
+        TitleBar = Color3.fromRGB(60, 40, 80),
+        TabNormal = Color3.fromRGB(70, 50, 90),
+        TabActive = Color3.fromRGB(180, 120, 255),
+        ContentBg = Color3.fromRGB(50, 35, 65),
+        Button = Color3.fromRGB(80, 60, 100),
+        InputBg = Color3.fromRGB(70, 50, 90),
+        ToggleOff = Color3.fromRGB(90, 70, 110),
+        ToggleOn = Color3.fromRGB(180, 120, 255),
+        SliderTrack = Color3.fromRGB(80, 60, 100),
+        SliderFill = Color3.fromRGB(180, 120, 255),
+        Sidebar = Color3.fromRGB(50, 35, 65)
     }
-    -- ... (other themes same)
 }
 
 function SimpleGUI.new()
@@ -76,7 +131,7 @@ function SimpleGUI.new()
     return self
 end
 
--- Theme management (same)
+-- Theme management
 function SimpleGUI:SetTheme(themeName)
     if self.Themes[themeName:upper()] then
         self.CurrentTheme = themeName:upper()
@@ -110,12 +165,12 @@ function SimpleGUI:CreateWindow(options)
     
     local windowData = {
         Name = opts.Name or "Window",
-        Size = opts.Size or UDim2.new(0, 700 * scale, 0, 500 * scale),  -- Wider for sidebar
+        Size = opts.Size or UDim2.new(0, 700 * scale, 0, 500 * scale),
         Position = opts.Position or UDim2.new(0.5, -350 * scale, 0.5, -250 * scale),
         ShowThemeTab = opts.ShowThemeTab or false,
         IsMobile = isMobile,
         Scale = scale,
-        SidebarWidth = 180 * scale  -- Width of sidebar
+        SidebarWidth = 180 * scale
     }
     
     local theme = self:GetTheme()
@@ -160,7 +215,6 @@ function SimpleGUI:CreateWindow(options)
     TitleBar.BorderSizePixel = 0
     TitleBar.Parent = MainFrame
     
-    -- Rounded top corners
     local TitleBarCorner = Instance.new("UICorner")
     TitleBarCorner.CornerRadius = UDim.new(0, 12 * scale)
     TitleBarCorner.Parent = TitleBar
@@ -236,7 +290,7 @@ function SimpleGUI:CreateWindow(options)
     -- ===== SIDEBAR (LEFT) =====
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, windowData.SidebarWidth, 1, -40 * scale)  -- Full height minus title
+    Sidebar.Size = UDim2.new(0, windowData.SidebarWidth, 1, -40 * scale)
     Sidebar.Position = UDim2.new(0, 0, 0, 40 * scale)
     Sidebar.BackgroundColor3 = theme.Sidebar
     Sidebar.BorderSizePixel = 0
@@ -245,7 +299,7 @@ function SimpleGUI:CreateWindow(options)
     -- ===== CONTENT FRAME (RIGHT) =====
     local ContentFrame = Instance.new("ScrollingFrame")
     ContentFrame.Name = "ContentFrame"
-    ContentFrame.Size = UDim2.new(1, -windowData.SidebarWidth, 1, -40 * scale)  -- Minus sidebar and title
+    ContentFrame.Size = UDim2.new(1, -windowData.SidebarWidth, 1, -40 * scale)
     ContentFrame.Position = UDim2.new(0, windowData.SidebarWidth, 0, 40 * scale)
     ContentFrame.BackgroundColor3 = theme.ContentBg
     ContentFrame.BackgroundTransparency = 0
@@ -256,13 +310,12 @@ function SimpleGUI:CreateWindow(options)
     ContentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
     ContentFrame.Parent = MainFrame
     
-    -- Content rounded right corners
     local ContentCorner = Instance.new("UICorner")
     ContentCorner.CornerRadius = UDim.new(0, 12 * scale)
     ContentCorner.Parent = ContentFrame
     
     -- ===== LAYOUTS =====
-    -- Sidebar layout (VERTICAL)
+    -- Sidebar layout
     local SidebarLayout = Instance.new("UIListLayout")
     SidebarLayout.Padding = UDim.new(0, 5 * scale)
     SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -346,17 +399,17 @@ function SimpleGUI:CreateWindow(options)
     
     self.Windows[windowData.Name] = windowObj
     
-    -- ===== TAB CREATION (SIDEBAR VERTICAL) =====
+    -- ===== TAB CREATION =====
     function windowObj:CreateTab(options)
         local tabOptions = type(options) == "string" and {Name = options} or (options or {})
         local tabName = tabOptions.Name or "Tab_" .. (#self.Tabs + 1)
         local scale = self.WindowData.Scale
         
-        -- Tab Button (in sidebar - VERTICAL)
+        -- Tab Button
         local TabButton = Instance.new("TextButton")
         TabButton.Name = tabName .. "_Button"
-        TabButton.Size = UDim2.new(1, -20 * scale, 0, 40 * scale)  -- Full width minus padding
-        TabButton.Text = "  " .. tabName  -- Add space for icon
+        TabButton.Size = UDim2.new(1, -20 * scale, 0, 40 * scale)
+        TabButton.Text = "  " .. tabName
         TabButton.TextColor3 = theme.Text
         TabButton.BackgroundColor3 = theme.TabNormal
         TabButton.BackgroundTransparency = 0
@@ -367,7 +420,6 @@ function SimpleGUI:CreateWindow(options)
         TabButton.LayoutOrder = #self.Tabs + 1
         TabButton.Parent = self.Sidebar
         
-        -- Rounded corners for sidebar buttons
         local TabButtonCorner = Instance.new("UICorner")
         TabButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
         TabButtonCorner.Parent = TabButton
@@ -402,17 +454,19 @@ function SimpleGUI:CreateWindow(options)
         
         -- Button hover effects
         local function setupButtonHover(button)
-            button.MouseEnter:Connect(function()
-                if not isMobile then
-                    tween(button, {BackgroundColor3 = theme.Hover})
-                end
-            end)
-            
-            button.MouseLeave:Connect(function()
-                if not isMobile then
-                    tween(button, {BackgroundColor3 = theme.Button})
-                end
-            end)
+            if button and button:IsA("TextButton") then
+                button.MouseEnter:Connect(function()
+                    if not isMobile then
+                        tween(button, {BackgroundColor3 = theme.Hover})
+                    end
+                end)
+                
+                button.MouseLeave:Connect(function()
+                    if not isMobile then
+                        tween(button, {BackgroundColor3 = theme.Button})
+                    end
+                end)
+            end
         end
         
         setupButtonHover(TabButton)
@@ -538,18 +592,10 @@ function SimpleGUI:CreateWindow(options)
                     end
                 end)
                 
-                -- Real-time text changed
-                InputBox:GetPropertyChangedSignal("Text"):Connect(function()
-                    if opts.Callback then
-                        pcall(opts.Callback, InputBox.Text)
-                    end
-                end)
-                
                 table.insert(self.Elements, InputFrame)
                 return InputBox
             end,
             
-            -- ===== TOGGLE CONTROL =====
             CreateToggle = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -655,7 +701,6 @@ function SimpleGUI:CreateWindow(options)
                 }
             end,
             
-            -- ===== SLIDER CONTROL =====
             CreateSlider = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -984,20 +1029,6 @@ function SimpleGUI:CreateWindow(options)
                     SetSelected = function(option)
                         selectedOption = option
                         DropdownButton.Text = option or opts.PlaceholderText
-                    end,
-                    SetOptions = function(newOptions)
-                        -- Clear old options
-                        for _, btn in pairs(optionButtons) do
-                            btn:Destroy()
-                        end
-                        optionButtons = {}
-                        
-                        -- Create new options
-                        if newOptions then
-                            for i, option in ipairs(newOptions) do
-                                -- ... (same creation code as above)
-                            end
-                        end
                     end
                 }
             end
@@ -1087,5 +1118,5 @@ function SimpleGUI:CreateWindow(options)
     return windowObj
 end
 
-print("🎉 SimpleGUI v6.3 - Sidebar Tabs + COMPLETE METHODS loaded!")
+print("🎉 SimpleGUI v6.3 - COMPLETE VERSION loaded!")
 return SimpleGUI
