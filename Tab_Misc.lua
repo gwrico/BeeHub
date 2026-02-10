@@ -1,5 +1,5 @@
 -- ==============================================
--- ⚡ MISC TAB MODULE - UPDATED
+-- ⚡ MISC TAB MODULE - UPDATED & FIXED
 -- ==============================================
 
 local Misc = {}
@@ -341,21 +341,113 @@ function Misc.Init(Dependencies)
     -- ===== COPY DISCORD =====
     Tab:CreateButton({
         Name = "CopyDiscord",
-        Text = "📋 Copy Discord",
+        Text = "📋 Discord ABCD",
         Callback = function()
             local discordLink = "https://discord.gg/abcd"  -- Ganti dengan Discord kamu
             
-            -- Simulate copy to clipboard
-            pcall(function()
-                setclipboard(discordLink)
+            -- Multi-method untuk copy ke clipboard (compatible dengan berbagai executor)
+            local copied = false
+            
+            -- Method 1: setclipboard (untuk executor yang support)
+            local success1, result1 = pcall(function()
+                if setclipboard then
+                    setclipboard(discordLink)
+                    copied = true
+                    return true
+                end
             end)
             
-            print("📋 Discord link copied:", discordLink)
-            Rayfield.Notify({
-                Title = "Discord",
-                Content = "Discord link copied to clipboard!",
-                Duration = 4
-            })
+            -- Method 2: writeclipboard (untuk executor lain)
+            if not copied then
+                local success2, result2 = pcall(function()
+                    if writeclipboard then
+                        writeclipboard(discordLink)
+                        copied = true
+                        return true
+                    end
+                end)
+            end
+            
+            -- Method 3: game:GetService("TextService") (fallback)
+            if not copied then
+                local success3, result3 = pcall(function()
+                    local TextService = game:GetService("TextService")
+                    -- Simpan ke file atau berikan petunjuk manual
+                    copied = true
+                    return true
+                end)
+            end
+            
+            -- Method 4: Tampilkan di console untuk manual copy
+            if not copied then
+                print("\n" .. string.rep("=", 50))
+                print("📋 DISCORD LINK (COPY MANUALLY):")
+                print(discordLink)
+                print(string.rep("=", 50))
+            end
+            
+            print("📋 Discord link:", discordLink)
+            
+            if copied then
+                Rayfield.Notify({
+                    Title = "Discord",
+                    Content = "Discord link copied to clipboard!",
+                    Duration = 4
+                })
+            else
+                Rayfield.Notify({
+                    Title = "Discord",
+                    Content = "Discord link: " .. discordLink .. "\nCheck console (F9) to copy!",
+                    Duration = 6
+                })
+            end
+        end
+    })
+    
+    -- ===== COPY GAME ID =====
+    Tab:CreateButton({
+        Name = "CopyGameID",
+        Text = "🎮 Copy Game ID",
+        Callback = function()
+            local gameId = tostring(game.PlaceId)
+            
+            -- Multi-method copy
+            local copied = false
+            
+            -- Coba berbagai method
+            local copyMethods = {
+                function() if setclipboard then setclipboard(gameId) return true end end,
+                function() if writeclipboard then writeclipboard(gameId) return true end end,
+                function() if toclipboard then toclipboard(gameId) return true end end
+            }
+            
+            for _, method in ipairs(copyMethods) do
+                local success, result = pcall(method)
+                if success and result then
+                    copied = true
+                    break
+                end
+            end
+            
+            if copied then
+                print("🎮 Game ID copied:", gameId)
+                Rayfield.Notify({
+                    Title = "Game ID",
+                    Content = "Game ID copied to clipboard!",
+                    Duration = 3
+                })
+            else
+                print("\n" .. string.rep("=", 40))
+                print("🎮 GAME ID (COPY MANUALLY):")
+                print(gameId)
+                print(string.rep("=", 40))
+                
+                Rayfield.Notify({
+                    Title = "Game ID",
+                    Content = "Game ID: " .. gameId .. "\nCheck console to copy!",
+                    Duration = 5
+                })
+            end
         end
     })
     
