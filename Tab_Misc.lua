@@ -1,5 +1,5 @@
 -- ==============================================
--- ⚡ MISC TAB MODULE - UPDATED & FIXED
+-- ⚡ MISC TAB MODULE - COMPATIBLE WITH SIMPLEGUI v6.3 (FIXED SYNTAX)
 -- ==============================================
 
 local Misc = {}
@@ -9,57 +9,39 @@ function Misc.Init(Dependencies)
     local Shared = Dependencies.Shared
     local Bdev = Dependencies.Bdev
     local Window = Dependencies.Window
+    local GUI = Dependencies.GUI  -- ✅ ADDED: Access to SimpleGUI
     
     local Variables = Shared.Variables
     local Services = Shared.Services
     
-    print("⚡ Initializing Misc tab...")
+    print("⚡ Initializing Misc tab for SimpleGUI v6.3...")
     
     -- ===== ANTI-AFK (FIXED VERSION) =====
     local antiAFKConnection
     
     Tab:CreateToggle({
         Name = "AntiAFK",
-        Text = "🟢 Anti-AFK",
+        Text = "⏰ Anti-AFK",
         CurrentValue = false,
         Callback = function(value)
             Variables.antiAfkEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "Anti-AFK",
-                    Content = "Anti-AFK enabled! You won't be kicked for AFK.",
+                    Content = "Anti-AFK enabled! You won't be kicked.",
                     Duration = 3
                 })
                 
                 print("✅ Anti-AFK enabled")
                 
-                -- Method 1: Simpan waktu terakhir aktivitas
+                -- Method yang lebih aman
                 local lastActivity = tick()
                 
-                -- Method 2: Connect ke Idled event (lebih aman)
-                antiAFKConnection = Services.Players.LocalPlayer.Idled:Connect(function()
-                    if Variables.antiAfkEnabled then
-                        -- Reset last activity time
-                        lastActivity = tick()
-                        
-                        -- Method yang lebih aman: Send key press untuk reset idle timer
-                        pcall(function()
-                            -- Press a harmless key (F13 atau key yang tidak digunakan)
-                            Services.VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F13, false, nil)
-                            task.wait(0.1)
-                            Services.VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F13, false, nil)
-                        end)
-                        
-                        -- Atau gunakan VirtualUser tanpa mouse click
-                        local VirtualUser = game:GetService("VirtualUser")
-                        VirtualUser:CaptureController()  -- Ini saja sudah cukup untuk reset idle timer
+                antiAFKConnection = Services.RunService.Heartbeat:Connect(function()
+                    if not Variables.antiAfkEnabled then
+                        return
                     end
-                end)
-                
-                -- Method 3: Auto-move camera secara halus (opsional)
-                local cameraMove = Services.RunService.Heartbeat:Connect(function()
-                    if not Variables.antiAfkEnabled then return end
                     
                     -- Reset idle timer setiap 30 detik
                     if tick() - lastActivity > 30 then
@@ -68,26 +50,13 @@ function Misc.Init(Dependencies)
                         pcall(function()
                             local VirtualUser = game:GetService("VirtualUser")
                             VirtualUser:CaptureController()
+                            VirtualUser:ClickButton2(Vector2.new(0, 0))
                         end)
-                    end
-                    
-                    -- Gerakkan camera sedikit (sangat halus, tidak mengganggu gameplay)
-                    if Variables.antiAfkEnabled and Services.Workspace.CurrentCamera then
-                        local currentCFrame = Services.Workspace.CurrentCamera.CFrame
-                        local microRotation = CFrame.Angles(
-                            0, 
-                            math.sin(tick() * 0.1) * 0.001,  -- Rotasi sangat kecil
-                            0
-                        )
-                        Services.Workspace.CurrentCamera.CFrame = currentCFrame * microRotation
                     end
                 end)
                 
-                -- Simpan connection untuk cleanup
-                antiAFKConnection = cameraMove
-                
             else
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "Anti-AFK",
                     Content = "Anti-AFK disabled!",
                     Duration = 3
@@ -95,7 +64,6 @@ function Misc.Init(Dependencies)
                 
                 print("❌ Anti-AFK disabled")
                 
-                -- Disconnect anti-AFK
                 if antiAFKConnection then
                     antiAFKConnection:Disconnect()
                     antiAFKConnection = nil
@@ -104,7 +72,9 @@ function Misc.Init(Dependencies)
         end
     })
     
-    -- ===== NO CLIP =====
+    -- ===== NO CLIP (SIMPLIFIED) =====
+    local noclipConnection
+    
     Tab:CreateToggle({
         Name = "NoClip",
         Text = "👻 No Clip",
@@ -113,52 +83,63 @@ function Misc.Init(Dependencies)
             Variables.noclipEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "No Clip",
-                    Content = "No Clip enabled! You can walk through walls.",
+                    Content = "No Clip enabled! Walk through walls.",
                     Duration = 3
                 })
                 
                 print("✅ No Clip enabled")
                 
-                local character = Services.Players.LocalPlayer.Character
-                if character then
-                    local function noclipLoop()
-                        if Variables.noclipEnabled and character:FindFirstChild("Humanoid") then
-                            for _, part in pairs(character:GetDescendants()) do
-                                if part:IsA("BasePart") and part.CanCollide then
-                                    part.CanCollide = false
-                                end
+                if noclipConnection then
+                    noclipConnection:Disconnect()
+                end
+                
+                noclipConnection = Services.RunService.Stepped:Connect(function()
+                    if not Variables.noclipEnabled then 
+                        return 
+                    end
+                    
+                    local character = Services.Players.LocalPlayer.Character
+                    if character then
+                        for _, part in pairs(character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
                             end
                         end
                     end
-                    
-                    -- Run noclip loop
-                    local connection
-                    connection = Services.RunService.Stepped:Connect(function()
-                        if Variables.noclipEnabled then
-                            noclipLoop()
-                        else
-                            if connection then
-                                connection:Disconnect()
-                            end
-                        end
-                    end)
-                end
+                end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "No Clip",
                     Content = "No Clip disabled!",
                     Duration = 3
                 })
                 
                 print("❌ No Clip disabled")
+                
+                if noclipConnection then
+                    noclipConnection:Disconnect()
+                    noclipConnection = nil
+                end
+                
+                -- Restore collision
+                local character = Services.Players.LocalPlayer.Character
+                if character then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = true
+                        end
+                    end
+                end
             end
         end
     })
     
     -- ===== INFINITE JUMP =====
+    local infiniteJumpConnection
+    
     Tab:CreateToggle({
         Name = "InfiniteJump",
         Text = "🦘 Infinite Jump",
@@ -167,16 +148,19 @@ function Misc.Init(Dependencies)
             Variables.infiniteJumpEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "Infinite Jump",
-                    Content = "Infinite Jump enabled! Hold Space to fly.",
+                    Content = "Infinite Jump enabled!",
                     Duration = 3
                 })
                 
                 print("✅ Infinite Jump enabled")
                 
-                local connection
-                connection = Services.UserInputService.JumpRequest:Connect(function()
+                if infiniteJumpConnection then
+                    infiniteJumpConnection:Disconnect()
+                end
+                
+                infiniteJumpConnection = Services.UserInputService.JumpRequest:Connect(function()
                     if Variables.infiniteJumpEnabled then
                         local character = Services.Players.LocalPlayer.Character
                         if character and character:FindFirstChild("Humanoid") then
@@ -186,15 +170,27 @@ function Misc.Init(Dependencies)
                 end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "Infinite Jump",
                     Content = "Infinite Jump disabled!",
                     Duration = 3
                 })
                 
                 print("❌ Infinite Jump disabled")
+                
+                if infiniteJumpConnection then
+                    infiniteJumpConnection:Disconnect()
+                    infiniteJumpConnection = nil
+                end
             end
         end
+    })
+    
+    -- ===== UTILITIES SECTION =====
+    Tab:CreateLabel({
+        Name = "UtilitiesLabel",
+        Text = "🔧 Utilities:",
+        Alignment = Enum.TextXAlignment.Center
     })
     
     -- ===== DESTROY GUI =====
@@ -205,9 +201,15 @@ function Misc.Init(Dependencies)
             if Window and Window.MainFrame then
                 Window.MainFrame.Visible = false
                 print("🗑️ GUI destroyed")
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "GUI",
                     Content = "GUI destroyed!",
+                    Duration = 3
+                })
+            else
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "Could not find GUI window!",
                     Duration = 3
                 })
             end
@@ -219,7 +221,7 @@ function Misc.Init(Dependencies)
         Name = "RejoinServer",
         Text = "🔄 Rejoin Server",
         Callback = function()
-            Bdev.Notify({
+            Bdev:Notify({
                 Title = "Rejoin",
                 Content = "Rejoining server...",
                 Duration = 3
@@ -229,7 +231,17 @@ function Misc.Init(Dependencies)
             local Players = game:GetService("Players")
             local player = Players.LocalPlayer
             
-            TeleportService:Teleport(game.PlaceId, player)
+            local success, err = pcall(function()
+                TeleportService:Teleport(game.PlaceId, player)
+            end)
+            
+            if not success then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "Failed to rejoin: " .. tostring(err),
+                    Duration = 5
+                })
+            end
         end
     })
     
@@ -238,38 +250,49 @@ function Misc.Init(Dependencies)
         Name = "ServerHop",
         Text = "🌐 Server Hop",
         Callback = function()
-            Bdev.Notify({
+            Bdev:Notify({
                 Title = "Server Hop",
                 Content = "Finding new server...",
                 Duration = 3
             })
             
-            -- Function untuk mencari server lain
             local function findNewServer()
                 local HttpService = game:GetService("HttpService")
                 local TeleportService = game:GetService("TeleportService")
                 
-                -- Coba dapatkan server list
                 local success, servers = pcall(function()
-                    return HttpService:JSONDecode(game:HttpGet(
+                    local response = game:HttpGet(
                         "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?limit=100"
-                    ))
+                    )
+                    return HttpService:JSONDecode(response)
                 end)
                 
                 if success and servers and servers.data then
                     for _, server in ipairs(servers.data) do
                         if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                            TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
-                            return
+                            pcall(function()
+                                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+                            end)
+                            return true
                         end
                     end
                 end
                 
-                -- Jika tidak ada server yang cocok, rejoin saja
-                TeleportService:Teleport(game.PlaceId)
+                return false
             end
             
-            findNewServer()
+            local found = findNewServer()
+            if not found then
+                Bdev:Notify({
+                    Title = "Server Hop",
+                    Content = "No servers found, rejoining...",
+                    Duration = 3
+                })
+                
+                pcall(function()
+                    game:GetService("TeleportService"):Teleport(game.PlaceId)
+                end)
+            end
         end
     })
     
@@ -293,30 +316,12 @@ function Misc.Init(Dependencies)
             
             print("Players:", #Services.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
             
-            -- FPS
-            local fps = 0
-            pcall(function()
-                fps = math.floor(1/Services.RunService.RenderStepped:Wait())
-            end)
-            print("FPS:", fps)
-            
-            -- Check important services
-            local hasReplica = Services.ReplicatedStorage:FindFirstChild("ReplicaController")
-            local hasComm = Services.ReplicatedStorage:FindFirstChild("Comm")
-            local hasRemotes = #Services.ReplicatedStorage:GetChildren() > 0
-            
-            print("\n🔍 SYSTEM DETECTION:")
-            print("Replica System:", hasReplica and "✅ Detected" or "❌ Not found")
-            print("Comm System:", hasComm and "✅ Detected" or "❌ Not found")
-            print("Remotes:", hasRemotes and "✅ Available" or "⚠️ Limited")
-            
             -- Player info
             local player = Services.Players.LocalPlayer
             print("\n👤 PLAYER INFO:")
             print("Username:", player.Name)
             print("Display Name:", player.DisplayName)
             print("User ID:", player.UserId)
-            print("Account Age:", player.AccountAge .. " days")
             
             -- Character info
             if player.Character then
@@ -324,15 +329,20 @@ function Misc.Init(Dependencies)
                 if humanoid then
                     print("Walk Speed:", humanoid.WalkSpeed)
                     print("Jump Power:", humanoid.JumpPower)
-                    print("Health:", humanoid.Health .. "/" .. humanoid.MaxHealth)
                 end
             end
             
+            -- Check BeeHub system
+            print("\n🐝 BEEHUB SYSTEM:")
+            print("Version: v4.0")
+            print("SimpleGUI: v6.3")
+            print("Loaded Tabs:", #Shared.Tabs)
+            
             print(string.rep("=", 40))
             
-            Bdev.Notify({
+            Bdev:Notify({
                 Title = "Game Info",
-                Content = "Check console (F9) for detailed information!",
+                Content = "Check console (F9) for details!",
                 Duration = 5
             })
         end
@@ -341,64 +351,59 @@ function Misc.Init(Dependencies)
     -- ===== COPY DISCORD =====
     Tab:CreateButton({
         Name = "CopyDiscord",
-        Text = "📋 Discord ABCD",
+        Text = "💬 Copy Discord",
         Callback = function()
-            local discordLink = "https://discord.gg/abcd"  -- Ganti dengan Discord kamu
+            local discordLink = "https://discord.gg/example"
             
-            -- Multi-method untuk copy ke clipboard (compatible dengan berbagai executor)
             local copied = false
             
-            -- Method 1: setclipboard (untuk executor yang support)
-            local success1, result1 = pcall(function()
-                if setclipboard then
-                    setclipboard(discordLink)
-                    copied = true
-                    return true
+            -- Try multiple copy methods
+            local methods = {
+                function() 
+                    if setclipboard then 
+                        setclipboard(discordLink) 
+                        return true 
+                    end 
+                end,
+                function() 
+                    if writeclipboard then 
+                        writeclipboard(discordLink) 
+                        return true 
+                    end 
+                end,
+                function() 
+                    if toclipboard then 
+                        toclipboard(discordLink) 
+                        return true 
+                    end 
                 end
-            end)
+            }
             
-            -- Method 2: writeclipboard (untuk executor lain)
-            if not copied then
-                local success2, result2 = pcall(function()
-                    if writeclipboard then
-                        writeclipboard(discordLink)
-                        copied = true
-                        return true
-                    end
-                end)
-            end
-            
-            -- Method 3: game:GetService("TextService") (fallback)
-            if not copied then
-                local success3, result3 = pcall(function()
-                    local TextService = game:GetService("TextService")
-                    -- Simpan ke file atau berikan petunjuk manual
+            for _, method in ipairs(methods) do
+                local success = pcall(method)
+                if success then
                     copied = true
-                    return true
-                end)
+                    break
+                end
             end
             
-            -- Method 4: Tampilkan di console untuk manual copy
-            if not copied then
+            if copied then
+                Bdev:Notify({
+                    Title = "Discord",
+                    Content = "Discord link copied!",
+                    Duration = 3
+                })
+                print("📋 Discord link copied:", discordLink)
+            else
                 print("\n" .. string.rep("=", 50))
                 print("📋 DISCORD LINK (COPY MANUALLY):")
                 print(discordLink)
                 print(string.rep("=", 50))
-            end
-            
-            print("📋 Discord link:", discordLink)
-            
-            if copied then
-                Bdev.Notify({
+                
+                Bdev:Notify({
                     Title = "Discord",
-                    Content = "Discord link copied to clipboard!",
-                    Duration = 4
-                })
-            else
-                Bdev.Notify({
-                    Title = "Discord",
-                    Content = "Discord link: " .. discordLink .. "\nCheck console (F9) to copy!",
-                    Duration = 6
+                    Content = "Check console (F9) to copy link!",
+                    Duration = 5
                 })
             end
         end
@@ -410,51 +415,100 @@ function Misc.Init(Dependencies)
         Text = "🎮 Copy Game ID",
         Callback = function()
             local gameId = tostring(game.PlaceId)
-            
-            -- Multi-method copy
             local copied = false
             
-            -- Coba berbagai method
-            local copyMethods = {
-                function() if setclipboard then setclipboard(gameId) return true end end,
-                function() if writeclipboard then writeclipboard(gameId) return true end end,
-                function() if toclipboard then toclipboard(gameId) return true end end
+            local methods = {
+                function() 
+                    if setclipboard then 
+                        setclipboard(gameId) 
+                        return true 
+                    end 
+                end,
+                function() 
+                    if writeclipboard then 
+                        writeclipboard(gameId) 
+                        return true 
+                    end 
+                end
             }
             
-            for _, method in ipairs(copyMethods) do
-                local success, result = pcall(method)
-                if success and result then
+            for _, method in ipairs(methods) do
+                local success = pcall(method)
+                if success then
                     copied = true
                     break
                 end
             end
             
             if copied then
-                print("🎮 Game ID copied:", gameId)
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "Game ID",
-                    Content = "Game ID copied to clipboard!",
+                    Content = "Game ID copied!",
                     Duration = 3
                 })
+                print("🎮 Game ID copied:", gameId)
             else
                 print("\n" .. string.rep("=", 40))
-                print("🎮 GAME ID (COPY MANUALLY):")
-                print(gameId)
+                print("🎮 GAME ID:", gameId)
                 print(string.rep("=", 40))
                 
-                Bdev.Notify({
+                Bdev:Notify({
                     Title = "Game ID",
-                    Content = "Game ID: " .. gameId .. "\nCheck console to copy!",
-                    Duration = 5
+                    Content = "Game ID: " .. gameId,
+                    Duration = 4
                 })
             end
         end
     })
     
+    -- ===== CHANGE THEME =====
+    Tab:CreateLabel({
+        Name = "ThemeLabel",
+        Text = "🎨 Quick Theme:",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    Tab:CreateButton({
+        Name = "DarkTheme",
+        Text = "🌙 Dark Theme",
+        Callback = function()
+            GUI:SetTheme("DARK")
+            Bdev:Notify({
+                Title = "Theme",
+                Content = "Dark theme applied!",
+                Duration = 3
+            })
+        end
+    })
+    
+    Tab:CreateButton({
+        Name = "LightTheme",
+        Text = "☀️ Light Theme",
+        Callback = function()
+            GUI:SetTheme("LIGHT")
+            Bdev:Notify({
+                Title = "Theme",
+                Content = "Light theme applied!",
+                Duration = 3
+            })
+        end
+    })
+    
+    Tab:CreateButton({
+        Name = "PurpleTheme",
+        Text = "💜 Purple Theme",
+        Callback = function()
+            GUI:SetTheme("PURPLE")
+            Bdev:Notify({
+                Title = "Theme",
+                Content = "Purple theme applied!",
+                Duration = 3
+            })
+        end
+    })
+    
     -- ===== CLEANUP ON EXIT =====
-    -- Auto cleanup saat player keluar
     Services.Players.LocalPlayer.CharacterAdded:Connect(function()
-        -- Reset semua toggle saat respawn
         Variables.antiAfkEnabled = false
         Variables.noclipEnabled = false
         Variables.infiniteJumpEnabled = false
@@ -462,6 +516,16 @@ function Misc.Init(Dependencies)
         if antiAFKConnection then
             antiAFKConnection:Disconnect()
             antiAFKConnection = nil
+        end
+        
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        
+        if infiniteJumpConnection then
+            infiniteJumpConnection:Disconnect()
+            infiniteJumpConnection = nil
         end
     end)
     

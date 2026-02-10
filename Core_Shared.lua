@@ -1,5 +1,5 @@
 -- ==============================================
--- 🔧 CORE SHARED FUNCTIONS & UTILITIES
+-- 🔧 CORE SHARED FUNCTIONS & UTILITIES - UPDATED
 -- ==============================================
 
 local Core = {}
@@ -53,7 +53,7 @@ function Core.Init(Shared)
             return false
         end,
         
-        -- Mining functions
+        -- Punch/Mine functions
         performPunch = function()
             local player = game.Players.LocalPlayer
             local character = player.Character
@@ -109,7 +109,8 @@ function Core.Init(Shared)
             return true
         end,
         
-        findClosestOre = function(maxDistance)
+        -- ✅ UPDATED: findClosestEgg (bukan Ore)
+        findClosestEgg = function(maxDistance)
             local player = game.Players.LocalPlayer
             local character = player.Character
             if not character then return nil, math.huge end
@@ -118,17 +119,19 @@ function Core.Init(Shared)
             if not humanoidRootPart then return nil, math.huge end
             
             local playerPos = humanoidRootPart.Position
-            local closestOre = nil
+            local closestEgg = nil
             local closestDistance = math.huge
             
+            -- Search in workspace
             for _, obj in pairs(Shared.Services.Workspace:GetChildren()) do
-                if obj:IsA("BasePart") then
+                if obj:IsA("Model") or obj:IsA("BasePart") then
                     local distance = (playerPos - obj.Position).Magnitude
                     if distance < maxDistance then
-                        for oreName, _ in pairs(Shared.OreData) do
-                            if obj.Name:find(oreName) then
+                        -- Check if it's an egg
+                        for eggName, _ in pairs(Shared.EggData) do
+                            if obj.Name:find(eggName) then
                                 if distance < closestDistance then
-                                    closestOre = obj
+                                    closestEgg = obj
                                     closestDistance = distance
                                     break
                                 end
@@ -138,7 +141,38 @@ function Core.Init(Shared)
                 end
             end
             
-            return closestOre, closestDistance
+            return closestEgg, closestDistance
+        end,
+        
+        -- ✅ NEW: findClosestBlock
+        findClosestBlock = function(maxDistance)
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            if not character then return nil, math.huge end
+            
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if not humanoidRootPart then return nil, math.huge end
+            
+            local playerPos = humanoidRootPart.Position
+            local closestBlock = nil
+            local closestDistance = math.huge
+            
+            for _, obj in pairs(Shared.Services.Workspace:GetChildren()) do
+                if obj:IsA("Model") or obj:IsA("BasePart") then
+                    local distance = (playerPos - obj.Position).Magnitude
+                    if distance < maxDistance then
+                        -- Check if it's a block (lucky block, etc)
+                        if obj.Name:find("Block") or obj.Name:find("Lucky") then
+                            if distance < closestDistance then
+                                closestBlock = obj
+                                closestDistance = distance
+                            end
+                        end
+                    end
+                end
+            end
+            
+            return closestBlock, closestDistance
         end,
         
         -- Utility functions
@@ -179,10 +213,39 @@ function Core.Init(Shared)
                     object:Destroy()
                 end)
             end
+        end,
+        
+        -- ✅ NEW: Auto-hatch function (placeholder)
+        performHatch = function()
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            if not character then return false end
+            
+            -- This would need game-specific implementation
+            print("🥚 Hatching function called - needs game-specific code")
+            
+            -- Try common hatch methods
+            local vim = Shared.Services.VirtualInputManager
+            
+            -- Method 1: Press H key (common for hatch)
+            pcall(function()
+                vim:SendKeyEvent(true, Enum.KeyCode.H, false, game)
+                task.wait(0.1)
+                vim:SendKeyEvent(false, Enum.KeyCode.H, false, game)
+            end)
+            
+            -- Method 2: Click hatch button
+            pcall(function()
+                vim:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                task.wait(0.05)
+                vim:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+            end)
+            
+            return true
         end
     }
     
-    print("✅ Core functions initialized")
+    print("✅ Core functions initialized (Egg Edition)")
 end
 
 return Core

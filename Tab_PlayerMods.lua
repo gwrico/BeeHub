@@ -1,5 +1,5 @@
 -- ==============================================
--- 👤 PLAYER MODS TAB MODULE
+-- 👤 PLAYER MODS TAB MODULE - COMPATIBLE WITH SIMPLEGUI v6.3
 -- ==============================================
 
 local PlayerMods = {}
@@ -8,6 +8,7 @@ function PlayerMods.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
     local Bdev = Dependencies.Bdev
+    local GUI = Dependencies.GUI  -- ✅ ADDED: Access to SimpleGUI
     
     local Services = Shared.Services
     local Variables = Shared.Variables
@@ -25,7 +26,7 @@ function PlayerMods.Init(Dependencies)
             Variables.speedHackEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Speed Hack",
                     Content = "Speed hack enabled! (" .. customSpeed .. " walk speed)",
                     Duration = 3
@@ -36,7 +37,9 @@ function PlayerMods.Init(Dependencies)
                 local connection
                 connection = Services.RunService.Heartbeat:Connect(function()
                     if not Variables.speedHackEnabled then
-                        connection:Disconnect()
+                        if connection then
+                            connection:Disconnect()
+                        end
                         return
                     end
                     
@@ -47,7 +50,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Speed Hack",
                     Content = "Speed hack disabled!",
                     Duration = 3
@@ -63,13 +66,16 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    Tab:CreateSlider({
-        Name = "Speed Value",
+    local speedSlider = Tab:CreateSlider({
+        Name = "SpeedValue",
+        Text = "Speed Value: " .. customSpeed,
         Range = {16, 500},
         Increment = 1,
         CurrentValue = 100,
         Callback = function(value)
             customSpeed = value
+            speedSlider.Text = "Speed Value: " .. value  -- ✅ UPDATE label
+            
             if Variables.speedHackEnabled then
                 local char = game.Players.LocalPlayer.Character
                 if char and char:FindFirstChild("Humanoid") then
@@ -90,7 +96,7 @@ function PlayerMods.Init(Dependencies)
             Variables.jumpHackEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Jump Hack",
                     Content = "Jump hack enabled! (" .. customJump .. " jump power)",
                     Duration = 3
@@ -101,7 +107,9 @@ function PlayerMods.Init(Dependencies)
                 local connection
                 connection = Services.RunService.Heartbeat:Connect(function()
                     if not Variables.jumpHackEnabled then
-                        connection:Disconnect()
+                        if connection then
+                            connection:Disconnect()
+                        end
                         return
                     end
                     
@@ -112,7 +120,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Jump Hack",
                     Content = "Jump hack disabled!",
                     Duration = 3
@@ -128,13 +136,16 @@ function PlayerMods.Init(Dependencies)
         end
     })
     
-    Tab:CreateSlider({
-        Name = "Jump Value",
+    local jumpSlider = Tab:CreateSlider({
+        Name = "JumpValue",
+        Text = "Jump Value: " .. customJump,
         Range = {50, 500},
         Increment = 5,
         CurrentValue = 150,
         Callback = function(value)
             customJump = value
+            jumpSlider.Text = "Jump Value: " .. value  -- ✅ UPDATE label
+            
             if Variables.jumpHackEnabled then
                 local char = game.Players.LocalPlayer.Character
                 if char and char:FindFirstChild("Humanoid") then
@@ -147,6 +158,10 @@ function PlayerMods.Init(Dependencies)
     
     -- ===== FLY HACK =====
     local flySpeed = 50
+    local flyBodyVelocity = nil
+    local flyConnection = nil
+    local charAddedConnection = nil
+    
     local flyToggle = Tab:CreateToggle({
         Name = "FlyHack",
         Text = "✈️ Fly Hack",
@@ -155,7 +170,7 @@ function PlayerMods.Init(Dependencies)
             Variables.flyEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Fly Hack",
                     Content = "Fly hack enabled! (" .. flySpeed .. " speed)",
                     Duration = 3
@@ -163,36 +178,53 @@ function PlayerMods.Init(Dependencies)
                 
                 print("✅ Fly hack enabled:", flySpeed)
                 
-                -- Initialize fly variables
                 local player = game.Players.LocalPlayer
-                local character = player.Character or player.CharacterAdded:Wait()
-                local humanoid = character:WaitForChild("Humanoid")
+                local character = player.Character
+                
+                if not character then
+                    Bdev:Notify({
+                        Title = "Error",
+                        Content = "No character found!",
+                        Duration = 3
+                    })
+                    return
+                end
                 
                 -- Create fly body velocity
-                local bodyVelocity = Instance.new("BodyVelocity")
-                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                bodyVelocity.P = 1000
-                bodyVelocity.Name = "FlyHackBodyVelocity"
-                bodyVelocity.Parent = character.PrimaryPart or character:FindFirstChild("HumanoidRootPart")
+                local root = character:FindFirstChild("HumanoidRootPart")
+                if not root then
+                    Bdev:Notify({
+                        Title = "Error",
+                        Content = "No HumanoidRootPart found!",
+                        Duration = 3
+                    })
+                    return
+                end
+                
+                if flyBodyVelocity then
+                    flyBodyVelocity:Destroy()
+                end
+                
+                flyBodyVelocity = Instance.new("BodyVelocity")
+                flyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                flyBodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                flyBodyVelocity.P = 1000
+                flyBodyVelocity.Name = "FlyHackBodyVelocity"
+                flyBodyVelocity.Parent = root
                 
                 -- Fly control function
-                local flyConnection
+                if flyConnection then
+                    flyConnection:Disconnect()
+                end
+                
                 flyConnection = Services.RunService.Heartbeat:Connect(function()
-                    if not Variables.flyEnabled or not character or not character:FindFirstChild("HumanoidRootPart") then
-                        flyConnection:Disconnect()
-                        if bodyVelocity then bodyVelocity:Destroy() end
+                    if not Variables.flyEnabled or not character or not character.Parent then
                         return
                     end
                     
-                    local root = character.HumanoidRootPart
-                    if not bodyVelocity or not bodyVelocity.Parent then
-                        bodyVelocity = Instance.new("BodyVelocity")
-                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                        bodyVelocity.P = 1000
-                        bodyVelocity.Name = "FlyHackBodyVelocity"
-                        bodyVelocity.Parent = root
+                    local root = character:FindFirstChild("HumanoidRootPart")
+                    if not root or not flyBodyVelocity or flyBodyVelocity.Parent ~= root then
+                        return
                     end
                     
                     -- Get input for flying
@@ -234,7 +266,7 @@ function PlayerMods.Init(Dependencies)
                     end
                     
                     -- Apply velocity
-                    bodyVelocity.Velocity = direction
+                    flyBodyVelocity.Velocity = direction
                     
                     -- Zero out gravity while flying
                     if character:FindFirstChild("Humanoid") then
@@ -243,25 +275,33 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
                 -- Handle character respawn
-                local characterAddedConnection
-                characterAddedConnection = player.CharacterAdded:Connect(function(newChar)
+                if charAddedConnection then
+                    charAddedConnection:Disconnect()
+                end
+                
+                charAddedConnection = player.CharacterAdded:Connect(function(newChar)
                     character = newChar
-                    humanoid = newChar:WaitForChild("Humanoid")
+                    wait(1)  -- Wait for character to load
                     
                     if Variables.flyEnabled then
-                        wait(1)
-                        if bodyVelocity then bodyVelocity:Destroy() end
-                        bodyVelocity = Instance.new("BodyVelocity")
-                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                        bodyVelocity.P = 1000
-                        bodyVelocity.Name = "FlyHackBodyVelocity"
-                        bodyVelocity.Parent = newChar.PrimaryPart or newChar:FindFirstChild("HumanoidRootPart")
+                        local root = newChar:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            if flyBodyVelocity then
+                                flyBodyVelocity:Destroy()
+                            end
+                            
+                            flyBodyVelocity = Instance.new("BodyVelocity")
+                            flyBodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                            flyBodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                            flyBodyVelocity.P = 1000
+                            flyBodyVelocity.Name = "FlyHackBodyVelocity"
+                            flyBodyVelocity.Parent = root
+                        end
                     end
                 end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Fly Hack",
                     Content = "Fly hack disabled!",
                     Duration = 3
@@ -269,36 +309,47 @@ function PlayerMods.Init(Dependencies)
                 
                 print("❌ Fly hack disabled")
                 
-                -- Clean up fly objects
+                -- Clean up
+                if flyConnection then
+                    flyConnection:Disconnect()
+                    flyConnection = nil
+                end
+                
+                if charAddedConnection then
+                    charAddedConnection:Disconnect()
+                    charAddedConnection = nil
+                end
+                
+                if flyBodyVelocity then
+                    flyBodyVelocity:Destroy()
+                    flyBodyVelocity = nil
+                end
+                
+                -- Reset platform stand
                 local char = game.Players.LocalPlayer.Character
-                if char then
-                    -- Remove body velocity
-                    local bodyVelocity = char:FindFirstChild("FlyHackBodyVelocity")
-                    if bodyVelocity then
-                        bodyVelocity:Destroy()
-                    end
-                    
-                    -- Reset platform stand
-                    if char:FindFirstChild("Humanoid") then
-                        char.Humanoid.PlatformStand = false
-                    end
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.PlatformStand = false
                 end
             end
         end
     })
     
-    Tab:CreateSlider({
-        Name = "Fly Speed",
+    local flySlider = Tab:CreateSlider({
+        Name = "FlySpeed",
+        Text = "Fly Speed: " .. flySpeed,
         Range = {10, 200},
         Increment = 5,
         CurrentValue = 50,
         Callback = function(value)
             flySpeed = value
+            flySlider.Text = "Fly Speed: " .. value  -- ✅ UPDATE label
             print("📊 Fly speed set to:", value)
         end
     })
     
     -- ===== NOCLIP =====
+    local noclipConnection = nil
+    
     Tab:CreateToggle({
         Name = "Noclip",
         Text = "👻 Noclip",
@@ -307,7 +358,7 @@ function PlayerMods.Init(Dependencies)
             Variables.noclipEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Noclip",
                     Content = "Noclip enabled!",
                     Duration = 3
@@ -315,10 +366,12 @@ function PlayerMods.Init(Dependencies)
                 
                 print("✅ Noclip enabled")
                 
-                local connection
-                connection = Services.RunService.Stepped:Connect(function()
+                if noclipConnection then
+                    noclipConnection:Disconnect()
+                end
+                
+                noclipConnection = Services.RunService.Stepped:Connect(function()
                     if not Variables.noclipEnabled then
-                        connection:Disconnect()
                         return
                     end
                     
@@ -333,7 +386,7 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Noclip",
                     Content = "Noclip disabled!",
                     Duration = 3
@@ -341,6 +394,12 @@ function PlayerMods.Init(Dependencies)
                 
                 print("❌ Noclip disabled")
                 
+                if noclipConnection then
+                    noclipConnection:Disconnect()
+                    noclipConnection = nil
+                end
+                
+                -- Restore collision
                 local char = game.Players.LocalPlayer.Character
                 if char then
                     for _, part in pairs(char:GetDescendants()) do
@@ -354,6 +413,8 @@ function PlayerMods.Init(Dependencies)
     })
     
     -- ===== INFINITE JUMP =====
+    local infiniteJumpConnection = nil
+    
     Tab:CreateToggle({
         Name = "InfiniteJump",
         Text = "∞ Infinite Jump",
@@ -362,7 +423,7 @@ function PlayerMods.Init(Dependencies)
             Variables.infiniteJumpEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Infinite Jump",
                     Content = "Infinite jump enabled!",
                     Duration = 3
@@ -370,10 +431,12 @@ function PlayerMods.Init(Dependencies)
                 
                 print("✅ Infinite jump enabled")
                 
-                local connection
-                connection = Services.UserInputService.JumpRequest:Connect(function()
+                if infiniteJumpConnection then
+                    infiniteJumpConnection:Disconnect()
+                end
+                
+                infiniteJumpConnection = Services.UserInputService.JumpRequest:Connect(function()
                     if not Variables.infiniteJumpEnabled then
-                        connection:Disconnect()
                         return
                     end
                     
@@ -384,13 +447,69 @@ function PlayerMods.Init(Dependencies)
                 end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Infinite Jump",
                     Content = "Infinite jump disabled!",
                     Duration = 3
                 })
                 
                 print("❌ Infinite jump disabled")
+                
+                if infiniteJumpConnection then
+                    infiniteJumpConnection:Disconnect()
+                    infiniteJumpConnection = nil
+                end
+            end
+        end
+    })
+    
+    -- ===== ANTI-AFK =====
+    Tab:CreateToggle({
+        Name = "AntiAFK",
+        Text = "⏰ Anti-AFK",
+        CurrentValue = false,
+        Callback = function(value)
+            Variables.antiAfkEnabled = value
+            
+            if value then
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
+                    Title = "Anti-AFK",
+                    Content = "Anti-AFK enabled!",
+                    Duration = 3
+                })
+                
+                print("✅ Anti-AFK enabled")
+                
+                -- Simulate movement every 30 seconds
+                local connection
+                connection = Services.RunService.Heartbeat:Connect(function()
+                    if not Variables.antiAfkEnabled then
+                        if connection then
+                            connection:Disconnect()
+                        end
+                        return
+                    end
+                    
+                    -- Every 30 seconds, simulate a small movement
+                    if tick() % 30 < 0.1 then
+                        local vim = Services.VirtualInputManager
+                        pcall(function()
+                            -- Press W briefly
+                            vim:SendKeyEvent(true, Enum.KeyCode.W, false, game)
+                            task.wait(0.1)
+                            vim:SendKeyEvent(false, Enum.KeyCode.W, false, game)
+                        end)
+                    end
+                end)
+                
+            else
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
+                    Title = "Anti-AFK",
+                    Content = "Anti-AFK disabled!",
+                    Duration = 3
+                })
+                
+                print("❌ Anti-AFK disabled")
             end
         end
     })
@@ -408,32 +527,110 @@ function PlayerMods.Init(Dependencies)
             Variables.noclipEnabled = false
             Variables.infiniteJumpEnabled = false
             Variables.flyEnabled = false
-            Variables.autoMineEnabled = false
+            Variables.antiAfkEnabled = false
+            Variables.autoCollectEnabled = false
             Variables.autoPunchEnabled = false
+            Variables.autoHatchEnabled = false
             
             -- Reset character stats
             local char = game.Players.LocalPlayer.Character
             if char and char:FindFirstChild("Humanoid") then
                 char.Humanoid.WalkSpeed = 16
                 char.Humanoid.JumpPower = 50
+                char.Humanoid.PlatformStand = false
                 
                 -- Remove fly body velocity
                 local bodyVelocity = char:FindFirstChild("FlyHackBodyVelocity")
                 if bodyVelocity then
                     bodyVelocity:Destroy()
                 end
-                
-                -- Reset platform stand
-                char.Humanoid.PlatformStand = false
             end
             
-            Bdev.Notify({
+            -- Disconnect all connections
+            if flyConnection then
+                flyConnection:Disconnect()
+                flyConnection = nil
+            end
+            
+            if charAddedConnection then
+                charAddedConnection:Disconnect()
+                charAddedConnection = nil
+            end
+            
+            if noclipConnection then
+                noclipConnection:Disconnect()
+                noclipConnection = nil
+            end
+            
+            if infiniteJumpConnection then
+                infiniteJumpConnection:Disconnect()
+                infiniteJumpConnection = nil
+            end
+            
+            Bdev:Notify({  -- ✅ FIXED: Colon syntax
                 Title = "All Hacks",
                 Content = "All hacks have been disabled!",
                 Duration = 4
             })
             
             print("✅ All hacks disabled")
+        end
+    })
+    
+    -- ===== QUICK SETTINGS =====
+    Tab:CreateLabel({
+        Name = "QuickSettings",
+        Text = "⚡ Quick Settings:",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    Tab:CreateButton({
+        Name = "QuickSpeed",
+        Text = "🏃 100 Speed",
+        Callback = function()
+            customSpeed = 100
+            speedSlider:Set(100)
+            speedSlider.Text = "Speed Value: 100"
+            
+            if not Variables.speedHackEnabled then
+                speedToggle:Set(true)
+            else
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.WalkSpeed = 100
+                end
+            end
+            
+            Bdev:Notify({
+                Title = "Quick Settings",
+                Content = "Speed set to 100!",
+                Duration = 3
+            })
+        end
+    })
+    
+    Tab:CreateButton({
+        Name = "QuickJump",
+        Text = "🦘 150 Jump",
+        Callback = function()
+            customJump = 150
+            jumpSlider:Set(150)
+            jumpSlider.Text = "Jump Value: 150"
+            
+            if not Variables.jumpHackEnabled then
+                jumpToggle:Set(true)
+            else
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.JumpPower = 150
+                end
+            end
+            
+            Bdev:Notify({
+                Title = "Quick Settings",
+                Content = "Jump set to 150!",
+                Duration = 3
+            })
         end
     })
     
