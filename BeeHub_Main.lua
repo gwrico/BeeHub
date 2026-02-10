@@ -17,7 +17,7 @@ local GUI = SimpleGUI.new()
 
 -- Create main window
 local Window = GUI:CreateWindow({
-    Name = "⚡ BeeHub v4.0 - PETS EDITION",
+    Name = "⚡ BeeHub v4.0 - Prototype Edition",
     Size = UDim2.new(0, 600, 0, 500),
     TitleBarHeight = 28,
     MinimizeHeight = 25,
