@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE (CLEAN NO-WARNINGS VERSION)
+-- 💰 AUTO FARM TAB MODULE - COMPATIBLE WITH SIMPLEGUI v6.3
 -- ==============================================
 
 local AutoFarm = {}
@@ -11,44 +11,19 @@ function AutoFarm.Init(Dependencies)
     
     local Variables = Shared.Variables or {}
     local EggData = Shared.EggData or {}
+    local Functions = Shared.Functions or {}
     
-    print("💰 Initializing AutoFarm tab...")
+    print("💰 Initializing AutoFarm tab for SimpleGUI v6.3...")
     
     -- Get services
     local RunService = game:GetService("RunService")
     local Players = game:GetService("Players")
     local ProximityPromptService = game:GetService("ProximityPromptService")
     
-    -- Helper function to trigger prompt (NO fireproximityprompt)
-    local function triggerPrompt(prompt, player)
-        if not prompt or not prompt:IsA("ProximityPrompt") then
-            return false
-        end
-        
-        local playerObj = player or Players.LocalPlayer
-        
-        -- Try ProximityPromptService method
-        local success, err = pcall(function()
-            ProximityPromptService:PromptTriggered(prompt, playerObj)
-        end)
-        
-        if success then
-            return true
-        end
-        
-        -- Alternative: Simulate click
-        success, err = pcall(function()
-            -- Activate the prompt
-            prompt:InputHoldBegin()
-            task.wait(0.1)
-            prompt:InputHoldEnd()
-        end)
-        
-        return success
-    end
+    -- Auto-farm variables
+    local collectConnection = nil
     
     -- ===== AUTO COLLECT EGGS =====
-    local collectConnection = nil
     Tab:CreateToggle({
         Name = "AutoCollect",
         Text = "🥚 Auto Collect Eggs",
@@ -57,7 +32,7 @@ function AutoFarm.Init(Dependencies)
             Variables.autoCollectEnabled = value
             
             if value then
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Auto Collect",
                     Content = "Auto collecting enabled!",
                     Duration = 3
@@ -66,12 +41,12 @@ function AutoFarm.Init(Dependencies)
                 print("✅ Auto Collect enabled")
                 
                 -- Start collection loop
+                if collectConnection then
+                    collectConnection:Disconnect()
+                end
+                
                 collectConnection = RunService.Heartbeat:Connect(function()
                     if not Variables.autoCollectEnabled then 
-                        if collectConnection then
-                            collectConnection:Disconnect()
-                            collectConnection = nil
-                        end
                         return 
                     end
                     
@@ -86,36 +61,43 @@ function AutoFarm.Init(Dependencies)
                     local closestEgg = nil
                     local closestDistance = 1000
                     
-                    -- Find closest egg
-                    for _, obj in pairs(game.Workspace:GetDescendants()) do
-                        if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
-                            local objName = obj.Name:lower()
-                            
-                            for eggName, _ in pairs(EggData) do
-                                if objName:find(eggName:lower(), 1, true) then
-                                    -- Get object position
-                                    local objPos
-                                    if obj:IsA("Model") then
-                                        local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                                        objPos = primaryPart and primaryPart.Position or obj:GetPivot().Position
-                                    else
-                                        objPos = obj.Position
+                    -- Find closest egg using Functions if available
+                    if Functions.findClosestEgg then
+                        local egg, distance = Functions.findClosestEgg(500)
+                        if egg and distance < closestDistance then
+                            closestEgg = egg
+                            closestDistance = distance
+                        end
+                    else
+                        -- Manual search
+                        for _, obj in pairs(game.Workspace:GetDescendants()) do
+                            if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
+                                local objName = obj.Name:lower()
+                                
+                                for eggName, _ in pairs(EggData) do
+                                    if objName:find(eggName:lower(), 1, true) then
+                                        local objPos
+                                        if obj:IsA("Model") then
+                                            local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                                            objPos = primaryPart and primaryPart.Position or obj:GetPivot().Position
+                                        else
+                                            objPos = obj.Position
+                                        end
+                                        
+                                        local distance = (playerPos - objPos).Magnitude
+                                        if distance < closestDistance and distance < 500 then
+                                            closestEgg = obj
+                                            closestDistance = distance
+                                        end
+                                        break
                                     end
-                                    
-                                    local distance = (playerPos - objPos).Magnitude
-                                    if distance < closestDistance and distance < 500 then
-                                        closestEgg = obj
-                                        closestDistance = distance
-                                    end
-                                    break
                                 end
                             end
                         end
                     end
                     
-                    -- Teleport to egg and collect
-                    if closestEgg then
-                        -- Get egg position
+                    -- Teleport to egg if found
+                    if closestEgg and closestDistance < 100 then
                         local eggPos
                         if closestEgg:IsA("Model") then
                             local primaryPart = closestEgg.PrimaryPart or closestEgg:FindFirstChildWhichIsA("BasePart")
@@ -124,25 +106,45 @@ function AutoFarm.Init(Dependencies)
                             eggPos = closestEgg.Position
                         end
                         
-                        -- Teleport
-                        humanoidRootPart.CFrame = CFrame.new(eggPos + Vector3.new(0, 5, 0))
-                        task.wait(0.2)
+                        -- Teleport with Functions or manual
+                        if Functions.teleportToPosition then
+                            Functions.teleportToPosition(eggPos + Vector3.new(0, 3, 0))
+                        else
+                            humanoidRootPart.CFrame = CFrame.new(eggPos + Vector3.new(0, 3, 0))
+                        end
                         
-                        -- Find and trigger prompt
+                        -- Wait a bit
+                        task.wait(0.3)
+                        
+                        -- Try to find and trigger proximity prompt
                         local prompt = closestEgg:FindFirstChildOfClass("ProximityPrompt") or
                                       closestEgg.Parent:FindFirstChildOfClass("ProximityPrompt")
                         
                         if prompt then
-                            triggerPrompt(prompt, player)
-                            print("📦 Collected:", closestEgg.Name, "| Distance:", math.floor(closestDistance))
+                            pcall(function()
+                                ProximityPromptService:PromptTriggered(prompt, player)
+                            end)
+                            
+                            -- Wait between collections
+                            task.wait(1)
+                        end
+                    elseif closestEgg and closestDistance >= 100 then
+                        -- Egg is too far, move towards it
+                        local eggPos
+                        if closestEgg:IsA("Model") then
+                            local primaryPart = closestEgg.PrimaryPart or closestEgg:FindFirstChildWhichIsA("BasePart")
+                            eggPos = primaryPart and primaryPart.Position or closestEgg:GetPivot().Position
+                        else
+                            eggPos = closestEgg.Position
                         end
                         
-                        task.wait(0.5)
+                        local direction = (eggPos - playerPos).Unit
+                        humanoidRootPart.CFrame = CFrame.new(playerPos + (direction * 50))
                     end
                 end)
                 
             else
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Auto Collect",
                     Content = "Auto collecting disabled!",
                     Duration = 3
@@ -168,7 +170,7 @@ function AutoFarm.Init(Dependencies)
             local player = Players.LocalPlayer
             local character = player.Character
             if not character then 
-                Bdev.Notify({
+                Bdev:Notify({  -- ✅ FIXED: Colon syntax
                     Title = "Error",
                     Content = "No character found!",
                     Duration = 3
@@ -181,7 +183,9 @@ function AutoFarm.Init(Dependencies)
             
             local playerPos = humanoidRootPart.Position
             local collected = 0
+            local foundEggs = {}
             
+            -- Find all nearby eggs
             for _, obj in pairs(game.Workspace:GetDescendants()) do
                 if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
                     -- Get position
@@ -198,20 +202,11 @@ function AutoFarm.Init(Dependencies)
                     if distance < 200 then
                         for eggName, _ in pairs(EggData) do
                             if obj.Name:lower():find(eggName:lower(), 1, true) then
-                                -- Teleport
-                                humanoidRootPart.CFrame = CFrame.new(objPos + Vector3.new(0, 5, 0))
-                                task.wait(0.1)
-                                
-                                -- Find prompt
-                                local prompt = obj:FindFirstChildOfClass("ProximityPrompt") or
-                                              obj.Parent:FindFirstChildOfClass("ProximityPrompt")
-                                
-                                if prompt then
-                                    triggerPrompt(prompt, player)
-                                    collected = collected + 1
-                                    print("✅ Collected:", obj.Name)
-                                    task.wait(0.2)
-                                end
+                                table.insert(foundEggs, {
+                                    Object = obj,
+                                    Position = objPos,
+                                    Name = obj.Name
+                                })
                                 break
                             end
                         end
@@ -219,9 +214,52 @@ function AutoFarm.Init(Dependencies)
                 end
             end
             
-            Bdev.Notify({
+            if #foundEggs == 0 then
+                Bdev:Notify({
+                    Title = "No Eggs",
+                    Content = "No eggs found nearby!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            -- Sort by distance
+            table.sort(foundEggs, function(a, b)
+                local distA = (playerPos - a.Position).Magnitude
+                local distB = (playerPos - b.Position).Magnitude
+                return distA < distB
+            end)
+            
+            -- Collect eggs
+            for _, eggInfo in ipairs(foundEggs) do
+                if collected >= 10 then break end  -- Limit collection
+                
+                -- Teleport to egg
+                if Functions.teleportToPosition then
+                    Functions.teleportToPosition(eggInfo.Position + Vector3.new(0, 3, 0))
+                else
+                    humanoidRootPart.CFrame = CFrame.new(eggInfo.Position + Vector3.new(0, 3, 0))
+                end
+                
+                task.wait(0.2)
+                
+                -- Try to collect
+                local prompt = eggInfo.Object:FindFirstChildOfClass("ProximityPrompt") or
+                              eggInfo.Object.Parent:FindFirstChildOfClass("ProximityPrompt")
+                
+                if prompt then
+                    pcall(function()
+                        ProximityPromptService:PromptTriggered(prompt, player)
+                    end)
+                    collected = collected + 1
+                    print("✅ Collected:", eggInfo.Name)
+                    task.wait(0.5)
+                end
+            end
+            
+            Bdev:Notify({
                 Title = "Collection Complete",
-                Content = "Collected " .. collected .. " eggs nearby!",
+                Content = "Collected " .. collected .. " eggs!",
                 Duration = 5
             })
             
@@ -229,55 +267,206 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== FAST MOVE =====
+    -- ===== AUTO HATCH EGGS =====
+    local autoHatchConnection = nil
+    
     Tab:CreateToggle({
-        Name = "FastMove",
-        Text = "⚡ Fast Move (Speed 50)",
+        Name = "AutoHatch",
+        Text = "🐣 Auto Hatch Eggs",
         CurrentValue = false,
         Callback = function(value)
-            Variables.fastMoveEnabled = value
-            
-            local player = Players.LocalPlayer
-            local character = player.Character
+            Variables.autoHatchEnabled = value
             
             if value then
-                Bdev.Notify({
-                    Title = "Fast Move",
-                    Content = "Fast move enabled!",
+                Bdev:Notify({
+                    Title = "Auto Hatch",
+                    Content = "Auto hatch enabled!",
                     Duration = 3
                 })
                 
-                print("✅ Fast Move enabled")
+                print("✅ Auto Hatch enabled")
                 
-                -- Set speed
-                if character then
-                    local humanoid = character:FindFirstChild("Humanoid")
-                    if humanoid then
-                        humanoid.WalkSpeed = 50
-                    end
+                if autoHatchConnection then
+                    autoHatchConnection:Disconnect()
                 end
                 
+                autoHatchConnection = RunService.Heartbeat:Connect(function()
+                    if not Variables.autoHatchEnabled then return end
+                    
+                    local player = Players.LocalPlayer
+                    
+                    -- Try to find hatch-related prompts
+                    for _, prompt in pairs(ProximityPromptService:GetPrompts()) do
+                        if prompt and prompt:IsA("ProximityPrompt") then
+                            local promptName = prompt.Name:lower()
+                            local parentName = prompt.Parent and prompt.Parent.Name:lower() or ""
+                            
+                            -- Check if it's a hatch-related prompt
+                            if promptName:find("hatch") or promptName:find("open") or 
+                               parentName:find("hatch") or parentName:find("egg") then
+                                
+                                pcall(function()
+                                    ProximityPromptService:PromptTriggered(prompt, player)
+                                end)
+                                
+                                task.wait(1)  -- Wait between hatches
+                                break
+                            end
+                        end
+                    end
+                end)
+                
             else
-                Bdev.Notify({
-                    Title = "Fast Move",
-                    Content = "Fast move disabled!",
+                Bdev:Notify({
+                    Title = "Auto Hatch",
+                    Content = "Auto hatch disabled!",
                     Duration = 3
                 })
                 
-                print("❌ Fast Move disabled")
+                print("❌ Auto Hatch disabled")
                 
-                -- Reset speed
-                if character then
-                    local humanoid = character:FindFirstChild("Humanoid")
-                    if humanoid then
-                        humanoid.WalkSpeed = 16
-                    end
+                if autoHatchConnection then
+                    autoHatchConnection:Disconnect()
+                    autoHatchConnection = nil
                 end
             end
         end
     })
     
-    print("✅ AutoFarm tab initialized successfully")
+    -- ===== AUTO PUNCH/BREAK =====
+    local autoPunchConnection = nil
+    
+    Tab:CreateToggle({
+        Name = "AutoPunch",
+        Text = "👊 Auto Punch/Break",
+        CurrentValue = false,
+        Callback = function(value)
+            Variables.autoPunchEnabled = value
+            
+            if value then
+                Bdev:Notify({
+                    Title = "Auto Punch",
+                    Content = "Auto punch enabled!",
+                    Duration = 3
+                })
+                
+                print("✅ Auto Punch enabled")
+                
+                if autoPunchConnection then
+                    autoPunchConnection:Disconnect()
+                end
+                
+                autoPunchConnection = RunService.Heartbeat:Connect(function()
+                    if not Variables.autoPunchEnabled then return end
+                    
+                    -- Use Functions.performPunch if available
+                    if Functions.performPunch then
+                        Functions.performPunch()
+                    else
+                        -- Fallback: Simulate mouse click
+                        local vim = game:GetService("VirtualInputManager")
+                        pcall(function()
+                            vim:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                            task.wait(0.05)
+                            vim:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                        end)
+                    end
+                    
+                    task.wait(0.2)  -- Punch interval
+                end)
+                
+            else
+                Bdev:Notify({
+                    Title = "Auto Punch",
+                    Content = "Auto punch disabled!",
+                    Duration = 3
+                })
+                
+                print("❌ Auto Punch disabled")
+                
+                if autoPunchConnection then
+                    autoPunchConnection:Disconnect()
+                    autoPunchConnection = nil
+                end
+            end
+        end
+    })
+    
+    -- ===== FARMING SETTINGS =====
+    Tab:CreateLabel({
+        Name = "SettingsLabel",
+        Text = "⚙️ Farming Settings:",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    local collectRange = 200
+    local collectSpeed = 1.0
+    
+    local rangeSlider = Tab:CreateSlider({
+        Name = "CollectRange",
+        Text = "Range: " .. collectRange .. " studs",
+        Range = {50, 1000},
+        Increment = 10,
+        CurrentValue = 200,
+        Callback = function(value)
+            collectRange = value
+            rangeSlider.Text = "Range: " .. value .. " studs"
+            print("📊 Collection range set to:", value)
+        end
+    })
+    
+    local speedSlider = Tab:CreateSlider({
+        Name = "CollectSpeed",
+        Text = "Speed: " .. collectSpeed .. "x",
+        Range = {0.5, 3.0},
+        Increment = 0.1,
+        CurrentValue = 1.0,
+        Callback = function(value)
+            collectSpeed = value
+            speedSlider.Text = "Speed: " .. value .. "x"
+            print("📊 Collection speed set to:", value)
+        end
+    })
+    
+    -- ===== DISABLE ALL FARMING =====
+    Tab:CreateButton({
+        Name = "DisableFarming",
+        Text = "🔴 Disable All Farming",
+        Callback = function()
+            print("\n🔴 DISABLING ALL FARMING...")
+            
+            -- Disable all toggles
+            Variables.autoCollectEnabled = false
+            Variables.autoHatchEnabled = false
+            Variables.autoPunchEnabled = false
+            
+            -- Disconnect connections
+            if collectConnection then
+                collectConnection:Disconnect()
+                collectConnection = nil
+            end
+            
+            if autoHatchConnection then
+                autoHatchConnection:Disconnect()
+                autoHatchConnection = nil
+            end
+            
+            if autoPunchConnection then
+                autoPunchConnection:Disconnect()
+                autoPunchConnection = nil
+            end
+            
+            Bdev:Notify({
+                Title = "Farming",
+                Content = "All farming features disabled!",
+                Duration = 4
+            })
+            
+            print("✅ All farming disabled")
+        end
+    })
+    
+    print("✅ AutoFarm tab initialized for SimpleGUI v6.3")
 end
 
 return AutoFarm
