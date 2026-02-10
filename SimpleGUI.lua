@@ -1,7 +1,7 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v6.2 - BOTTOM TABS + DROPDOWN
+-- 🎨 SIMPLEGUI v6.3 - SIDEBAR TABS (VERTICAL)
 -- ==============================================
-print("🔧 Loading SimpleGUI v6.2 - Bottom Tabs + Dropdown...")
+print("🔧 Loading SimpleGUI v6.3 - Sidebar Tabs...")
 
 local SimpleGUI = {}
 SimpleGUI.__index = SimpleGUI
@@ -10,7 +10,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
--- Modern color schemes (same as before)
+-- Modern color schemes
 SimpleGUI.Themes = {
     DARK = {
         Name = "Dark",
@@ -29,7 +29,7 @@ SimpleGUI.Themes = {
         -- UI Specific
         WindowBg = Color3.fromRGB(33, 33, 45),
         TitleBar = Color3.fromRGB(45, 45, 60),
-        TabNormal = Color3.fromRGB(60, 60, 80),
+        TabNormal = Color3.fromRGB(50, 50, 70),
         TabActive = Color3.fromRGB(98, 147, 255),
         ContentBg = Color3.fromRGB(40, 40, 55),
         Button = Color3.fromRGB(65, 65, 85),
@@ -37,13 +37,14 @@ SimpleGUI.Themes = {
         ToggleOff = Color3.fromRGB(70, 70, 90),
         ToggleOn = Color3.fromRGB(98, 147, 255),
         SliderTrack = Color3.fromRGB(60, 60, 80),
-        SliderFill = Color3.fromRGB(98, 147, 255)
+        SliderFill = Color3.fromRGB(98, 147, 255),
+        Sidebar = Color3.fromRGB(40, 40, 55)  -- New: Sidebar color
     }
     -- ... (other themes same)
 }
 
 function SimpleGUI.new()
-    print("🚀 Initializing SimpleGUI v6.2...")
+    print("🚀 Initializing SimpleGUI v6.3...")
     
     local self = setmetatable({}, SimpleGUI)
     
@@ -71,11 +72,11 @@ function SimpleGUI.new()
     self.Windows = {}
     self.CurrentTheme = "DARK"
     
-    print("✅ SimpleGUI v6.2 initialized!")
+    print("✅ SimpleGUI v6.3 initialized!")
     return self
 end
 
--- Theme management
+-- Theme management (same)
 function SimpleGUI:SetTheme(themeName)
     if self.Themes[themeName:upper()] then
         self.CurrentTheme = themeName:upper()
@@ -101,7 +102,7 @@ local function tween(object, properties, duration)
     return tween
 end
 
--- Create window with BOTTOM TABS
+-- Create window with SIDEBAR TABS
 function SimpleGUI:CreateWindow(options)
     local opts = options or {}
     local isMobile = UserInputService.TouchEnabled
@@ -109,12 +110,12 @@ function SimpleGUI:CreateWindow(options)
     
     local windowData = {
         Name = opts.Name or "Window",
-        Size = opts.Size or UDim2.new(0, 500 * scale, 0, 500 * scale), -- Taller for bottom tabs
-        Position = opts.Position or UDim2.new(0.5, -250 * scale, 0.5, -250 * scale),
+        Size = opts.Size or UDim2.new(0, 700 * scale, 0, 500 * scale),  -- Wider for sidebar
+        Position = opts.Position or UDim2.new(0.5, -350 * scale, 0.5, -250 * scale),
         ShowThemeTab = opts.ShowThemeTab or false,
         IsMobile = isMobile,
         Scale = scale,
-        TabsAtBottom = true  -- ✅ NEW: Tabs at bottom
+        SidebarWidth = 180 * scale  -- Width of sidebar
     }
     
     local theme = self:GetTheme()
@@ -159,7 +160,7 @@ function SimpleGUI:CreateWindow(options)
     TitleBar.BorderSizePixel = 0
     TitleBar.Parent = MainFrame
     
-    -- Rounded top corners only
+    -- Rounded top corners
     local TitleBarCorner = Instance.new("UICorner")
     TitleBarCorner.CornerRadius = UDim.new(0, 12 * scale)
     TitleBarCorner.Parent = TitleBar
@@ -232,11 +233,20 @@ function SimpleGUI:CreateWindow(options)
     CloseButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
     CloseButtonCorner.Parent = CloseButton
     
-    -- ===== CONTENT FRAME (MIDDLE) =====
+    -- ===== SIDEBAR (LEFT) =====
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, windowData.SidebarWidth, 1, -40 * scale)  -- Full height minus title
+    Sidebar.Position = UDim2.new(0, 0, 0, 40 * scale)
+    Sidebar.BackgroundColor3 = theme.Sidebar
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = MainFrame
+    
+    -- ===== CONTENT FRAME (RIGHT) =====
     local ContentFrame = Instance.new("ScrollingFrame")
     ContentFrame.Name = "ContentFrame"
-    ContentFrame.Size = UDim2.new(1, 0, 1, -120 * scale)  -- Space for title + tabs
-    ContentFrame.Position = UDim2.new(0, 0, 0, 40 * scale)  -- Below title
+    ContentFrame.Size = UDim2.new(1, -windowData.SidebarWidth, 1, -40 * scale)  -- Minus sidebar and title
+    ContentFrame.Position = UDim2.new(0, windowData.SidebarWidth, 0, 40 * scale)
     ContentFrame.BackgroundColor3 = theme.ContentBg
     ContentFrame.BackgroundTransparency = 0
     ContentFrame.BorderSizePixel = 0
@@ -246,21 +256,27 @@ function SimpleGUI:CreateWindow(options)
     ContentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
     ContentFrame.Parent = MainFrame
     
-    -- ===== TAB CONTAINER (BOTTOM) =====
-    local TabContainer = Instance.new("Frame")
-    TabContainer.Name = "TabContainer"
-    TabContainer.Size = UDim2.new(1, 0, 0, 45 * scale)
-    TabContainer.Position = UDim2.new(0, 0, 1, -45 * scale)  -- ✅ BOTTOM
-    TabContainer.BackgroundColor3 = theme.Secondary
-    TabContainer.BorderSizePixel = 0
-    TabContainer.Parent = MainFrame
-    
-    -- Rounded bottom corners for tab container
-    local TabContainerCorner = Instance.new("UICorner")
-    TabContainerCorner.CornerRadius = UDim.new(0, 12 * scale)
-    TabContainerCorner.Parent = TabContainer
+    -- Content rounded right corners
+    local ContentCorner = Instance.new("UICorner")
+    ContentCorner.CornerRadius = UDim.new(0, 12 * scale)
+    ContentCorner.Parent = ContentFrame
     
     -- ===== LAYOUTS =====
+    -- Sidebar layout (VERTICAL)
+    local SidebarLayout = Instance.new("UIListLayout")
+    SidebarLayout.Padding = UDim.new(0, 5 * scale)
+    SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    SidebarLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Parent = Sidebar
+    
+    local SidebarPadding = Instance.new("UIPadding")
+    SidebarPadding.PaddingTop = UDim.new(0, 10 * scale)
+    SidebarPadding.PaddingLeft = UDim.new(0, 10 * scale)
+    SidebarPadding.PaddingRight = UDim.new(0, 10 * scale)
+    SidebarPadding.Parent = Sidebar
+    
+    -- Content layout
     local ContentList = Instance.new("UIListLayout")
     ContentList.Padding = UDim.new(0, 12 * scale)
     ContentList.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -274,19 +290,12 @@ function SimpleGUI:CreateWindow(options)
     ContentPadding.PaddingBottom = UDim.new(0, 15 * scale)
     ContentPadding.Parent = ContentFrame
     
-    local TabList = Instance.new("UIListLayout")
-    TabList.FillDirection = Enum.FillDirection.Horizontal
-    TabList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    TabList.VerticalAlignment = Enum.VerticalAlignment.Center
-    TabList.Padding = UDim.new(0, 10 * scale)
-    TabList.Parent = TabContainer
-    
     -- ===== WINDOW OBJECT =====
     local windowObj = {
         MainFrame = MainFrame,
         TitleBar = TitleBar,
         TitleLabel = TitleLabel,
-        TabContainer = TabContainer,
+        Sidebar = Sidebar,
         ContentFrame = ContentFrame,
         Tabs = {},
         ActiveTab = nil,
@@ -298,7 +307,7 @@ function SimpleGUI:CreateWindow(options)
             MainFrame.BackgroundColor3 = theme.WindowBg
             TitleBar.BackgroundColor3 = theme.TitleBar
             TitleLabel.TextColor3 = theme.Text
-            TabContainer.BackgroundColor3 = theme.Secondary
+            Sidebar.BackgroundColor3 = theme.Sidebar
             ContentFrame.BackgroundColor3 = theme.ContentBg
             ContentFrame.ScrollBarImageColor3 = theme.Accent
             
@@ -337,27 +346,28 @@ function SimpleGUI:CreateWindow(options)
     
     self.Windows[windowData.Name] = windowObj
     
-    -- ===== TAB CREATION (BOTTOM TABS) =====
+    -- ===== TAB CREATION (SIDEBAR VERTICAL) =====
     function windowObj:CreateTab(options)
         local tabOptions = type(options) == "string" and {Name = options} or (options or {})
         local tabName = tabOptions.Name or "Tab_" .. (#self.Tabs + 1)
         local scale = self.WindowData.Scale
         
-        -- Tab Button (at bottom)
+        -- Tab Button (in sidebar - VERTICAL)
         local TabButton = Instance.new("TextButton")
         TabButton.Name = tabName .. "_Button"
-        TabButton.Size = UDim2.new(0, 110 * scale, 0, 35 * scale)
-        TabButton.Text = tabName
+        TabButton.Size = UDim2.new(1, -20 * scale, 0, 40 * scale)  -- Full width minus padding
+        TabButton.Text = "  " .. tabName  -- Add space for icon
         TabButton.TextColor3 = theme.Text
         TabButton.BackgroundColor3 = theme.TabNormal
         TabButton.BackgroundTransparency = 0
-        TabButton.TextSize = 13 * scale
+        TabButton.TextSize = 14 * scale
         TabButton.Font = Enum.Font.SourceSansSemibold
+        TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.AutoButtonColor = false
         TabButton.LayoutOrder = #self.Tabs + 1
-        TabButton.Parent = self.TabContainer
+        TabButton.Parent = self.Sidebar
         
-        -- Rounded corners for bottom tab
+        -- Rounded corners for sidebar buttons
         local TabButtonCorner = Instance.new("UICorner")
         TabButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
         TabButtonCorner.Parent = TabButton
@@ -410,7 +420,7 @@ function SimpleGUI:CreateWindow(options)
         setupButtonHover(MinimizeButton)
         setupButtonHover(CloseButton)
         
-        -- ===== TAB BUILDER METHODS =====
+        -- ===== TAB BUILDER METHODS (SAME AS BEFORE) =====
         local tabObj = {
             Button = TabButton,
             Content = TabContent,
@@ -427,7 +437,6 @@ function SimpleGUI:CreateWindow(options)
                 end
             end,
             
-            -- ===== CREATE BUTTON =====
             CreateButton = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -465,7 +474,6 @@ function SimpleGUI:CreateWindow(options)
                 return Button
             end,
             
-            -- ===== CREATE LABEL =====
             CreateLabel = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -486,7 +494,6 @@ function SimpleGUI:CreateWindow(options)
                 return Label
             end,
             
-            -- ===== CREATE INPUT =====
             CreateInput = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -542,7 +549,6 @@ function SimpleGUI:CreateWindow(options)
                 return InputBox
             end,
             
-            -- ===== CREATE DROPDOWN (NEW!) =====
             CreateDropdown = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -648,7 +654,6 @@ function SimpleGUI:CreateWindow(options)
                         local OptionButton = Instance.new("TextButton")
                         OptionButton.Name = "Option_" .. i
                         OptionButton.Size = UDim2.new(1, -10 * scale, 0, 32 * scale)
-                        OptionButton.Position = UDim2.new(0, 5 * scale, 0, 0)
                         OptionButton.Text = option
                         OptionButton.TextColor3 = theme.Text
                         OptionButton.BackgroundColor3 = theme.Button
@@ -722,12 +727,10 @@ function SimpleGUI:CreateWindow(options)
                 }
             end,
             
-            -- ===== CREATE TOGGLE (existing) =====
             CreateToggle = function(self, options)
                 -- ... (same as before)
             end,
             
-            -- ===== CREATE SLIDER (existing) =====
             CreateSlider = function(self, options)
                 -- ... (same as before)
             end
@@ -754,13 +757,13 @@ function SimpleGUI:CreateWindow(options)
             tween(MainFrame, {Size = UDim2.new(windowData.Size.X.Scale, windowData.Size.X.Offset, 0, 40 * scale)})
             TitleLabel.Text = windowData.Name .. " [-]"
             ContentFrame.Visible = false
-            TabContainer.Visible = false
+            Sidebar.Visible = false
             MinimizeButton.Text = "+"
         else
             tween(MainFrame, {Size = windowData.Size})
             TitleLabel.Text = windowData.Name
             ContentFrame.Visible = true
-            TabContainer.Visible = true
+            Sidebar.Visible = true
             MinimizeButton.Text = "_"
         end
     end)
@@ -813,9 +816,9 @@ function SimpleGUI:CreateWindow(options)
         ThemeTab:CreateButton({Text = "💜 Purple", Callback = function() self:SetTheme("PURPLE") end})
     end
     
-    print("✅ Created window with bottom tabs: " .. windowData.Name)
+    print("✅ Created window with sidebar tabs: " .. windowData.Name)
     return windowObj
 end
 
-print("🎉 SimpleGUI v6.2 - Bottom Tabs + Dropdown loaded!")
+print("🎉 SimpleGUI v6.3 - Sidebar Tabs + Dropdown loaded!")
 return SimpleGUI
