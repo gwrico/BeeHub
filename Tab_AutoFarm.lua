@@ -32,7 +32,7 @@ function AutoFarm.Init(Dependencies)
             Variables.autoCollectEnabled = value
             
             if value then
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
+                Bdev:Notify({
                     Title = "Auto Collect",
                     Content = "Auto collecting enabled!",
                     Duration = 3
@@ -144,7 +144,7 @@ function AutoFarm.Init(Dependencies)
                 end)
                 
             else
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
+                Bdev:Notify({
                     Title = "Auto Collect",
                     Content = "Auto collecting disabled!",
                     Duration = 3
@@ -170,7 +170,7 @@ function AutoFarm.Init(Dependencies)
             local player = Players.LocalPlayer
             local character = player.Character
             if not character then 
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
+                Bdev:Notify({
                     Title = "Error",
                     Content = "No character found!",
                     Duration = 3
@@ -333,65 +333,6 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== AUTO PUNCH/BREAK =====
-    local autoPunchConnection = nil
-    
-    Tab:CreateToggle({
-        Name = "AutoPunch",
-        Text = "👊 Auto Punch/Break",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.autoPunchEnabled = value
-            
-            if value then
-                Bdev:Notify({
-                    Title = "Auto Punch",
-                    Content = "Auto punch enabled!",
-                    Duration = 3
-                })
-                
-                print("✅ Auto Punch enabled")
-                
-                if autoPunchConnection then
-                    autoPunchConnection:Disconnect()
-                end
-                
-                autoPunchConnection = RunService.Heartbeat:Connect(function()
-                    if not Variables.autoPunchEnabled then return end
-                    
-                    -- Use Functions.performPunch if available
-                    if Functions.performPunch then
-                        Functions.performPunch()
-                    else
-                        -- Fallback: Simulate mouse click
-                        local vim = game:GetService("VirtualInputManager")
-                        pcall(function()
-                            vim:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-                            task.wait(0.05)
-                            vim:SendMouseButtonEvent(0, 0, 0, false, game, 1)
-                        end)
-                    end
-                    
-                    task.wait(0.2)  -- Punch interval
-                end)
-                
-            else
-                Bdev:Notify({
-                    Title = "Auto Punch",
-                    Content = "Auto punch disabled!",
-                    Duration = 3
-                })
-                
-                print("❌ Auto Punch disabled")
-                
-                if autoPunchConnection then
-                    autoPunchConnection:Disconnect()
-                    autoPunchConnection = nil
-                end
-            end
-        end
-    })
-    
     -- ===== FARMING SETTINGS =====
     Tab:CreateLabel({
         Name = "SettingsLabel",
@@ -410,7 +351,6 @@ function AutoFarm.Init(Dependencies)
         CurrentValue = 200,
         Callback = function(value)
             collectRange = value
-            rangeSlider.Text = "Range: " .. value .. " studs"
             print("📊 Collection range set to:", value)
         end
     })
@@ -423,7 +363,6 @@ function AutoFarm.Init(Dependencies)
         CurrentValue = 1.0,
         Callback = function(value)
             collectSpeed = value
-            speedSlider.Text = "Speed: " .. value .. "x"
             print("📊 Collection speed set to:", value)
         end
     })
@@ -438,7 +377,6 @@ function AutoFarm.Init(Dependencies)
             -- Disable all toggles
             Variables.autoCollectEnabled = false
             Variables.autoHatchEnabled = false
-            Variables.autoPunchEnabled = false
             
             -- Disconnect connections
             if collectConnection then
@@ -449,11 +387,6 @@ function AutoFarm.Init(Dependencies)
             if autoHatchConnection then
                 autoHatchConnection:Disconnect()
                 autoHatchConnection = nil
-            end
-            
-            if autoPunchConnection then
-                autoPunchConnection:Disconnect()
-                autoPunchConnection = nil
             end
             
             Bdev:Notify({
