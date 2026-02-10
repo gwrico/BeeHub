@@ -1,5 +1,5 @@
 -- ==============================================
--- 📍 TELEPORT TAB MODULE - WITH WORKING REFRESH & SEARCH
+-- 📍 TELEPORT TAB MODULE - COMPATIBLE WITH SIMPLEGUI v6.3
 -- ==============================================
 
 local Teleport = {}
@@ -8,15 +8,15 @@ function Teleport.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
     local Bdev = Dependencies.Bdev
+    local GUI = Dependencies.GUI  -- ✅ ADDED: Access to SimpleGUI
     
-    local Functions = Shared.Functions
+    local Functions = Shared.Functions or {}
     
-    print("📍 Initializing Teleport tab...")
+    print("📍 Initializing Teleport tab for SimpleGUI v6.3...")
     
     -- Variables for player list management
     local playerButtons = {}
-    local noPlayersLabel = nil
-    local playerListLabel = nil
+    local searchResultButtons = {}
     
     -- ===== TP TO SPAWN =====
     Tab:CreateButton({
@@ -97,76 +97,83 @@ function Teleport.Init(Dependencies)
         end
     })
     
-    -- ===== PLAYER SEARCH WITH AUTOCOMPLETE =====
+    -- ===== PLAYER SEARCH SECTION =====
     local targetPlayerName = ""
-    local searchResults = {}
-    local searchResultButtons = {}
     
-    -- Create search section
     Tab:CreateLabel({
         Name = "SearchLabel",
-        Text = "🔍 Search & Teleport to Player:"
+        Text = "🔍 Search Player:",
+        Alignment = Enum.TextXAlignment.Center
     })
     
     local searchInput = Tab:CreateInput({
-        Name = "PlayerSearchInput",
+        Name = "PlayerSearch",
         PlaceholderText = "Type player name...",
         CurrentValue = "",
         Callback = function(text)
             targetPlayerName = text
-            updateSearchResults(text)
         end
     })
     
-    -- Function to update search results
-    local function updateSearchResults(searchText)
-        -- Clear previous search results
-        for _, button in pairs(searchResultButtons) do
-            if button and button.Destroy then
-                button:Destroy()
-            end
-        end
-        searchResultButtons = {}
-        
-        if searchText == "" then
-            return
-        end
-        
-        local searchLower = searchText:lower()
-        local resultCount = 0
-        
-        -- Search for players
-        for _, player in pairs(Shared.Services.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer and player.Name:lower():find(searchLower) then
-                resultCount = resultCount + 1
-                
-                -- Create button for search result
-                local button = Tab:CreateButton({
-                    Name = "SearchResult_" .. player.Name,
-                    Text = "👤 " .. player.Name,
-                    Callback = function()
-                        teleportToPlayer(player)
-                    end
+    -- Search button
+    Tab:CreateButton({
+        Name = "SearchButton",
+        Text = "🔍 Search",
+        Callback = function()
+            if targetPlayerName == "" then
+                Bdev:Notify({
+                    Title = "Search",
+                    Content = "Please enter a player name!",
+                    Duration = 3
                 })
-                
-                table.insert(searchResultButtons, button)
-                
-                -- Limit results for performance
-                if resultCount >= 10 then
-                    break
+                return
+            end
+            
+            -- Clear old results
+            for _, button in pairs(searchResultButtons) do
+                if button and button.Destroy then
+                    pcall(function()
+                        button:Destroy()
+                    end)
                 end
             end
+            searchResultButtons = {}
+            
+            local searchLower = targetPlayerName:lower()
+            local foundPlayers = {}
+            
+            -- Search players
+            for _, player in pairs(Shared.Services.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Name:lower():find(searchLower) then
+                    table.insert(foundPlayers, player)
+                end
+            end
+            
+            if #foundPlayers > 0 then
+                Tab:CreateLabel({
+                    Name = "ResultsLabel",
+                    Text = "Found " .. #foundPlayers .. " player(s):"
+                })
+                
+                for _, player in ipairs(foundPlayers) do
+                    local button = Tab:CreateButton({
+                        Name = "Result_" .. player.Name,
+                        Text = "👤 " .. player.Name,
+                        Callback = function()
+                            teleportToPlayer(player)
+                        end
+                    })
+                    table.insert(searchResultButtons, button)
+                end
+            else
+                local label = Tab:CreateLabel({
+                    Name = "NoResults",
+                    Text = "No players found for: '" .. targetPlayerName .. "'"
+                })
+                table.insert(searchResultButtons, label)
+            end
         end
-        
-        -- Show "No results" if needed
-        if resultCount == 0 and searchText ~= "" then
-            local noResultLabel = Tab:CreateLabel({
-                Name = "NoSearchResults",
-                Text = "No players found matching: '" .. searchText .. "'"
-            })
-            table.insert(searchResultButtons, noResultLabel)
-        end
-    end
+    })
     
     -- Teleport function
     local function teleportToPlayer(targetPlayer)
@@ -177,16 +184,12 @@ function Teleport.Init(Dependencies)
             local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
             
             if targetHRP and humanoidRootPart then
-                -- Teleport with offset
                 humanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 3)
                 Bdev:Notify({
                     Title = "Teleport",
                     Content = "Teleported to " .. targetPlayer.Name .. "!",
                     Duration = 3
                 })
-                searchInput.CurrentValue = ""
-                targetPlayerName = ""
-                updateSearchResults("") -- Clear search results
             else
                 Bdev:Notify({
                     Title = "Error",
@@ -203,79 +206,24 @@ function Teleport.Init(Dependencies)
         end
     end
     
-    -- Quick teleport button for current search
-    Tab:CreateButton({
-        Name = "QuickTP",
-        Text = "🚀 Quick Teleport",
-        Callback = function()
-            if targetPlayerName == "" then
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "Please enter a player name first!",
-                    Duration = 3
-                })
-                return
-            end
-            
-            -- Find exact or best match
-            local bestMatch = nil
-            local searchLower = targetPlayerName:lower()
-            
-            for _, player in pairs(Shared.Services.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer then
-                    local playerLower = player.Name:lower()
-                    
-                    -- Exact match
-                    if playerLower == searchLower then
-                        bestMatch = player
-                        break
-                    end
-                    
-                    -- Contains match
-                    if playerLower:find(searchLower) then
-                        if not bestMatch then
-                            bestMatch = player
-                        elseif #player.Name < #bestMatch.Name then
-                            -- Prefer shorter names (closer match)
-                            bestMatch = player
-                        end
-                    end
-                end
-            end
-            
-            if bestMatch then
-                teleportToPlayer(bestMatch)
-            else
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "Player '" .. targetPlayerName .. "' not found!",
-                    Duration = 3
-                })
-            end
-        end
-    })
-    
-    -- ===== REFRESHABLE PLAYER LIST =====
+    -- ===== PLAYER LIST =====
     Tab:CreateLabel({
         Name = "PlayerListHeader",
-        Text = "📋 Online Players:"
+        Text = "📋 Online Players:",
+        Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Function to create/refresh player list
-    local function createPlayerList()
-        -- Clear existing player buttons
+    -- Function to refresh player list
+    local function refreshPlayerList()
+        -- Clear old buttons
         for _, button in pairs(playerButtons) do
             if button and button.Destroy then
-                button:Destroy()
+                pcall(function()
+                    button:Destroy()
+                end)
             end
         end
         playerButtons = {}
-        
-        -- Clear "no players" label if exists
-        if noPlayersLabel and noPlayersLabel.Destroy then
-            noPlayersLabel:Destroy()
-            noPlayersLabel = nil
-        end
         
         local playerCount = 0
         
@@ -296,87 +244,67 @@ function Teleport.Init(Dependencies)
             end
         end
         
-        -- Show "no players" message if empty
         if playerCount == 0 then
-            noPlayersLabel = Tab:CreateLabel({
-                Name = "NoPlayersMsg",
+            local label = Tab:CreateLabel({
+                Name = "NoPlayers",
                 Text = "No other players online"
             })
-            table.insert(playerButtons, noPlayersLabel)
+            table.insert(playerButtons, label)
         end
         
         return playerCount
     end
     
-    -- Initial player list creation
-    local initialCount = createPlayerList()
-    print("👥 Initial player list created with", initialCount, "players")
+    -- Initial load
+    local initialCount = refreshPlayerList()
+    print("👥 Player list created:", initialCount, "players")
     
-    -- ===== REFRESH BUTTON =====
+    -- Refresh button
     Tab:CreateButton({
-        Name = "RefreshPlayerList",
-        Text = "🔄 Refresh Player List",
+        Name = "RefreshList",
+        Text = "🔄 Refresh List",
         Callback = function()
-            local newCount = createPlayerList()
+            local count = refreshPlayerList()
             Bdev:Notify({
                 Title = "Player List",
-                Content = "Refreshed! " .. newCount .. " players online",
+                Content = "Refreshed! " .. count .. " players online",
                 Duration = 3
             })
-            print("🔄 Player list refreshed. Now", newCount, "players")
+            print("🔄 Player list refreshed:", count, "players")
         end
     })
     
-    -- ===== AUTO REFRESH ON PLAYER JOIN/LEAVE =====
-    -- Connect to player events for real-time updates
-    local function setupPlayerEvents()
-        local Players = Shared.Services.Players
-        
-        Players.PlayerAdded:Connect(function(player)
-            wait(1) -- Wait a bit for player to fully load
-            local count = createPlayerList()
-            print("➕ Player joined:", player.Name, "- Total:", count)
-        end)
-        
-        Players.PlayerRemoving:Connect(function(player)
-            local count = createPlayerList()
-            print("➖ Player left:", player.Name, "- Total:", count)
-        end)
-    end
-    
-    -- Setup player events
-    pcall(setupPlayerEvents)
-    
-    -- ===== TELEPORT TO COORDINATES =====
+    -- ===== COORDINATE TELEPORT =====
     Tab:CreateLabel({
-        Name = "CoordSection",
-        Text = "📍 Teleport to Coordinates:"
+        Name = "CoordLabel",
+        Text = "📍 Coordinates:",
+        Alignment = Enum.TextXAlignment.Center
     })
     
-    local coordX, coordY, coordZ = "", "", ""
+    local coordX, coordY, coordZ = "0", "0", "0"
     
-    Tab:CreateInput({
-        Name = "InputX",
+    local xInput = Tab:CreateInput({
+        Name = "CoordX",
         PlaceholderText = "X",
-        CurrentValue = "",
+        CurrentValue = "0",
         Callback = function(text)
             coordX = text
         end
     })
     
-    Tab:CreateInput({
-        Name = "InputY",
+    local yInput = Tab:CreateInput({
+        Name = "CoordY",
         PlaceholderText = "Y",
-        CurrentValue = "",
+        CurrentValue = "0",
         Callback = function(text)
             coordY = text
         end
     })
     
-    Tab:CreateInput({
-        Name = "InputZ",
+    local zInput = Tab:CreateInput({
+        Name = "CoordZ",
         PlaceholderText = "Z",
-        CurrentValue = "",
+        CurrentValue = "0",
         Callback = function(text)
             coordZ = text
         end
@@ -403,7 +331,7 @@ function Teleport.Init(Dependencies)
                 
                 Bdev:Notify({
                     Title = "Teleport",
-                    Content = string.format("Teleported to (%.1f, %.1f, %.1f)", x, y, z),
+                    Content = "Teleported to (" .. x .. ", " .. y .. ", " .. z .. ")",
                     Duration = 3
                 })
             else
@@ -416,25 +344,26 @@ function Teleport.Init(Dependencies)
         end
     })
     
-    -- ===== QUICK LOCATIONS (OPTIONAL) =====
+    -- ===== QUICK LOCATIONS =====
     Tab:CreateLabel({
-        Name = "QuickLocations",
-        Text = "⚡ Quick Locations:"
+        Name = "QuickLocLabel",
+        Text = "⚡ Quick Locations:",
+        Alignment = Enum.TextXAlignment.Center
     })
     
     local quickLocations = {
-        {"🔼 High Above", Vector3.new(0, 500, 0)},
+        {"🔼 High Up", Vector3.new(0, 500, 0)},
         {"📍 Origin", Vector3.new(0, 5, 0)},
-        {"🔺 Pyramid", Vector3.new(100, 50, 100)},
-        {"⬅️ Left Side", Vector3.new(-200, 50, 0)},
-        {"➡️ Right Side", Vector3.new(200, 50, 0)}
+        {"⬅️ Left", Vector3.new(-200, 50, 0)},
+        {"➡️ Right", Vector3.new(200, 50, 0)},
+        {"🔙 Back", Vector3.new(0, 50, -200)}
     }
     
     for i, location in ipairs(quickLocations) do
-        local name, position = location[1], location[2]
+        local name, pos = location[1], location[2]
         
         Tab:CreateButton({
-            Name = "QuickLoc_" .. i,
+            Name = "Quick_" .. i,
             Text = name,
             Callback = function()
                 local player = game.Players.LocalPlayer
@@ -443,9 +372,9 @@ function Teleport.Init(Dependencies)
                 
                 if humanoidRootPart then
                     if Functions.teleportToPosition then
-                        Functions.teleportToPosition(position)
+                        Functions.teleportToPosition(pos)
                     else
-                        humanoidRootPart.CFrame = CFrame.new(position)
+                        humanoidRootPart.CFrame = CFrame.new(pos)
                     end
                     
                     Bdev:Notify({
@@ -458,7 +387,80 @@ function Teleport.Init(Dependencies)
         })
     end
     
-    print("✅ Teleport tab initialized with refresh & search features")
+    -- ===== AUTO-TP TO EGGS (OPTIONAL) =====
+    Tab:CreateLabel({
+        Name = "EggTPLabel",
+        Text = "🥚 Auto-TP to Eggs:",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    local autoTPEnabled = false
+    local autoTPConnection = nil
+    
+    Tab:CreateToggle({
+        Name = "AutoTPEggs",
+        Text = "🔁 Auto-TP to Nearest Egg",
+        CurrentValue = false,
+        Callback = function(value)
+            autoTPEnabled = value
+            
+            if value then
+                Bdev:Notify({
+                    Title = "Auto-TP",
+                    Content = "Auto-TP enabled! Teleporting to nearest egg...",
+                    Duration = 3
+                })
+                
+                if autoTPConnection then
+                    autoTPConnection:Disconnect()
+                end
+                
+                autoTPConnection = Shared.Services.RunService.Heartbeat:Connect(function()
+                    if not autoTPEnabled then return end
+                    
+                    if Functions.findClosestEgg then
+                        local egg, distance = Functions.findClosestEgg(500)
+                        if egg and distance < 100 then
+                            local player = game.Players.LocalPlayer
+                            local character = player.Character
+                            local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+                            
+                            if humanoidRootPart then
+                                humanoidRootPart.CFrame = CFrame.new(egg.Position)
+                            end
+                        end
+                    end
+                end)
+                
+            else
+                Bdev:Notify({
+                    Title = "Auto-TP",
+                    Content = "Auto-TP disabled!",
+                    Duration = 3
+                })
+                
+                if autoTPConnection then
+                    autoTPConnection:Disconnect()
+                    autoTPConnection = nil
+                end
+            end
+        end
+    })
+    
+    -- ===== CLEANUP =====
+    -- Auto-refresh on player join/leave
+    local Players = Shared.Services.Players
+    
+    Players.PlayerAdded:Connect(function(player)
+        task.wait(2)
+        refreshPlayerList()
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        refreshPlayerList()
+    end)
+    
+    print("✅ Teleport tab initialized for SimpleGUI v6.3")
 end
 
 return Teleport
