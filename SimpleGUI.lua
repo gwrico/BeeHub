@@ -1,5 +1,5 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v5.1 - SIMPLIFIED THEME EDITOR WITH RESPONSIVE LAYOUT
+-- 🎨 SIMPLEGUI v5.1 - SIMPLIFIED THEME EDITOR WITH RESPONSIVE LAYOUT (FIXED)
 -- ==============================================
 print("🔧 Loading SimpleGUI v5.1 - Simplified Theme Editor with Responsive Layout...")
 
@@ -320,13 +320,13 @@ function SimpleGUI:CreateWindow(options)
     -- THEME BUTTON (hanya muncul jika ShowThemeTab true)
     local ThemeButton = Instance.new("TextButton")
     ThemeButton.Name = "ThemeButton"
-    ThemeButton.Size = UDim2.new(0, isMobile and 25 : 25, 0, isMobile and 25 : 25)
-    ThemeButton.Position = UDim2.new(1, isMobile and -85 : -90, 0.5, isMobile and -12.5 : -12.5)
+    ThemeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
+    ThemeButton.Position = UDim2.new(1, isMobile and -85 or -90, 0.5, isMobile and -12.5 or -12.5) -- FIXED
     ThemeButton.Text = "🎨"
     ThemeButton.TextColor3 = Color3.fromRGB(255, 255, 200)
     ThemeButton.BackgroundColor3 = theme.ButtonNormal
     ThemeButton.BackgroundTransparency = 0
-    ThemeButton.TextSize = isMobile and 11 : 12
+    ThemeButton.TextSize = isMobile and 11 or 12
     ThemeButton.Font = Enum.Font.SourceSans
     ThemeButton.Visible = windowData.ShowThemeTab
     ThemeButton.Parent = TitleBar
@@ -334,13 +334,13 @@ function SimpleGUI:CreateWindow(options)
     -- MINIMIZE BUTTON
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Name = "MinimizeButton"
-    MinimizeButton.Size = UDim2.new(0, isMobile and 25 : 25, 0, isMobile and 25 : 25)
-    MinimizeButton.Position = UDim2.new(1, isMobile and -55 : -60, 0.5, isMobile and -12.5 : -12.5)
+    MinimizeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
+    MinimizeButton.Position = UDim2.new(1, isMobile and -55 or -60, 0.5, isMobile and -12.5 or -12.5) -- FIXED
     MinimizeButton.Text = "_"
     MinimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
     MinimizeButton.BackgroundColor3 = theme.ButtonNormal
     MinimizeButton.BackgroundTransparency = 0
-    MinimizeButton.TextSize = isMobile and 14 : 16
+    MinimizeButton.TextSize = isMobile and 14 or 16
     MinimizeButton.Font = Enum.Font.SourceSansBold
     MinimizeButton.Visible = windowData.Minimizable
     MinimizeButton.Parent = TitleBar
@@ -348,21 +348,21 @@ function SimpleGUI:CreateWindow(options)
     -- CLOSE BUTTON
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
-    CloseButton.Size = UDim2.new(0, isMobile and 25 : 25, 0, isMobile and 25 : 25)
-    CloseButton.Position = UDim2.new(1, isMobile and -25 : -30, 0.5, isMobile and -12.5 : -12.5)
+    CloseButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
+    CloseButton.Position = UDim2.new(1, isMobile and -25 or -30, 0.5, isMobile and -12.5 or -12.5) -- FIXED
     CloseButton.Text = "X"
     CloseButton.TextColor3 = Color3.fromRGB(255, 150, 150)
     CloseButton.BackgroundColor3 = theme.ButtonNormal
     CloseButton.BackgroundTransparency = 0
-    CloseButton.TextSize = isMobile and 12 : 14
+    CloseButton.TextSize = isMobile and 12 or 14
     CloseButton.Font = Enum.Font.SourceSansBold
     CloseButton.Parent = TitleBar
     
     -- TAB CONTAINER
     local TabContainer = Instance.new("Frame")
     TabContainer.Name = "TabContainer"
-    TabContainer.Size = UDim2.new(1, 0, 0, isMobile and 40 : 35)
-    TabContainer.Position = UDim2.new(0, 0, 0, isMobile and 35 : 30)
+    TabContainer.Size = UDim2.new(1, 0, 0, isMobile and 40 or 35)
+    TabContainer.Position = UDim2.new(0, 0, 0, isMobile and 35 or 30)
     TabContainer.BackgroundColor3 = theme.TabBg
     TabContainer.BorderSizePixel = 0
     TabContainer.Parent = MainFrame
@@ -370,8 +370,8 @@ function SimpleGUI:CreateWindow(options)
     -- CONTENT FRAME
     local ContentFrame = Instance.new("Frame")
     ContentFrame.Name = "ContentFrame"
-    ContentFrame.Size = UDim2.new(1, 0, 1, -(isMobile and 75 : 65))
-    ContentFrame.Position = UDim2.new(0, 0, 0, isMobile and 75 : 65)
+    ContentFrame.Size = UDim2.new(1, 0, 1, -(isMobile and 75 or 65))
+    ContentFrame.Position = UDim2.new(0, 0, 0, isMobile and 75 or 65)
     ContentFrame.BackgroundColor3 = theme.ContentBg
     ContentFrame.BackgroundTransparency = 0
     ContentFrame.ClipsDescendants = true
@@ -408,13 +408,13 @@ function SimpleGUI:CreateWindow(options)
             ContentFrame.Visible = true
             MinimizeButton.Text = "_"
             MinimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-            MinimizeButton.Size = UDim2.new(0, isMobile and 25 : 25, 0, isMobile and 25 : 25)
-            MinimizeButton.Position = UDim2.new(1, isMobile and -55 : -60, 0.5, isMobile and -12.5 : -12.5)
-            CloseButton.Size = UDim2.new(0, isMobile and 25 : 25, 0, isMobile and 25 : 25)
-            CloseButton.Position = UDim2.new(1, isMobile and -25 : -30, 0.5, isMobile and -12.5 : -12.5)
+            MinimizeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
+            MinimizeButton.Position = UDim2.new(1, isMobile and -55 or -60, 0.5, isMobile and -12.5 or -12.5) -- FIXED
+            CloseButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
+            CloseButton.Position = UDim2.new(1, isMobile and -25 or -30, 0.5, isMobile and -12.5 or -12.5) -- FIXED
             if ThemeButton.Visible then
-                ThemeButton.Size = UDim2.new(0, isMobile and 25 : 25, 0, isMobile and 25 : 25)
-                ThemeButton.Position = UDim2.new(1, isMobile and -85 : -90, 0.5, isMobile and -12.5 : -12.5)
+                ThemeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
+                ThemeButton.Position = UDim2.new(1, isMobile and -85 or -90, 0.5, isMobile and -12.5 or -12.5) -- FIXED
             end
         end
     end
@@ -805,19 +805,12 @@ function SimpleGUI:CreateWindow(options)
             if opts.Callback then
                 Button.MouseButton1Click:Connect(function()
                     pcall(opts.Callback)
-                end
+                end)
                 
                 -- Touch support for mobile
                 if self.WindowData.IsMobile then
-                    local touchCount = 0
-                    local lastTouch = 0
-                    
                     Button.TouchTap:Connect(function()
-                        local now = tick()
-                        if now - lastTouch > 0.5 then
-                            pcall(opts.Callback)
-                        end
-                        lastTouch = now
+                        pcall(opts.Callback)
                     end)
                 end
             end
