@@ -1,7 +1,7 @@
 -- ==============================================
 -- 🎮 BEEHUB v4.0 - MODULAR SYSTEM (MAIN)
 -- ==============================================
-print("🔧 Loadng BeeHub Modular System v4.0...")
+print("🔧 Loading BeeHub Modular System v4.0...")
 
 -- Configuration
 local CONFIG = {
