@@ -1,5 +1,5 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v6.3 - SIDEBAR TABS (VERTICAL)
+-- 🎨 SIMPLEGUI v6.3 - SIDEBAR TABS (VERTICAL) - COMPLETE VERSION
 -- ==============================================
 print("🔧 Loading SimpleGUI v6.3 - Sidebar Tabs...")
 
@@ -420,7 +420,7 @@ function SimpleGUI:CreateWindow(options)
         setupButtonHover(MinimizeButton)
         setupButtonHover(CloseButton)
         
-        -- ===== TAB BUILDER METHODS (SAME AS BEFORE) =====
+        -- ===== TAB BUILDER METHODS =====
         local tabObj = {
             Button = TabButton,
             Content = TabContent,
@@ -547,6 +547,281 @@ function SimpleGUI:CreateWindow(options)
                 
                 table.insert(self.Elements, InputFrame)
                 return InputBox
+            end,
+            
+            -- ===== TOGGLE CONTROL =====
+            CreateToggle = function(self, options)
+                local opts = options or {}
+                local scale = windowData.Scale
+                
+                local ToggleFrame = Instance.new("Frame")
+                ToggleFrame.Name = opts.Name or "Toggle_" .. #self.Elements + 1
+                ToggleFrame.Size = UDim2.new(0.9, 0, 0, 40 * scale)
+                ToggleFrame.BackgroundTransparency = 1
+                ToggleFrame.LayoutOrder = #self.Elements + 1
+                ToggleFrame.Parent = TabContent
+                
+                -- Toggle container
+                local ToggleContainer = Instance.new("Frame")
+                ToggleContainer.Name = "ToggleContainer"
+                ToggleContainer.Size = UDim2.new(0, 60 * scale, 0, 30 * scale)
+                ToggleContainer.Position = UDim2.new(0, 0, 0.5, -15 * scale)
+                ToggleContainer.BackgroundColor3 = theme.ToggleOff
+                ToggleContainer.BackgroundTransparency = 0
+                ToggleContainer.BorderSizePixel = 0
+                ToggleContainer.Parent = ToggleFrame
+                
+                local ContainerCorner = Instance.new("UICorner")
+                ContainerCorner.CornerRadius = UDim.new(0, 15 * scale)
+                ContainerCorner.Parent = ToggleContainer
+                
+                -- Toggle circle
+                local ToggleCircle = Instance.new("Frame")
+                ToggleCircle.Name = "ToggleCircle"
+                ToggleCircle.Size = UDim2.new(0, 24 * scale, 0, 24 * scale)
+                ToggleCircle.Position = UDim2.new(0, 3 * scale, 0.5, -12 * scale)
+                ToggleCircle.BackgroundColor3 = Color3.new(1, 1, 1)
+                ToggleCircle.BackgroundTransparency = 0
+                ToggleCircle.BorderSizePixel = 0
+                ToggleCircle.Parent = ToggleContainer
+                
+                local CircleCorner = Instance.new("UICorner")
+                CircleCorner.CornerRadius = UDim.new(0.5, 0)
+                CircleCorner.Parent = ToggleCircle
+                
+                -- Toggle label
+                local ToggleLabel = Instance.new("TextLabel")
+                ToggleLabel.Name = "ToggleLabel"
+                ToggleLabel.Size = UDim2.new(1, -70 * scale, 1, 0)
+                ToggleLabel.Position = UDim2.new(0, 70 * scale, 0, 0)
+                ToggleLabel.Text = opts.Text or opts.Name or "Toggle"
+                ToggleLabel.TextColor3 = theme.Text
+                ToggleLabel.BackgroundTransparency = 1
+                ToggleLabel.TextSize = 14 * scale
+                ToggleLabel.Font = Enum.Font.SourceSansSemibold
+                ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                ToggleLabel.Parent = ToggleFrame
+                
+                -- Toggle state
+                local isToggled = opts.CurrentValue or false
+                
+                -- Update toggle appearance
+                local function updateToggle()
+                    if isToggled then
+                        tween(ToggleContainer, {BackgroundColor3 = theme.ToggleOn}, 0.2)
+                        tween(ToggleCircle, {Position = UDim2.new(1, -27 * scale, 0.5, -12 * scale)}, 0.2)
+                    else
+                        tween(ToggleContainer, {BackgroundColor3 = theme.ToggleOff}, 0.2)
+                        tween(ToggleCircle, {Position = UDim2.new(0, 3 * scale, 0.5, -12 * scale)}, 0.2)
+                    end
+                end
+                
+                -- Initial state
+                updateToggle()
+                
+                -- Toggle click
+                ToggleContainer.MouseButton1Click:Connect(function()
+                    isToggled = not isToggled
+                    updateToggle()
+                    
+                    if opts.Callback then
+                        pcall(opts.Callback, isToggled)
+                    end
+                end)
+                
+                -- Label click also toggles
+                ToggleLabel.MouseButton1Click:Connect(function()
+                    isToggled = not isToggled
+                    updateToggle()
+                    
+                    if opts.Callback then
+                        pcall(opts.Callback, isToggled)
+                    end
+                end)
+                
+                table.insert(self.Elements, ToggleFrame)
+                
+                -- Return toggle object
+                return {
+                    Frame = ToggleFrame,
+                    Container = ToggleContainer,
+                    Circle = ToggleCircle,
+                    Label = ToggleLabel,
+                    GetValue = function() return isToggled end,
+                    SetValue = function(value)
+                        isToggled = value
+                        updateToggle()
+                    end
+                }
+            end,
+            
+            -- ===== SLIDER CONTROL =====
+            CreateSlider = function(self, options)
+                local opts = options or {}
+                local scale = windowData.Scale
+                
+                local SliderFrame = Instance.new("Frame")
+                SliderFrame.Name = opts.Name or "Slider_" .. #self.Elements + 1
+                SliderFrame.Size = UDim2.new(0.9, 0, 0, 60 * scale)
+                SliderFrame.BackgroundTransparency = 1
+                SliderFrame.LayoutOrder = #self.Elements + 1
+                SliderFrame.Parent = TabContent
+                
+                -- Label
+                local SliderLabel = Instance.new("TextLabel")
+                SliderLabel.Name = "SliderLabel"
+                SliderLabel.Size = UDim2.new(1, 0, 0, 20 * scale)
+                SliderLabel.Text = opts.Name or "Slider"
+                SliderLabel.TextColor3 = theme.Text
+                SliderLabel.BackgroundTransparency = 1
+                SliderLabel.TextSize = 14 * scale
+                SliderLabel.Font = Enum.Font.SourceSansSemibold
+                SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+                SliderLabel.Parent = SliderFrame
+                
+                -- Value display
+                local ValueLabel = Instance.new("TextLabel")
+                ValueLabel.Name = "ValueLabel"
+                ValueLabel.Size = UDim2.new(0, 60 * scale, 0, 20 * scale)
+                ValueLabel.Position = UDim2.new(1, -60 * scale, 0, 0)
+                ValueLabel.Text = tostring(opts.CurrentValue or (opts.Range and opts.Range[1]) or 50)
+                ValueLabel.TextColor3 = theme.Text
+                ValueLabel.BackgroundTransparency = 1
+                ValueLabel.TextSize = 14 * scale
+                ValueLabel.Font = Enum.Font.SourceSans
+                ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+                ValueLabel.Parent = SliderFrame
+                
+                -- Slider track
+                local SliderTrack = Instance.new("Frame")
+                SliderTrack.Name = "SliderTrack"
+                SliderTrack.Size = UDim2.new(1, 0, 0, 20 * scale)
+                SliderTrack.Position = UDim2.new(0, 0, 0, 30 * scale)
+                SliderTrack.BackgroundColor3 = theme.SliderTrack
+                SliderTrack.BackgroundTransparency = 0
+                SliderTrack.BorderSizePixel = 0
+                SliderTrack.Parent = SliderFrame
+                
+                local TrackCorner = Instance.new("UICorner")
+                TrackCorner.CornerRadius = UDim.new(0, 10 * scale)
+                TrackCorner.Parent = SliderTrack
+                
+                -- Slider fill
+                local SliderFill = Instance.new("Frame")
+                SliderFill.Name = "SliderFill"
+                SliderFill.Size = UDim2.new(0, 0, 1, 0)
+                SliderFill.BackgroundColor3 = theme.SliderFill
+                SliderFill.BackgroundTransparency = 0
+                SliderFill.BorderSizePixel = 0
+                SliderFill.Parent = SliderTrack
+                
+                local FillCorner = Instance.new("UICorner")
+                FillCorner.CornerRadius = UDim.new(0, 10 * scale)
+                FillCorner.Parent = SliderFill
+                
+                -- Slider thumb
+                local SliderThumb = Instance.new("TextButton")
+                SliderThumb.Name = "SliderThumb"
+                SliderThumb.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
+                SliderThumb.Position = UDim2.new(0, -14 * scale, 0.5, -14 * scale)
+                SliderThumb.Text = ""
+                SliderThumb.BackgroundColor3 = theme.Accent
+                SliderThumb.BackgroundTransparency = 0
+                SliderThumb.AutoButtonColor = false
+                SliderThumb.Parent = SliderTrack
+                
+                local ThumbCorner = Instance.new("UICorner")
+                ThumbCorner.CornerRadius = UDim.new(0.5, 0)
+                ThumbCorner.Parent = SliderThumb
+                
+                -- Slider variables
+                local range = opts.Range or {0, 100}
+                local increment = opts.Increment or 1
+                local currentValue = opts.CurrentValue or range[1]
+                local isDragging = false
+                
+                -- Update slider position
+                local function updateSliderPosition(value)
+                    currentValue = math.clamp(
+                        math.floor((value - range[1]) / increment) * increment + range[1],
+                        range[1],
+                        range[2]
+                    )
+                    
+                    local percentage = (currentValue - range[1]) / (range[2] - range[1])
+                    local fillWidth = math.clamp(percentage, 0, 1)
+                    
+                    -- Update visuals
+                    tween(SliderFill, {Size = UDim2.new(fillWidth, 0, 1, 0)})
+                    tween(SliderThumb, {Position = UDim2.new(fillWidth, -14 * scale, 0.5, -14 * scale)})
+                    ValueLabel.Text = tostring(currentValue)
+                    
+                    -- Call callback
+                    if opts.Callback then
+                        pcall(opts.Callback, currentValue)
+                    end
+                end
+                
+                -- Initial position
+                updateSliderPosition(currentValue)
+                
+                -- Drag events
+                SliderThumb.MouseButton1Down:Connect(function()
+                    isDragging = true
+                    tween(SliderThumb, {Size = UDim2.new(0, 32 * scale, 0, 32 * scale)})
+                    tween(SliderThumb, {BackgroundColor3 = theme.Active})
+                end)
+                
+                local connection
+                connection = UserInputService.InputChanged:Connect(function(input)
+                    if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local mousePos = UserInputService:GetMouseLocation()
+                        local trackPos = SliderTrack.AbsolutePosition
+                        local trackSize = SliderTrack.AbsoluteSize
+                        
+                        local relativeX = (mousePos.X - trackPos.X) / trackSize.X
+                        relativeX = math.clamp(relativeX, 0, 1)
+                        
+                        local value = range[1] + (relativeX * (range[2] - range[1]))
+                        updateSliderPosition(value)
+                    end
+                end)
+                
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if isDragging then
+                            isDragging = false
+                            tween(SliderThumb, {Size = UDim2.new(0, 28 * scale, 0, 28 * scale)})
+                            tween(SliderThumb, {BackgroundColor3 = theme.Accent})
+                        end
+                    end
+                end)
+                
+                -- Click on track to set value
+                SliderTrack.MouseButton1Down:Connect(function()
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local trackPos = SliderTrack.AbsolutePosition
+                    local trackSize = SliderTrack.AbsoluteSize
+                    
+                    local relativeX = (mousePos.X - trackPos.X) / trackSize.X
+                    relativeX = math.clamp(relativeX, 0, 1)
+                    
+                    local value = range[1] + (relativeX * (range[2] - range[1]))
+                    updateSliderPosition(value)
+                end)
+                
+                table.insert(self.Elements, SliderFrame)
+                
+                -- Return slider object
+                return {
+                    Frame = SliderFrame,
+                    Track = SliderTrack,
+                    Thumb = SliderThumb,
+                    GetValue = function() return currentValue end,
+                    SetValue = function(value)
+                        updateSliderPosition(value)
+                    end
+                }
             end,
             
             CreateDropdown = function(self, options)
@@ -725,14 +1000,6 @@ function SimpleGUI:CreateWindow(options)
                         end
                     end
                 }
-            end,
-            
-            CreateToggle = function(self, options)
-                -- ... (same as before)
-            end,
-            
-            CreateSlider = function(self, options)
-                -- ... (same as before)
             end
         }
         
@@ -820,5 +1087,5 @@ function SimpleGUI:CreateWindow(options)
     return windowObj
 end
 
-print("🎉 SimpleGUI v6.3 - Sidebar Tabs + Dropdown loaded!")
+print("🎉 SimpleGUI v6.3 - Sidebar Tabs + COMPLETE METHODS loaded!")
 return SimpleGUI
