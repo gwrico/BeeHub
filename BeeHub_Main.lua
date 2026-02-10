@@ -5,7 +5,7 @@ print("🔧 Loading BeeHub Modular System v4.0...")
 
 -- Configuration
 local CONFIG = {
-    SIMPLEGUI_URL = "https://raw.githubusercontent.com/gwrico/BeeHub/refs/heads/main/SimpleGUI.lua",
+    SIMPLEGUI_URL = "https://raw.githubusercontent.com/gwrico/BeeHub/main/SimpleGUI.lua",
     MODULES_URL = "https://raw.githubusercontent.com/gwrico/BeeHub/main/",
     LOAD_TIMEOUT = 10 -- seconds
 }
