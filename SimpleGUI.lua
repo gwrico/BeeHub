@@ -1,5 +1,5 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v5.1 - SIMPLIFIED THEME EDITOR WITH RESPONSIVE LAYOUT (FIXED)
+-- 🎨 SIMPLEGUI v5.1 - SIMPLIFIED THEME EDITOR WITH RESPONSIVE LAYOUT
 -- ==============================================
 print("🔧 Loading SimpleGUI v5.1 - Simplified Theme Editor with Responsive Layout...")
 
@@ -215,34 +215,6 @@ function SimpleGUI:GetCurrentTheme()
     return self.CurrentTheme
 end
 
--- THEME SAVE/LOAD FUNCTIONS
-function SimpleGUI:SaveThemeToFile(themeName, fileName)
-    fileName = fileName or "SimpleGUI_Theme.json"
-    local theme = self.Themes[themeName:upper()]
-    
-    if theme then
-        local data = {}
-        for key, value in pairs(theme) do
-            if typeof(value) == "Color3" then
-                data[key] = {value.R, value.G, value.B}
-            else
-                data[key] = value
-            end
-        end
-        
-        -- Simpan menggunakan plugin atau DataStore (sesuaikan dengan environment)
-        print("💾 Theme saved: " .. theme.Name)
-        return data
-    end
-end
-
-function SimpleGUI:LoadThemeFromFile(fileName)
-    -- Implementasi load theme dari file
-    print("📂 Load theme from: " .. fileName)
-    -- Ini adalah placeholder, implementasi sebenarnya tergantung environment
-    return nil
-end
-
 -- ===== SIMPLIFIED WINDOW CREATION WITH RESPONSIVE LAYOUT =====
 function SimpleGUI:CreateWindow(options)
     local opts = options or {}
@@ -320,8 +292,8 @@ function SimpleGUI:CreateWindow(options)
     -- THEME BUTTON (hanya muncul jika ShowThemeTab true)
     local ThemeButton = Instance.new("TextButton")
     ThemeButton.Name = "ThemeButton"
-    ThemeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
-    ThemeButton.Position = UDim2.new(1, isMobile and -85 or -90, 0.5, isMobile and -12.5 or -12.5) -- FIXED
+    ThemeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25)
+    ThemeButton.Position = UDim2.new(1, isMobile and -85 or -90, 0.5, isMobile and -12.5 or -12.5)
     ThemeButton.Text = "🎨"
     ThemeButton.TextColor3 = Color3.fromRGB(255, 255, 200)
     ThemeButton.BackgroundColor3 = theme.ButtonNormal
@@ -334,8 +306,8 @@ function SimpleGUI:CreateWindow(options)
     -- MINIMIZE BUTTON
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Name = "MinimizeButton"
-    MinimizeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
-    MinimizeButton.Position = UDim2.new(1, isMobile and -55 or -60, 0.5, isMobile and -12.5 or -12.5) -- FIXED
+    MinimizeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25)
+    MinimizeButton.Position = UDim2.new(1, isMobile and -55 or -60, 0.5, isMobile and -12.5 or -12.5)
     MinimizeButton.Text = "_"
     MinimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
     MinimizeButton.BackgroundColor3 = theme.ButtonNormal
@@ -348,8 +320,8 @@ function SimpleGUI:CreateWindow(options)
     -- CLOSE BUTTON
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
-    CloseButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
-    CloseButton.Position = UDim2.new(1, isMobile and -25 or -30, 0.5, isMobile and -12.5 or -12.5) -- FIXED
+    CloseButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25)
+    CloseButton.Position = UDim2.new(1, isMobile and -25 or -30, 0.5, isMobile and -12.5 or -12.5)
     CloseButton.Text = "X"
     CloseButton.TextColor3 = Color3.fromRGB(255, 150, 150)
     CloseButton.BackgroundColor3 = theme.ButtonNormal
@@ -408,13 +380,13 @@ function SimpleGUI:CreateWindow(options)
             ContentFrame.Visible = true
             MinimizeButton.Text = "_"
             MinimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-            MinimizeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
-            MinimizeButton.Position = UDim2.new(1, isMobile and -55 or -60, 0.5, isMobile and -12.5 or -12.5) -- FIXED
-            CloseButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
-            CloseButton.Position = UDim2.new(1, isMobile and -25 or -30, 0.5, isMobile and -12.5 or -12.5) -- FIXED
+            MinimizeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25)
+            MinimizeButton.Position = UDim2.new(1, isMobile and -55 or -60, 0.5, isMobile and -12.5 or -12.5)
+            CloseButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25)
+            CloseButton.Position = UDim2.new(1, isMobile and -25 or -30, 0.5, isMobile and -12.5 or -12.5)
             if ThemeButton.Visible then
-                ThemeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25) -- FIXED
-                ThemeButton.Position = UDim2.new(1, isMobile and -85 or -90, 0.5, isMobile and -12.5 or -12.5) -- FIXED
+                ThemeButton.Size = UDim2.new(0, isMobile and 25 or 25, 0, isMobile and 25 or 25)
+                ThemeButton.Position = UDim2.new(1, isMobile and -85 or -90, 0.5, isMobile and -12.5 or -12.5)
             end
         end
     end
@@ -709,14 +681,14 @@ function SimpleGUI:CreateWindow(options)
         local tabName = tabOptions.Name or "Tab_" .. (#self.Tabs + 1)
         
         -- Responsive tab button size
-        local tabWidth = self.WindowData.IsMobile and 80 or 90
-        local tabHeight = self.WindowData.IsMobile and 24 or 28
-        local tabTextSize = self.WindowData.IsMobile and 10 or 12
+        local tabWidth = windowData.IsMobile and 80 or 90
+        local tabHeight = windowData.IsMobile and 24 or 28
+        local tabTextSize = windowData.IsMobile and 10 or 12
         
         -- TAB BUTTON
         local TabButton = Instance.new("TextButton")
         TabButton.Name = tabName .. "_Button"
-        TabButton.Size = UDim2.new(0, tabWidth * self.WindowData.ResponsiveScale, 0, tabHeight * self.WindowData.ResponsiveScale)
+        TabButton.Size = UDim2.new(0, tabWidth * windowData.ResponsiveScale, 0, tabHeight * windowData.ResponsiveScale)
         TabButton.Text = tabName
         TabButton.TextColor3 = theme.TitleTextColor
         TabButton.BackgroundColor3 = theme.TabNormal
@@ -734,16 +706,16 @@ function SimpleGUI:CreateWindow(options)
         TabContent.Position = UDim2.new(0, 0, 0, 0)
         TabContent.BackgroundTransparency = 1
         TabContent.BorderSizePixel = 0
-        TabContent.ScrollBarThickness = self.WindowData.IsMobile and 8 or 4
+        TabContent.ScrollBarThickness = windowData.IsMobile and 8 or 4
         TabContent.ScrollBarImageColor3 = theme.SliderFill
         TabContent.Visible = false
         TabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        TabContent.ScrollingDirection = self.WindowData.IsMobile and Enum.ScrollingDirection.Y or Enum.ScrollingDirection.XY
+        TabContent.ScrollingDirection = windowData.IsMobile and Enum.ScrollingDirection.Y or Enum.ScrollingDirection.XY
         TabContent.Parent = self.ContentFrame
         
         -- TAB LAYOUT
         local TabLayout = Instance.new("UIListLayout")
-        TabLayout.Padding = UDim.new(0, 8 * self.WindowData.ResponsiveScale)
+        TabLayout.Padding = UDim.new(0, 8 * windowData.ResponsiveScale)
         TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
         TabLayout.Parent = TabContent
@@ -782,14 +754,17 @@ function SimpleGUI:CreateWindow(options)
         -- TAB BUILDER METHODS (RESPONSIVE VERSION)
         local tabBuilder = {}
         
+        -- Simpan windowData sebagai local variable untuk diakses oleh tabBuilder
+        local windowDataRef = windowData
+        
         function tabBuilder:CreateButton(options)
             local opts = options or {}
-            local buttonHeight = self.WindowData.IsMobile and 32 or 36
-            local textSize = self.WindowData.IsMobile and 12 or 13
+            local buttonHeight = windowDataRef.IsMobile and 32 or 36
+            local textSize = windowDataRef.IsMobile and 12 or 13
             
             local Button = Instance.new("TextButton")
             Button.Name = opts.Name or "Button_" .. #tabObj.Elements + 1
-            Button.Size = UDim2.new(0.9, 0, 0, buttonHeight * self.WindowData.ResponsiveScale)
+            Button.Size = UDim2.new(0.9, 0, 0, buttonHeight * windowDataRef.ResponsiveScale)
             Button.Text = opts.Text or Button.Name
             Button.TextColor3 = theme.TitleTextColor
             Button.BackgroundColor3 = theme.ButtonNormal
@@ -808,7 +783,7 @@ function SimpleGUI:CreateWindow(options)
                 end)
                 
                 -- Touch support for mobile
-                if self.WindowData.IsMobile then
+                if windowDataRef.IsMobile then
                     Button.TouchTap:Connect(function()
                         pcall(opts.Callback)
                     end)
@@ -821,12 +796,12 @@ function SimpleGUI:CreateWindow(options)
         
         function tabBuilder:CreateLabel(options)
             local opts = options or {}
-            local labelHeight = self.WindowData.IsMobile and 22 or 26
-            local textSize = self.WindowData.IsMobile and 12 or 13
+            local labelHeight = windowDataRef.IsMobile and 22 or 26
+            local textSize = windowDataRef.IsMobile and 12 or 13
             
             local Label = Instance.new("TextLabel")
             Label.Name = opts.Name or "Label_" .. #tabObj.Elements + 1
-            Label.Size = UDim2.new(0.9, 0, 0, labelHeight * self.WindowData.ResponsiveScale)
+            Label.Size = UDim2.new(0.9, 0, 0, labelHeight * windowDataRef.ResponsiveScale)
             Label.Text = opts.Text or Label.Name
             Label.TextColor3 = theme.TitleTextColor
             Label.BackgroundTransparency = 1
@@ -843,24 +818,24 @@ function SimpleGUI:CreateWindow(options)
         function tabBuilder:CreateToggle(options)
             local opts = options or {}
             local toggleName = opts.Name or "Toggle_" .. #tabObj.Elements + 1
-            local toggleHeight = self.WindowData.IsMobile and 28 or 32
-            local textSize = self.WindowData.IsMobile and 12 or 13
+            local toggleHeight = windowDataRef.IsMobile and 28 or 32
+            local textSize = windowDataRef.IsMobile and 12 or 13
             
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Name = toggleName .. "_Frame"
-            ToggleFrame.Size = UDim2.new(0.9, 0, 0, toggleHeight * self.WindowData.ResponsiveScale)
+            ToggleFrame.Size = UDim2.new(0.9, 0, 0, toggleHeight * windowDataRef.ResponsiveScale)
             ToggleFrame.BackgroundTransparency = 1
             ToggleFrame.LayoutOrder = #tabObj.Elements + 1
             ToggleFrame.Parent = TabContent
             
-            local toggleButtonWidth = self.WindowData.IsMobile and 40 or 50
-            local toggleButtonHeight = self.WindowData.IsMobile and 20 or 24
-            local circleSize = self.WindowData.IsMobile and 16 or 20
+            local toggleButtonWidth = windowDataRef.IsMobile and 40 or 50
+            local toggleButtonHeight = windowDataRef.IsMobile and 20 or 24
+            local circleSize = windowDataRef.IsMobile and 16 or 20
             
             local ToggleButton = Instance.new("TextButton")
             ToggleButton.Name = "Toggle"
-            ToggleButton.Size = UDim2.new(0, toggleButtonWidth * self.WindowData.ResponsiveScale, 0, toggleButtonHeight * self.WindowData.ResponsiveScale)
-            ToggleButton.Position = UDim2.new(1, -(toggleButtonWidth + 5) * self.WindowData.ResponsiveScale, 0.5, -(toggleButtonHeight/2) * self.WindowData.ResponsiveScale)
+            ToggleButton.Size = UDim2.new(0, toggleButtonWidth * windowDataRef.ResponsiveScale, 0, toggleButtonHeight * windowDataRef.ResponsiveScale)
+            ToggleButton.Position = UDim2.new(1, -(toggleButtonWidth + 5) * windowDataRef.ResponsiveScale, 0.5, -(toggleButtonHeight/2) * windowDataRef.ResponsiveScale)
             ToggleButton.Text = ""
             ToggleButton.BackgroundColor3 = theme.ToggleOff
             ToggleButton.BackgroundTransparency = 0
@@ -869,15 +844,15 @@ function SimpleGUI:CreateWindow(options)
             
             local ToggleCircle = Instance.new("Frame")
             ToggleCircle.Name = "Circle"
-            ToggleCircle.Size = UDim2.new(0, circleSize * self.WindowData.ResponsiveScale, 0, circleSize * self.WindowData.ResponsiveScale)
-            ToggleCircle.Position = UDim2.new(0, 2 * self.WindowData.ResponsiveScale, 0.5, -(circleSize/2) * self.WindowData.ResponsiveScale)
+            ToggleCircle.Size = UDim2.new(0, circleSize * windowDataRef.ResponsiveScale, 0, circleSize * windowDataRef.ResponsiveScale)
+            ToggleCircle.Position = UDim2.new(0, 2 * windowDataRef.ResponsiveScale, 0.5, -(circleSize/2) * windowDataRef.ResponsiveScale)
             ToggleCircle.BackgroundColor3 = Color3.new(1, 1, 1)
             ToggleCircle.BackgroundTransparency = 0
             ToggleCircle.Parent = ToggleButton
             
             local ToggleLabel = Instance.new("TextLabel")
             ToggleLabel.Name = "Label"
-            ToggleLabel.Size = UDim2.new(1, -(toggleButtonWidth + 10) * self.WindowData.ResponsiveScale, 1, 0)
+            ToggleLabel.Size = UDim2.new(1, -(toggleButtonWidth + 10) * windowDataRef.ResponsiveScale, 1, 0)
             ToggleLabel.Text = opts.Text or toggleName
             ToggleLabel.TextColor3 = theme.TitleTextColor
             ToggleLabel.BackgroundTransparency = 1
@@ -890,7 +865,7 @@ function SimpleGUI:CreateWindow(options)
             
             if isToggled then
                 ToggleButton.BackgroundColor3 = theme.ToggleOn
-                ToggleCircle.Position = UDim2.new(1, -(circleSize + 2) * self.WindowData.ResponsiveScale, 0.5, -(circleSize/2) * self.WindowData.ResponsiveScale)
+                ToggleCircle.Position = UDim2.new(1, -(circleSize + 2) * windowDataRef.ResponsiveScale, 0.5, -(circleSize/2) * windowDataRef.ResponsiveScale)
             end
             
             local function toggle()
@@ -898,10 +873,10 @@ function SimpleGUI:CreateWindow(options)
                 
                 if isToggled then
                     ToggleButton.BackgroundColor3 = theme.ToggleOn
-                    ToggleCircle.Position = UDim2.new(1, -(circleSize + 2) * self.WindowData.ResponsiveScale, 0.5, -(circleSize/2) * self.WindowData.ResponsiveScale)
+                    ToggleCircle.Position = UDim2.new(1, -(circleSize + 2) * windowDataRef.ResponsiveScale, 0.5, -(circleSize/2) * windowDataRef.ResponsiveScale)
                 else
                     ToggleButton.BackgroundColor3 = theme.ToggleOff
-                    ToggleCircle.Position = UDim2.new(0, 2 * self.WindowData.ResponsiveScale, 0.5, -(circleSize/2) * self.WindowData.ResponsiveScale)
+                    ToggleCircle.Position = UDim2.new(0, 2 * windowDataRef.ResponsiveScale, 0.5, -(circleSize/2) * windowDataRef.ResponsiveScale)
                 end
                 
                 if opts.Callback then
@@ -912,7 +887,7 @@ function SimpleGUI:CreateWindow(options)
             ToggleButton.MouseButton1Click:Connect(toggle)
             
             -- Touch support for mobile
-            if self.WindowData.IsMobile then
+            if windowDataRef.IsMobile then
                 ToggleButton.TouchTap:Connect(toggle)
             end
             
@@ -923,10 +898,10 @@ function SimpleGUI:CreateWindow(options)
                     isToggled = value
                     if isToggled then
                         ToggleButton.BackgroundColor3 = theme.ToggleOn
-                        ToggleCircle.Position = UDim2.new(1, -(circleSize + 2) * self.WindowData.ResponsiveScale, 0.5, -(circleSize/2) * self.WindowData.ResponsiveScale)
+                        ToggleCircle.Position = UDim2.new(1, -(circleSize + 2) * windowDataRef.ResponsiveScale, 0.5, -(circleSize/2) * windowDataRef.ResponsiveScale)
                     else
                         ToggleButton.BackgroundColor3 = theme.ToggleOff
-                        ToggleCircle.Position = UDim2.new(0, 2 * self.WindowData.ResponsiveScale, 0.5, -(circleSize/2) * self.WindowData.ResponsiveScale)
+                        ToggleCircle.Position = UDim2.new(0, 2 * windowDataRef.ResponsiveScale, 0.5, -(circleSize/2) * windowDataRef.ResponsiveScale)
                     end
                 end,
                 Get = function() return isToggled end
@@ -939,19 +914,19 @@ function SimpleGUI:CreateWindow(options)
             local minVal = opts.Range and opts.Range[1] or 0
             local maxVal = opts.Range and opts.Range[2] or 100
             local currentVal = opts.CurrentValue or minVal
-            local sliderHeight = self.WindowData.IsMobile and 42 or 48
-            local textSize = self.WindowData.IsMobile and 12 or 13
+            local sliderHeight = windowDataRef.IsMobile and 42 or 48
+            local textSize = windowDataRef.IsMobile and 12 or 13
             
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = sliderName .. "_Frame"
-            SliderFrame.Size = UDim2.new(0.9, 0, 0, sliderHeight * self.WindowData.ResponsiveScale)
+            SliderFrame.Size = UDim2.new(0.9, 0, 0, sliderHeight * windowDataRef.ResponsiveScale)
             SliderFrame.BackgroundTransparency = 1
             SliderFrame.LayoutOrder = #tabObj.Elements + 1
             SliderFrame.Parent = TabContent
             
             local SliderLabel = Instance.new("TextLabel")
             SliderLabel.Name = "Label"
-            SliderLabel.Size = UDim2.new(1, 0, 0, 20 * self.WindowData.ResponsiveScale)
+            SliderLabel.Size = UDim2.new(1, 0, 0, 20 * windowDataRef.ResponsiveScale)
             SliderLabel.Text = sliderName .. ": " .. currentVal
             SliderLabel.TextColor3 = theme.TitleTextColor
             SliderLabel.BackgroundTransparency = 1
@@ -960,13 +935,13 @@ function SimpleGUI:CreateWindow(options)
             SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
             SliderLabel.Parent = SliderFrame
             
-            local trackHeight = self.WindowData.IsMobile and 4 or 6
-            local sliderButtonSize = self.WindowData.IsMobile and 12 or 14
+            local trackHeight = windowDataRef.IsMobile and 4 or 6
+            local sliderButtonSize = windowDataRef.IsMobile and 12 or 14
             
             local SliderTrack = Instance.new("Frame")
             SliderTrack.Name = "Track"
-            SliderTrack.Size = UDim2.new(1, 0, 0, trackHeight * self.WindowData.ResponsiveScale)
-            SliderTrack.Position = UDim2.new(0, 0, 0, 28 * self.WindowData.ResponsiveScale)
+            SliderTrack.Size = UDim2.new(1, 0, 0, trackHeight * windowDataRef.ResponsiveScale)
+            SliderTrack.Position = UDim2.new(0, 0, 0, 28 * windowDataRef.ResponsiveScale)
             SliderTrack.BackgroundColor3 = theme.SliderTrack
             SliderTrack.BorderSizePixel = 0
             SliderTrack.Parent = SliderFrame
@@ -981,8 +956,8 @@ function SimpleGUI:CreateWindow(options)
             
             local SliderButton = Instance.new("TextButton")
             SliderButton.Name = "SliderButton"
-            SliderButton.Size = UDim2.new(0, sliderButtonSize * self.WindowData.ResponsiveScale, 0, sliderButtonSize * self.WindowData.ResponsiveScale)
-            SliderButton.Position = UDim2.new(fillPercent, -sliderButtonSize/2 * self.WindowData.ResponsiveScale, 0.5, -sliderButtonSize/2 * self.WindowData.ResponsiveScale)
+            SliderButton.Size = UDim2.new(0, sliderButtonSize * windowDataRef.ResponsiveScale, 0, sliderButtonSize * windowDataRef.ResponsiveScale)
+            SliderButton.Position = UDim2.new(fillPercent, -sliderButtonSize/2 * windowDataRef.ResponsiveScale, 0.5, -sliderButtonSize/2 * windowDataRef.ResponsiveScale)
             SliderButton.Text = ""
             SliderButton.BackgroundColor3 = Color3.new(1, 1, 1)
             SliderButton.BackgroundTransparency = 0
@@ -996,7 +971,7 @@ function SimpleGUI:CreateWindow(options)
                 fillPercent = (currentVal - minVal) / (maxVal - minVal)
                 
                 SliderFill.Size = UDim2.new(fillPercent, 0, 1, 0)
-                SliderButton.Position = UDim2.new(fillPercent, -sliderButtonSize/2 * self.WindowData.ResponsiveScale, 0.5, -sliderButtonSize/2 * self.WindowData.ResponsiveScale)
+                SliderButton.Position = UDim2.new(fillPercent, -sliderButtonSize/2 * windowDataRef.ResponsiveScale, 0.5, -sliderButtonSize/2 * windowDataRef.ResponsiveScale)
                 SliderLabel.Text = sliderName .. ": " .. math.floor(currentVal)
                 
                 if opts.Callback then
@@ -1006,7 +981,7 @@ function SimpleGUI:CreateWindow(options)
             
             local function onInputBegan(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-                   (self.WindowData.IsMobile and input.UserInputType == Enum.UserInputType.Touch) then
+                   (windowDataRef.IsMobile and input.UserInputType == Enum.UserInputType.Touch) then
                     dragging = true
                 end
             end
@@ -1053,12 +1028,12 @@ function SimpleGUI:CreateWindow(options)
         function tabBuilder:CreateInput(options)
             local opts = options or {}
             local inputName = opts.Name or "Input_" .. #tabObj.Elements + 1
-            local inputHeight = self.WindowData.IsMobile and 32 or 36
-            local textSize = self.WindowData.IsMobile and 12 or 13
+            local inputHeight = windowDataRef.IsMobile and 32 or 36
+            local textSize = windowDataRef.IsMobile and 12 or 13
             
             local InputFrame = Instance.new("Frame")
             InputFrame.Name = inputName .. "_Frame"
-            InputFrame.Size = UDim2.new(0.9, 0, 0, inputHeight * self.WindowData.ResponsiveScale)
+            InputFrame.Size = UDim2.new(0.9, 0, 0, inputHeight * windowDataRef.ResponsiveScale)
             InputFrame.BackgroundTransparency = 1
             InputFrame.LayoutOrder = #tabObj.Elements + 1
             InputFrame.Parent = TabContent
@@ -1080,7 +1055,7 @@ function SimpleGUI:CreateWindow(options)
                 InputBox.BackgroundColor3 = theme.InputFocused
                 
                 -- Auto-show keyboard untuk mobile
-                if self.WindowData.IsMobile then
+                if windowDataRef.IsMobile then
                     InputBox:CaptureFocus()
                 end
             end)
@@ -1097,85 +1072,6 @@ function SimpleGUI:CreateWindow(options)
         end
         
         return tabBuilder
-    end
-    
-    -- ===== RESPONSIVE LAYOUT MANAGER =====
-    function windowObj:CreateResponsiveLayout(container)
-        local layoutManager = {}
-        
-        layoutManager.Container = container
-        layoutManager.Elements = {}
-        layoutManager.IsGrid = false
-        layoutManager.Columns = 1
-        
-        function layoutManager:SetGridMode(columns)
-            self.IsGrid = true
-            self.Columns = columns or 2
-        end
-        
-        function layoutManager:AddElement(element, options)
-            local opts = options or {}
-            
-            table.insert(self.Elements, {
-                Instance = element,
-                Size = opts.Size or UDim2.new(1, 0, 0, 40),
-                Order = opts.Order or #self.Elements + 1
-            })
-            
-            self:UpdateLayout()
-            return element
-        end
-        
-        function layoutManager:UpdateLayout()
-            local screen = self:GetScreenSize()
-            local isMobile = self.WindowData.IsMobile
-            
-            if self.IsGrid and not isMobile then
-                -- Grid layout untuk desktop/tablet
-                local columnWidth = 1 / self.Columns
-                local currentColumn = 0
-                local currentRow = 0
-                
-                for i, elementData in ipairs(self.Elements) do
-                    currentColumn = (i - 1) % self.Columns
-                    currentRow = math.floor((i - 1) / self.Columns)
-                    
-                    elementData.Instance.Size = UDim2.new(
-                        columnWidth, -10, 
-                        0, elementData.Size.Y.Offset
-                    )
-                    
-                    elementData.Instance.Position = UDim2.new(
-                        columnWidth * currentColumn, 5,
-                        0, currentRow * (elementData.Size.Y.Offset + 5)
-                    )
-                end
-            else
-                -- Vertical list layout untuk mobile
-                local currentY = 0
-                
-                for i, elementData in ipairs(self.Elements) do
-                    elementData.Instance.Size = UDim2.new(
-                        1, isMobile and -20 or 0,
-                        0, elementData.Size.Y.Offset
-                    )
-                    
-                    elementData.Instance.Position = UDim2.new(
-                        0, isMobile and 10 or 0,
-                        0, currentY
-                    )
-                    
-                    currentY = currentY + elementData.Size.Y.Offset + 5
-                end
-            end
-        end
-        
-        -- Auto-update saat screen size berubah
-        workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-            layoutManager:UpdateLayout()
-        end)
-        
-        return layoutManager
     end
     
     -- ===== OPTIONAL THEME TAB =====
@@ -1228,26 +1124,6 @@ function SimpleGUI:CreateWindow(options)
     
     print("✅ Responsive Window created: " .. windowData.Name)
     return windowObj
-end
-
--- ===== EXPORT THEME FUNCTIONS =====
-function SimpleGUI:ExportCurrentTheme()
-    local theme = self.DefaultTheme
-    local exportString = "-- SimpleGUI Theme Export\n"
-    exportString = exportString .. "local theme = {\n"
-    
-    for key, value in pairs(theme) do
-        if typeof(value) == "Color3" then
-            exportString = exportString .. string.format("    %s = Color3.fromRGB(%d, %d, %d),\n", 
-                key, math.round(value.R * 255), math.round(value.G * 255), math.round(value.B * 255))
-        elseif type(value) == "string" then
-            exportString = exportString .. string.format('    %s = "%s",\n', key, value)
-        end
-    end
-    
-    exportString = exportString .. "}\n"
-    print("📋 Theme copied to clipboard (simulated)")
-    return exportString
 end
 
 print("🎉 SimpleGUI v5.1 - Simplified Theme Editor with Responsive Layout loaded!")
