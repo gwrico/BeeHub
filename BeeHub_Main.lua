@@ -148,7 +148,8 @@ function Shared.InitializeModules()
         {Name = "Teleport", File = "Tab_Teleport.lua", TabName = "📍 Teleport"},
         {Name = "Visuals", File = "Tab_Visuals.lua", TabName = "👁️ Visuals"},
         {Name = "Misc", File = "Tab_Misc.lua", TabName = "⚡ Misc"},
-        {Name = "Utilities", File = "Tab_Utilities.lua", TabName = "🔧 Utilities"}
+        {Name = "Utilities", File = "Tab_Utilities.lua", TabName = "🔧 Utilities"},
+        {Name = "Shop", File = "Tab_Shop.lua", TabName = "🛍️ Shop"}
     }
     
     for _, moduleInfo in ipairs(tabModules) do
