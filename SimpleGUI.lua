@@ -834,22 +834,58 @@ function SimpleGUI:CreateWindow(options)
         return tabObj
     end
     
-    -- Minimize functionality
+    -- ===== MODIFIED MINIMIZE FUNCTIONALITY =====
     local isMinimized = false
     MinimizeButton.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
-            tween(MainFrame, {Size = UDim2.new(windowData.Size.X.Scale, windowData.Size.X.Offset, 0, 40 * scale)})
-            TitleLabel.Text = windowData.Name .. " [-]"
-            ContentFrame.Visible = false
+            -- Minimize: title bar jadi lebih pendek
+            tween(MainFrame, {Size = UDim2.new(windowData.Size.X.Scale, windowData.Size.X.Offset, 0, 30 * scale)})
+            
+            -- Sembunyikan komponen lain
             Sidebar.Visible = false
-            MinimizeButton.Text = "+"
+            ContentFrame.Visible = false
+            
+            -- Update tampilan tombol dan title
+            MinimizeButton.Text = "□"  -- Ikon restore
+            TitleLabel.Text = windowData.Name .. " [Min]"
+            
+            -- Perkecil ukuran font di title
+            TitleLabel.TextSize = 14 * scale
+            
+            -- Perkecil tombol kontrol
+            local smallButtonSize = 22 * scale
+            ThemeButton.Size = UDim2.new(0, smallButtonSize, 0, smallButtonSize)
+            MinimizeButton.Size = UDim2.new(0, smallButtonSize, 0, smallButtonSize)
+            CloseButton.Size = UDim2.new(0, smallButtonSize, 0, smallButtonSize)
+            
+            -- Reposisi tombol
+            ThemeButton.Position = UDim2.new(1, -smallButtonSize * 3 - 15 * scale, 0.5, -smallButtonSize/2)
+            MinimizeButton.Position = UDim2.new(1, -smallButtonSize * 2 - 8 * scale, 0.5, -smallButtonSize/2)
+            CloseButton.Position = UDim2.new(1, -smallButtonSize - 5 * scale, 0.5, -smallButtonSize/2)
         else
+            -- Restore: ukuran normal
             tween(MainFrame, {Size = windowData.Size})
-            TitleLabel.Text = windowData.Name
-            ContentFrame.Visible = true
+            
+            -- Tampilkan kembali
             Sidebar.Visible = true
+            ContentFrame.Visible = true
+            
+            -- Kembalikan ukuran normal
             MinimizeButton.Text = "_"
+            TitleLabel.Text = windowData.Name
+            TitleLabel.TextSize = 16 * scale
+            
+            -- Kembalikan ukuran tombol
+            local normalButtonSize = 28 * scale
+            ThemeButton.Size = UDim2.new(0, normalButtonSize, 0, normalButtonSize)
+            MinimizeButton.Size = UDim2.new(0, normalButtonSize, 0, normalButtonSize)
+            CloseButton.Size = UDim2.new(0, normalButtonSize, 0, normalButtonSize)
+            
+            -- Kembalikan posisi tombol
+            ThemeButton.Position = UDim2.new(1, -normalButtonSize * 3 - 20 * scale, 0.5, -normalButtonSize/2)
+            MinimizeButton.Position = UDim2.new(1, -normalButtonSize * 2 - 10 * scale, 0.5, -normalButtonSize/2)
+            CloseButton.Position = UDim2.new(1, -normalButtonSize, 0.5, -normalButtonSize/2)
         end
     end)
     
