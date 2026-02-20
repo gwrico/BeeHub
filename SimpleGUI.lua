@@ -834,57 +834,88 @@ function SimpleGUI:CreateWindow(options)
         return tabObj
     end
     
-    -- ===== MINIMIZE FUNCTIONALITY (EXTREME MINIMAL) =====
-    local isMinimized = false
-    local originalSize = windowData.Size
-    
-    MinimizeButton.MouseButton1Click:Connect(function()
-        isMinimized = not isMinimized
-        if isMinimized then
-            -- Minimize: kecilkan jadi hanya cukup untuk 2 tombol
-            MainFrame.Size = UDim2.new(0, 70 * scale, 0, 30 * scale) -- Lebar 70px, tinggi 30px
-            
-            -- SEMBUNYIKAN SEMUA
-            TitleLabel.Visible = false  -- Hilangkan title text
-            ThemeButton.Visible = false  -- Hilangkan theme button
-            Sidebar.Visible = false
-            ContentFrame.Visible = false
-            
-            -- Update tampilan tombol minimize jadi restore
-            MinimizeButton.Text = "□"
-            
-            -- Reposisi tombol agar sejajar
-            -- Hanya MinimizeButton dan CloseButton yang kelihatan
-            MinimizeButton.Position = UDim2.new(0, 5, 0.5, -11)  -- Geser ke kiri
-            CloseButton.Position = UDim2.new(1, -27, 0.5, -11)   -- Tetap di kanan
-            
-            -- Ukuran tombol tetap sama
-            MinimizeButton.Size = UDim2.new(0, 22 * scale, 0, 22 * scale)
-            CloseButton.Size = UDim2.new(0, 22 * scale, 0, 22 * scale)
-        else
-            -- Restore: kembalikan semua
-            MainFrame.Size = originalSize
-            
-            -- TAMPILKAN KEMBALI SEMUA
-            TitleLabel.Visible = true
-            ThemeButton.Visible = windowData.ShowThemeTab  -- Kembalikan sesuai setting awal
-            Sidebar.Visible = true
-            ContentFrame.Visible = true
-            
-            -- Kembalikan tombol ke ukuran normal
-            MinimizeButton.Text = "_"
-            
-            -- Kembalikan posisi tombol ke posisi awal
-            ThemeButton.Position = UDim2.new(1, -(28 * 3) - 20 * scale, 0.5, -14 * scale)
-            MinimizeButton.Position = UDim2.new(1, -(28 * 2) - 10 * scale, 0.5, -14 * scale)
-            CloseButton.Position = UDim2.new(1, -28 * scale, 0.5, -14 * scale)
-            
-            -- Kembalikan ukuran tombol
-            ThemeButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
-            MinimizeButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
-            CloseButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
+-- ===== MINIMIZE FUNCTIONALITY (FIXED CORNERS) =====
+local isMinimized = false
+local originalSize = windowData.Size
+local originalCornerRadius = WindowCorner.CornerRadius  -- Simpan radius asli
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        -- Minimize: kecilkan jadi hanya cukup untuk 2 tombol
+        MainFrame.Size = UDim2.new(0, 70 * scale, 0, 30 * scale) -- Lebar 70px, tinggi 30px
+        
+        -- Ubah corner radius menjadi lebih kecil proporsional
+        WindowCorner.CornerRadius = UDim.new(0, 6 * scale)  -- Radius lebih kecil untuk ukuran kecil
+        ShadowCorner.CornerRadius = UDim.new(0, 8 * scale)  -- Shadow mengikuti
+        
+        -- SEMBUNYIKAN SEMUA
+        TitleLabel.Visible = false  -- Hilangkan title text
+        ThemeButton.Visible = false  -- Hilangkan theme button
+        Sidebar.Visible = false
+        ContentFrame.Visible = false
+        
+        -- Update tampilan tombol minimize jadi restore
+        MinimizeButton.Text = "□"
+        
+        -- Reposisi tombol agar sejajar
+        MinimizeButton.Position = UDim2.new(0, 5, 0.5, -11)
+        CloseButton.Position = UDim2.new(1, -27, 0.5, -11)
+        
+        -- Ukuran tombol lebih kecil
+        MinimizeButton.Size = UDim2.new(0, 22 * scale, 0, 22 * scale)
+        CloseButton.Size = UDim2.new(0, 22 * scale, 0, 22 * scale)
+        
+        -- Update corner tombol agar proporsional
+        local buttonCorner = MinimizeButton:FindFirstChildOfClass("UICorner")
+        if buttonCorner then
+            buttonCorner.CornerRadius = UDim.new(0, 4 * scale)
         end
-    end)
+        
+        buttonCorner = CloseButton:FindFirstChildOfClass("UICorner")
+        if buttonCorner then
+            buttonCorner.CornerRadius = UDim.new(0, 4 * scale)
+        end
+    else
+        -- Restore: kembalikan semua
+        MainFrame.Size = originalSize
+        
+        -- Kembalikan corner radius ke ukuran semula
+        WindowCorner.CornerRadius = originalCornerRadius
+        ShadowCorner.CornerRadius = UDim.new(0, 14 * scale)
+        
+        -- TAMPILKAN KEMBALI SEMUA
+        TitleLabel.Visible = true
+        ThemeButton.Visible = windowData.ShowThemeTab
+        Sidebar.Visible = true
+        ContentFrame.Visible = true
+        
+        -- Kembalikan tombol ke ukuran normal
+        MinimizeButton.Text = "_"
+        
+        -- Kembalikan posisi tombol ke posisi awal
+        ThemeButton.Position = UDim2.new(1, -(28 * 3) - 20 * scale, 0.5, -14 * scale)
+        MinimizeButton.Position = UDim2.new(1, -(28 * 2) - 10 * scale, 0.5, -14 * scale)
+        CloseButton.Position = UDim2.new(1, -28 * scale, 0.5, -14 * scale)
+        
+        -- Kembalikan ukuran tombol
+        ThemeButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
+        MinimizeButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
+        CloseButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
+        
+        -- Kembalikan corner radius tombol
+        local function restoreButtonCorner(button)
+            local corner = button:FindFirstChildOfClass("UICorner")
+            if corner then
+                corner.CornerRadius = UDim.new(0, 6 * scale)
+            end
+        end
+        
+        restoreButtonCorner(ThemeButton)
+        restoreButtonCorner(MinimizeButton)
+        restoreButtonCorner(CloseButton)
+    end
+end)
     
     -- Close button
     CloseButton.MouseButton1Click:Connect(function()
