@@ -1,6 +1,6 @@
 --// ===============================
---// SimpleGUI v7 FINAL (EXECUTOR SAFE)
---// Struktur sama seperti GUI kamu awal
+--// SimpleGUI v7 FINAL (COMPATIBLE EDITION)
+--// Executor Safe + PlayerMods Compatible
 --// ===============================
 
 local TweenService = game:GetService("TweenService")
@@ -31,16 +31,16 @@ local theme = {
 -- ROOT
 -- ===============================
 
-local GUI = Instance.new("ScreenGui")
-GUI.Name="SimpleGUI"
-GUI.Parent=game.CoreGui
-GUI.ResetOnSpawn=false
+local GUIRoot = Instance.new("ScreenGui")
+GUIRoot.Name="SimpleGUI"
+GUIRoot.Parent=game.CoreGui
+GUIRoot.ResetOnSpawn=false
 
 local Main = Instance.new("Frame")
 Main.Size=UDim2.fromOffset(700,420)
 Main.Position=UDim2.new(0.5,-350,0.5,-210)
 Main.BackgroundColor3=theme.Window
-Main.Parent=GUI
+Main.Parent=GUIRoot
 Instance.new("UICorner",Main).CornerRadius=UDim.new(0,12)
 
 -- ===============================
@@ -64,7 +64,6 @@ Title.BackgroundTransparency=1
 Title.TextXAlignment=Enum.TextXAlignment.Left
 Title.Parent=TitleBar
 
--- control buttons
 local function makeBtn(text,color,x)
     local b=Instance.new("TextButton")
     b.Size=UDim2.fromOffset(28,28)
@@ -110,22 +109,13 @@ Content.Position=UDim2.new(0,180,0,42)
 Content.BackgroundColor3=theme.Content
 Content.Parent=Main
 
-local ContentLayout=Instance.new("UIListLayout")
-ContentLayout.Padding=UDim.new(0,8)
-ContentLayout.Parent=Content
-
-local ContentPad=Instance.new("UIPadding")
-ContentPad.PaddingTop=UDim.new(0,12)
-ContentPad.PaddingLeft=UDim.new(0,12)
-ContentPad.Parent=Content
-
 -- ===============================
--- TAB SYSTEM (FIXED)
+-- TAB SYSTEM
 -- ===============================
 
 local Tabs={}
 
-function CreateTab(name)
+local function CreateBaseTab(name)
     local Button=Instance.new("TextButton")
     Button.Size=UDim2.new(1,0,0,36)
     Button.Text="  "..name
@@ -160,35 +150,67 @@ function CreateTab(name)
         Button.BackgroundColor3=theme.Accent
     end
 
-    local tab={}
+    return Page
+end
 
-    function tab:Button(text,callback)
+-- ===============================
+-- COMPATIBILITY TAB API
+-- ===============================
+
+local function CreateCompatTab(name)
+    local Page = CreateBaseTab(name)
+    local tab = {}
+
+    function tab:CreateButton(opt)
         local b=Instance.new("TextButton")
         b.Size=UDim2.new(0.9,0,0,36)
-        b.Text=text
+        b.Text=opt.Text or opt.Name or "Button"
         b.TextColor3=theme.Text
         b.BackgroundColor3=theme.Button
         b.Parent=Page
         Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
         b.MouseButton1Click:Connect(function()
-            if callback then callback() end
+            if opt.Callback then opt.Callback() end
         end)
     end
 
-    function tab:Toggle(text,callback)
-        local state=false
+    function tab:CreateToggle(opt)
+        local state = opt.CurrentValue or false
+
         local b=Instance.new("TextButton")
         b.Size=UDim2.new(0.9,0,0,36)
-        b.Text=text.." : OFF"
+        b.Text=(opt.Text or opt.Name or "Toggle").." : "..(state and "ON" or "OFF")
         b.TextColor3=theme.Text
         b.BackgroundColor3=theme.Button
         b.Parent=Page
         Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
 
         b.MouseButton1Click:Connect(function()
-            state=not state
-            b.Text=text.." : "..(state and "ON" or "OFF")
-            if callback then callback(state) end
+            state = not state
+            b.Text=(opt.Text or opt.Name).." : "..(state and "ON" or "OFF")
+            if opt.Callback then opt.Callback(state) end
+        end)
+    end
+
+    function tab:CreateSlider(opt)
+        local value = opt.CurrentValue or opt.Range[1]
+        local min = opt.Range[1]
+        local max = opt.Range[2]
+        local inc = opt.Increment or 1
+
+        local b=Instance.new("TextButton")
+        b.Size=UDim2.new(0.9,0,0,36)
+        b.Text=(opt.Name or "Slider").." : "..value
+        b.TextColor3=theme.Text
+        b.BackgroundColor3=theme.Button
+        b.Parent=Page
+        Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
+
+        b.MouseButton1Click:Connect(function()
+            value = value + inc
+            if value > max then value = min end
+            b.Text=(opt.Name or "Slider").." : "..value
+            if opt.Callback then opt.Callback(value) end
         end)
     end
 
@@ -242,9 +264,38 @@ UIS.InputEnded:Connect(function(i)
 end)
 
 -- ===============================
+-- DEPENDENCY SYSTEM
+-- ===============================
+
+local Services = {
+    RunService = game:GetService("RunService"),
+    UserInputService = game:GetService("UserInputService")
+}
+
+local Variables = {}
+
+local Bdev = {}
+function Bdev:Notify(opt)
+    print("[NOTIFY]", opt.Title, opt.Content)
+end
+
+-- ===============================
 -- EXPORT
 -- ===============================
 
-getgenv().SimpleGUI={
-    CreateTab=CreateTab
+getgenv().SimpleGUI = {
+    CreateTab = CreateCompatTab,
+
+    CreatePlayerModsEnvironment = function()
+        return {
+            Tab = nil,
+            GUI = GUIRoot,
+            Bdev = Bdev,
+            Shared = {
+                Services = Services,
+                Variables = Variables,
+                Functions = {}
+            }
+        }
+    end
 }
