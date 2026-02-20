@@ -1,288 +1,194 @@
 --// ===============================
---// SimpleGUI v7 Modern (FINAL)
---// Executor Safe - Single Script
+--// SimpleGUI v7 FINAL (EXECUTOR SAFE)
+--// Struktur sama seperti GUI kamu awal
 --// ===============================
 
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 
-local function tween(obj,props,time)
-    TweenService:Create(
-        obj,
-        TweenInfo.new(time or 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        props
-    ):Play()
+local function tween(o,p,t)
+    TweenService:Create(o,TweenInfo.new(t or 0.2,Enum.EasingStyle.Quad),p):Play()
 end
 
--- remove old UI
-pcall(function()
-    game.CoreGui.SimpleGUI:Destroy()
-end)
+pcall(function() game.CoreGui.SimpleGUI:Destroy() end)
 
 -- ===============================
 -- THEME
 -- ===============================
 
 local theme = {
-    Main = Color3.fromRGB(30,30,40),
-    Secondary = Color3.fromRGB(40,40,55),
-    Button = Color3.fromRGB(60,60,85),
-    ButtonHover = Color3.fromRGB(75,75,110),
-    Accent = Color3.fromRGB(170,120,255),
-    Text = Color3.fromRGB(235,235,255)
+    Window = Color3.fromRGB(28,28,38),
+    Title = Color3.fromRGB(38,38,50),
+    Sidebar = Color3.fromRGB(34,34,46),
+    Content = Color3.fromRGB(30,30,40),
+    Button = Color3.fromRGB(55,55,75),
+    Accent = Color3.fromRGB(160,120,255),
+    Text = Color3.fromRGB(230,230,255),
+    Error = Color3.fromRGB(255,80,80)
 }
 
 -- ===============================
--- ROOT GUI
+-- ROOT
 -- ===============================
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SimpleGUI"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ResetOnSpawn = false
+local GUI = Instance.new("ScreenGui")
+GUI.Name="SimpleGUI"
+GUI.Parent=game.CoreGui
+GUI.ResetOnSpawn=false
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.fromOffset(640,420)
-MainFrame.Position = UDim2.new(0.5,-320,0.5,-210)
-MainFrame.BackgroundColor3 = theme.Main
-MainFrame.Parent = ScreenGui
-Instance.new("UICorner",MainFrame).CornerRadius = UDim.new(0,12)
+local Main = Instance.new("Frame")
+Main.Size=UDim2.fromOffset(700,420)
+Main.Position=UDim2.new(0.5,-350,0.5,-210)
+Main.BackgroundColor3=theme.Window
+Main.Parent=GUI
+Instance.new("UICorner",Main).CornerRadius=UDim.new(0,12)
 
--- drag system
-do
-    local dragging, dragStart, startPos
+-- ===============================
+-- TITLE BAR
+-- ===============================
 
-    MainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = MainFrame.Position
-        end
-    end)
+local TitleBar=Instance.new("Frame")
+TitleBar.Size=UDim2.new(1,0,0,42)
+TitleBar.BackgroundColor3=theme.Title
+TitleBar.Parent=Main
+Instance.new("UICorner",TitleBar).CornerRadius=UDim.new(0,12)
 
-    UIS.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
+local Title=Instance.new("TextLabel")
+Title.Size=UDim2.new(1,-120,1,0)
+Title.Position=UDim2.fromOffset(14,0)
+Title.Text="SimpleGUI v7"
+Title.TextColor3=theme.Text
+Title.Font=Enum.Font.GothamBold
+Title.TextSize=16
+Title.BackgroundTransparency=1
+Title.TextXAlignment=Enum.TextXAlignment.Left
+Title.Parent=TitleBar
 
-    UIS.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
+-- control buttons
+local function makeBtn(text,color,x)
+    local b=Instance.new("TextButton")
+    b.Size=UDim2.fromOffset(28,28)
+    b.Position=UDim2.new(1,x,0.5,-14)
+    b.Text=text
+    b.TextColor3=color
+    b.BackgroundColor3=theme.Button
+    b.Parent=TitleBar
+    Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
+    return b
 end
 
--- title
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1,0,0,40)
-Title.Text = "SimpleGUI v7"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
-Title.TextColor3 = theme.Text
-Title.BackgroundTransparency = 1
-Title.Parent = MainFrame
-
--- sidebar
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0,160,1,-40)
-Sidebar.Position = UDim2.new(0,0,0,40)
-Sidebar.BackgroundColor3 = theme.Secondary
-Sidebar.Parent = MainFrame
-Instance.new("UICorner",Sidebar).CornerRadius = UDim.new(0,10)
-
-local SideLayout = Instance.new("UIListLayout")
-SideLayout.Padding = UDim.new(0,6)
-SideLayout.Parent = Sidebar
-
--- content container
-local ContentContainer = Instance.new("Frame")
-ContentContainer.Size = UDim2.new(1,-170,1,-50)
-ContentContainer.Position = UDim2.new(0,165,0,45)
-ContentContainer.BackgroundTransparency = 1
-ContentContainer.Parent = MainFrame
+local MinBtn=makeBtn("_",theme.Text,-70)
+local CloseBtn=makeBtn("✕",theme.Error,-36)
 
 -- ===============================
--- TAB SYSTEM
+-- SIDEBAR
 -- ===============================
 
-local Tabs = {}
+local Sidebar=Instance.new("Frame")
+Sidebar.Size=UDim2.new(0,180,1,-42)
+Sidebar.Position=UDim2.new(0,0,0,42)
+Sidebar.BackgroundColor3=theme.Sidebar
+Sidebar.Parent=Main
 
-local function CreateTab(name)
-    local TabButton = Instance.new("TextButton")
-    TabButton.Size = UDim2.new(1,0,0,40)
-    TabButton.Text = name
-    TabButton.BackgroundColor3 = theme.Button
-    TabButton.TextColor3 = theme.Text
-    TabButton.Parent = Sidebar
-    Instance.new("UICorner",TabButton).CornerRadius = UDim.new(0,8)
+local SideLayout=Instance.new("UIListLayout")
+SideLayout.Padding=UDim.new(0,6)
+SideLayout.Parent=Sidebar
 
-    local Indicator = Instance.new("Frame")
-    Indicator.Size = UDim2.new(0,4,1,0)
-    Indicator.BackgroundColor3 = theme.Accent
-    Indicator.Visible = false
-    Indicator.Parent = TabButton
+local SidePad=Instance.new("UIPadding")
+SidePad.PaddingTop=UDim.new(0,10)
+SidePad.PaddingLeft=UDim.new(0,10)
+SidePad.PaddingRight=UDim.new(0,10)
+SidePad.Parent=Sidebar
 
-    local TabContent = Instance.new("Frame")
-    TabContent.Size = UDim2.new(1,0,1,0)
-    TabContent.BackgroundTransparency = 1
-    TabContent.Visible = false
-    TabContent.Parent = ContentContainer
+-- ===============================
+-- CONTENT
+-- ===============================
 
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0,8)
-    layout.Parent = TabContent
+local Content=Instance.new("Frame")
+Content.Size=UDim2.new(1,-180,1,-42)
+Content.Position=UDim2.new(0,180,0,42)
+Content.BackgroundColor3=theme.Content
+Content.Parent=Main
 
-    local tab = {}
-    tab.Content = TabContent
+local ContentLayout=Instance.new("UIListLayout")
+ContentLayout.Padding=UDim.new(0,8)
+ContentLayout.Parent=Content
 
-    table.insert(Tabs,{
-        Button = TabButton,
-        Content = TabContent,
-        Indicator = Indicator
-    })
+local ContentPad=Instance.new("UIPadding")
+ContentPad.PaddingTop=UDim.new(0,12)
+ContentPad.PaddingLeft=UDim.new(0,12)
+ContentPad.Parent=Content
 
-    TabButton.MouseButton1Click:Connect(function()
+-- ===============================
+-- TAB SYSTEM (FIXED)
+-- ===============================
+
+local Tabs={}
+
+function CreateTab(name)
+    local Button=Instance.new("TextButton")
+    Button.Size=UDim2.new(1,0,0,36)
+    Button.Text="  "..name
+    Button.TextColor3=theme.Text
+    Button.BackgroundColor3=theme.Button
+    Button.Parent=Sidebar
+    Instance.new("UICorner",Button).CornerRadius=UDim.new(0,8)
+
+    local Page=Instance.new("Frame")
+    Page.Size=UDim2.new(1,0,1,0)
+    Page.BackgroundTransparency=1
+    Page.Visible=false
+    Page.Parent=Content
+
+    local layout=Instance.new("UIListLayout")
+    layout.Padding=UDim.new(0,8)
+    layout.Parent=Page
+
+    Tabs[#Tabs+1]={Button=Button,Page=Page}
+
+    Button.MouseButton1Click:Connect(function()
         for _,t in pairs(Tabs) do
-            t.Content.Visible = false
-            t.Indicator.Visible = false
-            t.Button.BackgroundColor3 = theme.Button
+            t.Page.Visible=false
+            t.Button.BackgroundColor3=theme.Button
         end
-
-        TabContent.Visible = true
-        Indicator.Visible = true
-        TabButton.BackgroundColor3 = theme.ButtonHover
+        Page.Visible=true
+        Button.BackgroundColor3=theme.Accent
     end)
 
-    if #Tabs == 1 then
-        TabContent.Visible = true
-        Indicator.Visible = true
+    if #Tabs==1 then
+        Page.Visible=true
+        Button.BackgroundColor3=theme.Accent
     end
 
-    -- ===========================
-    -- ELEMENTS
-    -- ===========================
-
-    function tab:Section(text)
-        local Label = Instance.new("TextLabel")
-        Label.Size = UDim2.new(0.9,0,0,24)
-        Label.Text = text
-        Label.Font = Enum.Font.GothamBold
-        Label.TextColor3 = theme.Accent
-        Label.BackgroundTransparency = 1
-        Label.Parent = TabContent
-    end
+    local tab={}
 
     function tab:Button(text,callback)
-        local Button = Instance.new("TextButton")
-        Button.Size = UDim2.new(0.9,0,0,36)
-        Button.Text = text
-        Button.BackgroundColor3 = theme.Button
-        Button.TextColor3 = theme.Text
-        Button.Parent = TabContent
-        Instance.new("UICorner",Button).CornerRadius = UDim.new(0,8)
-
-        Button.MouseButton1Click:Connect(function()
+        local b=Instance.new("TextButton")
+        b.Size=UDim2.new(0.9,0,0,36)
+        b.Text=text
+        b.TextColor3=theme.Text
+        b.BackgroundColor3=theme.Button
+        b.Parent=Page
+        Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
+        b.MouseButton1Click:Connect(function()
             if callback then callback() end
-        end)
-
-        Button.MouseEnter:Connect(function()
-            tween(Button,{BackgroundColor3 = theme.ButtonHover})
-        end)
-
-        Button.MouseLeave:Connect(function()
-            tween(Button,{BackgroundColor3 = theme.Button})
         end)
     end
 
     function tab:Toggle(text,callback)
-        local Frame = Instance.new("Frame")
-        Frame.Size = UDim2.new(0.9,0,0,36)
-        Frame.BackgroundColor3 = theme.Button
-        Frame.Parent = TabContent
-        Instance.new("UICorner",Frame).CornerRadius = UDim.new(0,8)
-
-        local Label = Instance.new("TextLabel")
-        Label.Size = UDim2.new(1,-50,1,0)
-        Label.Text = text
-        Label.TextColor3 = theme.Text
-        Label.BackgroundTransparency = 1
-        Label.Parent = Frame
-
-        local Toggle = Instance.new("TextButton")
-        Toggle.Size = UDim2.new(0,40,0,20)
-        Toggle.Position = UDim2.new(1,-45,0.5,-10)
-        Toggle.BackgroundColor3 = Color3.fromRGB(90,90,120)
-        Toggle.Text = ""
-        Toggle.Parent = Frame
-        Instance.new("UICorner",Toggle).CornerRadius = UDim.new(1,0)
-
-        local Dot = Instance.new("Frame")
-        Dot.Size = UDim2.new(0,16,0,16)
-        Dot.Position = UDim2.new(0,2,0.5,-8)
-        Dot.BackgroundColor3 = Color3.new(1,1,1)
-        Dot.Parent = Toggle
-        Instance.new("UICorner",Dot).CornerRadius = UDim.new(1,0)
-
         local state=false
+        local b=Instance.new("TextButton")
+        b.Size=UDim2.new(0.9,0,0,36)
+        b.Text=text.." : OFF"
+        b.TextColor3=theme.Text
+        b.BackgroundColor3=theme.Button
+        b.Parent=Page
+        Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
 
-        Toggle.MouseButton1Click:Connect(function()
+        b.MouseButton1Click:Connect(function()
             state=not state
-            tween(Dot,{
-                Position = state and UDim2.new(1,-18,0.5,-8)
-                                 or UDim2.new(0,2,0.5,-8)
-            })
-            Toggle.BackgroundColor3 = state and theme.Accent
-                                               or Color3.fromRGB(90,90,120)
+            b.Text=text.." : "..(state and "ON" or "OFF")
             if callback then callback(state) end
-        end)
-    end
-
-    function tab:Dropdown(text,list,callback)
-        local Frame = Instance.new("Frame")
-        Frame.Size = UDim2.new(0.9,0,0,36)
-        Frame.BackgroundColor3 = theme.Button
-        Frame.Parent = TabContent
-        Instance.new("UICorner",Frame).CornerRadius = UDim.new(0,8)
-
-        local Button = Instance.new("TextButton")
-        Button.Size = UDim2.new(1,0,1,0)
-        Button.Text = text
-        Button.TextColor3 = theme.Text
-        Button.BackgroundTransparency = 1
-        Button.Parent = Frame
-
-        local Drop = Instance.new("Frame")
-        Drop.Size = UDim2.new(1,0,0,#list*28)
-        Drop.Position = UDim2.new(0,0,1,4)
-        Drop.Visible = false
-        Drop.BackgroundColor3 = theme.Secondary
-        Drop.Parent = Frame
-        Instance.new("UICorner",Drop).CornerRadius = UDim.new(0,8)
-
-        for _,v in ipairs(list) do
-            local opt = Instance.new("TextButton")
-            opt.Size = UDim2.new(1,0,0,28)
-            opt.Text = v
-            opt.BackgroundTransparency = 1
-            opt.TextColor3 = theme.Text
-            opt.Parent = Drop
-
-            opt.MouseButton1Click:Connect(function()
-                Button.Text = v
-                Drop.Visible = false
-                if callback then callback(v) end
-            end)
-        end
-
-        Button.MouseButton1Click:Connect(function()
-            Drop.Visible = not Drop.Visible
         end)
     end
 
@@ -290,37 +196,55 @@ local function CreateTab(name)
 end
 
 -- ===============================
--- NOTIFICATION
+-- WINDOW CONTROL
 -- ===============================
 
-local function Notify(text)
-    local Notif = Instance.new("Frame")
-    Notif.Size = UDim2.fromOffset(260,50)
-    Notif.Position = UDim2.new(1,20,1,-70)
-    Notif.BackgroundColor3 = theme.Secondary
-    Notif.Parent = MainFrame
-    Instance.new("UICorner",Notif).CornerRadius = UDim.new(0,10)
+CloseBtn.MouseButton1Click:Connect(function()
+    Main:Destroy()
+end)
 
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1,-20,1,0)
-    Label.Position = UDim2.fromOffset(10,0)
-    Label.Text = text
-    Label.TextColor3 = theme.Text
-    Label.BackgroundTransparency = 1
-    Label.Parent = Notif
-
-    tween(Notif,{Position=UDim2.new(1,-280,1,-70)},0.25)
-    task.wait(3)
-    tween(Notif,{Position=UDim2.new(1,20,1,-70)},0.25)
-    task.wait(0.25)
-    Notif:Destroy()
-end
+local minimized=false
+MinBtn.MouseButton1Click:Connect(function()
+    minimized=not minimized
+    Sidebar.Visible=not minimized
+    Content.Visible=not minimized
+    Main.Size=minimized and UDim2.fromOffset(240,42)
+                        or UDim2.fromOffset(700,420)
+end)
 
 -- ===============================
--- EXPORT GLOBAL
+-- DRAG SYSTEM
 -- ===============================
 
-getgenv().SimpleGUI = {
-    CreateTab = CreateTab,
-    Notify = Notify
+local drag=false
+local start,origin
+
+TitleBar.InputBegan:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then
+        drag=true
+        start=i.Position
+        origin=Main.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(i)
+    if drag and i.UserInputType==Enum.UserInputType.MouseMovement then
+        local d=i.Position-start
+        Main.Position=UDim2.new(origin.X.Scale,origin.X.Offset+d.X,
+                                origin.Y.Scale,origin.Y.Offset+d.Y)
+    end
+end)
+
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then
+        drag=false
+    end
+end)
+
+-- ===============================
+-- EXPORT
+-- ===============================
+
+getgenv().SimpleGUI={
+    CreateTab=CreateTab
 }
