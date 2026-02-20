@@ -113,17 +113,17 @@ function SimpleGUI:CreateWindow(options)
     
     local windowData = {
         Name = opts.Name or "Window",
-        Size = opts.Size or UDim2.new(0, 700 * scale, 0, 420 * scale), -- v7 height
-        Position = opts.Position or UDim2.new(0.5, -350 * scale, 0.5, -210 * scale), -- v7 position
+        Size = opts.Size or UDim2.new(0, 700 * scale, 0, 420 * scale),
+        Position = opts.Position or UDim2.new(0.5, -350 * scale, 0.5, -210 * scale),
         ShowThemeTab = opts.ShowThemeTab or false,
         IsMobile = isMobile,
         Scale = scale,
-        SidebarWidth = 180 * scale -- v7 sidebar width
+        SidebarWidth = 180 * scale
     }
     
     local theme = self:GetTheme()
     
-    -- ===== MAIN WINDOW FRAME ===== (v7 style)
+    -- ===== MAIN WINDOW FRAME =====
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = windowData.Name .. "_Window"
     MainFrame.Size = windowData.Size
@@ -140,10 +140,10 @@ function SimpleGUI:CreateWindow(options)
     WindowCorner.CornerRadius = UDim.new(0, 12 * scale)
     WindowCorner.Parent = MainFrame
     
-    -- ===== TITLE BAR ===== (v7 style)
+    -- ===== TITLE BAR =====
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
-    TitleBar.Size = UDim2.new(1, 0, 0, 42 * scale) -- v7 height
+    TitleBar.Size = UDim2.new(1, 0, 0, 42 * scale)
     TitleBar.BackgroundColor3 = theme.TitleBar
     TitleBar.BorderSizePixel = 0
     TitleBar.Parent = MainFrame
@@ -165,27 +165,60 @@ function SimpleGUI:CreateWindow(options)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent = TitleBar
     
-    -- Helper function for buttons (v7 style)
-    local function makeBtn(text, color, x)
-        local b = Instance.new("TextButton")
-        b.Size = UDim2.fromOffset(28 * scale, 28 * scale)
-        b.Position = UDim2.new(1, x * scale, 0.5, -14 * scale)
-        b.Text = text
-        b.TextColor3 = color
-        b.BackgroundColor3 = theme.Button
-        b.Parent = TitleBar
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6 * scale)
-        return b
-    end
-    
-    -- Control Buttons (v7 style)
-    local ThemeButton = makeBtn("🎨", theme.Text, -70)
+    -- Control Buttons
+    -- Theme Button
+    local ThemeButton = Instance.new("TextButton")
+    ThemeButton.Name = "ThemeButton"
+    ThemeButton.Size = UDim2.fromOffset(28 * scale, 28 * scale)
+    ThemeButton.Position = UDim2.new(1, -70 * scale, 0.5, -14 * scale)
+    ThemeButton.Text = "🎨"
+    ThemeButton.TextColor3 = theme.Text
+    ThemeButton.BackgroundColor3 = theme.Button
+    ThemeButton.BackgroundTransparency = 0
+    ThemeButton.TextSize = 14 * scale
+    ThemeButton.Font = Enum.Font.SourceSans
     ThemeButton.Visible = windowData.ShowThemeTab
-    local MinimizeButton = makeBtn("_", theme.Text, -36)
-    local CloseButton = makeBtn("✕", theme.Error, 0)
-    CloseButton.Position = UDim2.new(1, -28 * scale, 0.5, -14 * scale)
+    ThemeButton.Parent = TitleBar
     
-    -- ===== SIDEBAR (LEFT) ===== (v7 style)
+    local ThemeButtonCorner = Instance.new("UICorner")
+    ThemeButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
+    ThemeButtonCorner.Parent = ThemeButton
+    
+    -- Minimize Button
+    local MinimizeButton = Instance.new("TextButton")
+    MinimizeButton.Name = "MinimizeButton"
+    MinimizeButton.Size = UDim2.fromOffset(28 * scale, 28 * scale)
+    MinimizeButton.Position = UDim2.new(1, -36 * scale, 0.5, -14 * scale)
+    MinimizeButton.Text = "_"
+    MinimizeButton.TextColor3 = theme.Text
+    MinimizeButton.BackgroundColor3 = theme.Button
+    MinimizeButton.BackgroundTransparency = 0
+    MinimizeButton.TextSize = 18 * scale
+    MinimizeButton.Font = Enum.Font.SourceSansBold
+    MinimizeButton.Parent = TitleBar
+    
+    local MinimizeButtonCorner = Instance.new("UICorner")
+    MinimizeButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
+    MinimizeButtonCorner.Parent = MinimizeButton
+    
+    -- Close Button
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Size = UDim2.fromOffset(28 * scale, 28 * scale)
+    CloseButton.Position = UDim2.new(1, 0, 0.5, -14 * scale)  -- Paling kanan
+    CloseButton.Text = "✕"
+    CloseButton.TextColor3 = theme.Error
+    CloseButton.BackgroundColor3 = theme.Button
+    CloseButton.BackgroundTransparency = 0
+    CloseButton.TextSize = 16 * scale
+    CloseButton.Font = Enum.Font.SourceSans
+    CloseButton.Parent = TitleBar
+    
+    local CloseButtonCorner = Instance.new("UICorner")
+    CloseButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
+    CloseButtonCorner.Parent = CloseButton
+    
+    -- ===== SIDEBAR (LEFT) =====
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, windowData.SidebarWidth, 1, -42 * scale)
@@ -194,7 +227,7 @@ function SimpleGUI:CreateWindow(options)
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = MainFrame
     
-    -- Sidebar layout (v7 style)
+    -- Sidebar layout
     local SidebarLayout = Instance.new("UIListLayout")
     SidebarLayout.Padding = UDim.new(0, 6 * scale)
     SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -207,7 +240,7 @@ function SimpleGUI:CreateWindow(options)
     SidebarPadding.PaddingRight = UDim.new(0, 10 * scale)
     SidebarPadding.Parent = Sidebar
     
-    -- ===== CONTENT FRAME (RIGHT) ===== (v7 style)
+    -- ===== CONTENT FRAME (RIGHT) =====
     local ContentFrame = Instance.new("ScrollingFrame")
     ContentFrame.Name = "ContentFrame"
     ContentFrame.Size = UDim2.new(1, -windowData.SidebarWidth, 1, -42 * scale)
@@ -223,7 +256,7 @@ function SimpleGUI:CreateWindow(options)
     
     -- Content layout
     local ContentList = Instance.new("UIListLayout")
-    ContentList.Padding = UDim.new(0, 8 * scale) -- v7 padding
+    ContentList.Padding = UDim.new(0, 8 * scale)
     ContentList.HorizontalAlignment = Enum.HorizontalAlignment.Center
     ContentList.SortOrder = Enum.SortOrder.LayoutOrder
     ContentList.Parent = ContentFrame
@@ -291,16 +324,16 @@ function SimpleGUI:CreateWindow(options)
     
     self.Windows[windowData.Name] = windowObj
     
-    -- ===== TAB CREATION ===== (using v7 style)
+    -- ===== TAB CREATION =====
     function windowObj:CreateTab(options)
         local tabOptions = type(options) == "string" and {Name = options} or (options or {})
         local tabName = tabOptions.Name or "Tab_" .. (#self.Tabs + 1)
         local scale = self.WindowData.Scale
         
-        -- Tab Button (v7 style)
+        -- Tab Button
         local TabButton = Instance.new("TextButton")
         TabButton.Name = tabName .. "_Button"
-        TabButton.Size = UDim2.new(1, 0, 0, 36 * scale) -- v7 height
+        TabButton.Size = UDim2.new(1, 0, 0, 36 * scale)
         TabButton.Text = "  " .. tabName
         TabButton.TextColor3 = theme.Text
         TabButton.BackgroundColor3 = theme.TabNormal
@@ -325,7 +358,7 @@ function SimpleGUI:CreateWindow(options)
         TabContent.Parent = self.ContentFrame
         
         local TabLayout = Instance.new("UIListLayout")
-        TabLayout.Padding = UDim.new(0, 8 * scale) -- v7 padding
+        TabLayout.Padding = UDim.new(0, 8 * scale)
         TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
         TabLayout.Parent = TabContent
@@ -366,7 +399,7 @@ function SimpleGUI:CreateWindow(options)
         setupButtonHover(MinimizeButton)
         setupButtonHover(CloseButton)
         
-        -- ===== TAB BUILDER METHODS (from v6.3) =====
+        -- ===== TAB BUILDER METHODS =====
         local tabObj = {
             Button = TabButton,
             Content = TabContent,
@@ -389,7 +422,7 @@ function SimpleGUI:CreateWindow(options)
                 
                 local Button = Instance.new("TextButton")
                 Button.Name = opts.Name or "Button_" .. #self.Elements + 1
-                Button.Size = UDim2.new(0.9, 0, 0, 36 * scale) -- v7 height
+                Button.Size = UDim2.new(0.9, 0, 0, 36 * scale)
                 Button.Text = opts.Text or Button.Name
                 Button.TextColor3 = theme.Text
                 Button.BackgroundColor3 = theme.Button
@@ -494,12 +527,12 @@ function SimpleGUI:CreateWindow(options)
                 
                 local ToggleFrame = Instance.new("Frame")
                 ToggleFrame.Name = opts.Name or "Toggle_" .. #self.Elements + 1
-                ToggleFrame.Size = UDim2.new(0.9, 0, 0, 36 * scale) -- v7 height
+                ToggleFrame.Size = UDim2.new(0.9, 0, 0, 36 * scale)
                 ToggleFrame.BackgroundTransparency = 1
                 ToggleFrame.LayoutOrder = #self.Elements + 1
                 ToggleFrame.Parent = TabContent
                 
-                -- Toggle button (v7 style - simple text button)
+                -- Toggle button (simple text button)
                 local ToggleButton = Instance.new("TextButton")
                 ToggleButton.Name = "ToggleButton"
                 ToggleButton.Size = UDim2.new(1, 0, 1, 0)
@@ -555,7 +588,7 @@ function SimpleGUI:CreateWindow(options)
                 
                 local SliderFrame = Instance.new("Frame")
                 SliderFrame.Name = opts.Name or "Slider_" .. #self.Elements + 1
-                SliderFrame.Size = UDim2.new(0.9, 0, 0, 36 * scale) -- v7 height
+                SliderFrame.Size = UDim2.new(0.9, 0, 0, 36 * scale)
                 SliderFrame.BackgroundTransparency = 1
                 SliderFrame.LayoutOrder = #self.Elements + 1
                 SliderFrame.Parent = TabContent
@@ -621,7 +654,7 @@ function SimpleGUI:CreateWindow(options)
         return tabObj
     end
     
-    -- ===== MINIMIZE FUNCTIONALITY (v7 style) =====
+    -- ===== MINIMIZE FUNCTIONALITY =====
     local isMinimized = false
     MinimizeButton.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
@@ -649,7 +682,7 @@ function SimpleGUI:CreateWindow(options)
             -- Restore button positions
             ThemeButton.Position = UDim2.new(1, -70 * scale, 0.5, -14 * scale)
             MinimizeButton.Position = UDim2.new(1, -36 * scale, 0.5, -14 * scale)
-            CloseButton.Position = UDim2.new(1, -28 * scale, 0.5, -14 * scale)
+            CloseButton.Position = UDim2.new(1, 0, 0.5, -14 * scale)
             
             MinimizeButton.Text = "_"
         end
@@ -660,7 +693,7 @@ function SimpleGUI:CreateWindow(options)
         MainFrame:Destroy()
     end)
     
-    -- Dragging (v7 style)
+    -- Dragging
     local dragging = false
     local dragStart, startPos
     
