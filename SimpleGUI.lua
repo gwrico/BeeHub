@@ -293,7 +293,7 @@ function SimpleGUI:CreateWindow(options)
     ThemeButton.BackgroundTransparency = 0
     ThemeButton.TextSize = 16 * scale
     ThemeButton.Font = Enum.Font.Gotham
-    ThemeButton.Visible = windowData.ShowThemeTab
+    ThemeButton.Visible = false  -- Default disembunyikan, bisa diaktifkan lewat opsi
     ThemeButton.Parent = TitleBar
     
     local ThemeButtonCorner = Instance.new("UICorner")
