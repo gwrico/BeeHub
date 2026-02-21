@@ -1,7 +1,7 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v7.0 - PROFESSIONAL EDITION
+-- 🎨 SIMPLEGUI v7.1 - PROFESSIONAL EDITION (FIXED SCROLL)
 -- ==============================================
-print("🔧 Loading SimpleGUI v7.0 - Professional Edition...")
+print("🔧 Loading SimpleGUI v7.1 - Professional Edition with Scroll Fix...")
 
 local SimpleGUI = {}
 SimpleGUI.__index = SimpleGUI
@@ -109,7 +109,7 @@ SimpleGUI.Themes = {
 }
 
 function SimpleGUI.new()
-    print("🚀 Initializing SimpleGUI v7.0...")
+    print("🚀 Initializing SimpleGUI v7.1...")
     
     local self = setmetatable({}, SimpleGUI)
     
@@ -134,7 +134,7 @@ function SimpleGUI.new()
     self.CurrentTheme = "DARK"
     self.MinimizedIcons = {}
     
-    print("✅ SimpleGUI v7.0 initialized!")
+    print("✅ SimpleGUI v7.1 initialized!")
     return self
 end
 
@@ -334,26 +334,33 @@ function SimpleGUI:CreateWindow(options)
     CloseButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
     CloseButtonCorner.Parent = CloseButton
     
-    -- ===== SIDEBAR (LEFT) dengan desain lebih modern =====
-    local Sidebar = Instance.new("Frame")
+    -- ===== SIDEBAR (LEFT) - SEKARANG MENGGUNAKAN SCROLLINGFRAME =====
+    local Sidebar = Instance.new("ScrollingFrame")  -- Diubah dari Frame ke ScrollingFrame
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, windowData.SidebarWidth, 1, -44 * scale)
     Sidebar.Position = UDim2.new(0, 0, 0, 44 * scale)
     Sidebar.BackgroundColor3 = theme.Sidebar
+    Sidebar.BackgroundTransparency = 0
     Sidebar.BorderSizePixel = 0
+    Sidebar.ClipsDescendants = true
+    Sidebar.ScrollBarThickness = 4 * scale  -- Scrollbar tipis
+    Sidebar.ScrollBarImageColor3 = theme.Accent  -- Warna scrollbar sesuai tema
+    Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y  -- Auto adjust canvas size
+    Sidebar.ScrollingDirection = Enum.ScrollingDirection.Y  -- Scroll vertical saja
+    Sidebar.ElasticBehavior = Enum.ElasticBehavior.Always  -- Elastic effect saat scroll
     Sidebar.Parent = MainFrame
     
-    -- Sidebar Header dengan separator
+    -- Sidebar Header (tidak ikut scroll)
     local SidebarHeader = Instance.new("Frame")
     SidebarHeader.Name = "SidebarHeader"
-    SidebarHeader.Size = UDim2.new(1, -20, 0, 30 * scale)
-    SidebarHeader.Position = UDim2.new(0, 10, 0, 5)
+    SidebarHeader.Size = UDim2.new(1, 0, 0, 30 * scale)
     SidebarHeader.BackgroundTransparency = 1
     SidebarHeader.Parent = Sidebar
     
     local HeaderLabel = Instance.new("TextLabel")
     HeaderLabel.Name = "HeaderLabel"
-    HeaderLabel.Size = UDim2.new(1, 0, 1, 0)
+    HeaderLabel.Size = UDim2.new(1, -20, 1, 0)
+    HeaderLabel.Position = UDim2.new(0, 10, 0, 5)
     HeaderLabel.Text = "MENU"
     HeaderLabel.TextColor3 = theme.TextSecondary
     HeaderLabel.BackgroundTransparency = 1
@@ -361,6 +368,36 @@ function SimpleGUI:CreateWindow(options)
     HeaderLabel.Font = Enum.Font.GothamBold
     HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
     HeaderLabel.Parent = SidebarHeader
+    
+    -- ===== LAYOUT UNTUK SIDEBAR =====
+    -- Container untuk tab buttons (biar bisa discroll)
+    local SidebarContainer = Instance.new("Frame")
+    SidebarContainer.Name = "SidebarContainer"
+    SidebarContainer.Size = UDim2.new(1, 0, 0, 0)
+    SidebarContainer.BackgroundTransparency = 1
+    SidebarContainer.Parent = Sidebar
+    
+    -- Layout untuk tab buttons
+    local SidebarLayout = Instance.new("UIListLayout")
+    SidebarLayout.Padding = UDim.new(0, 6 * scale)
+    SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    SidebarLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Parent = SidebarContainer
+    
+    -- Padding untuk container (YANG DIPERBAIKI)
+    local SidebarPadding = Instance.new("UIPadding")
+    SidebarPadding.PaddingTop = UDim.new(0, 40 * scale)  -- Di bawah header
+    SidebarPadding.PaddingLeft = UDim.new(0, 10 * scale)
+    SidebarPadding.PaddingRight = UDim.new(0, 10 * scale)  -- ✅ FIXED: scroll.scale -> scale
+    SidebarPadding.PaddingBottom = UDim.new(0, 10 * scale)
+    SidebarPadding.Parent = SidebarContainer
+    
+    -- Update canvas size otomatis
+    SidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        SidebarContainer.Size = UDim2.new(1, 0, 0, SidebarLayout.AbsoluteContentSize.Y + 50 * scale)
+        Sidebar.CanvasSize = UDim2.new(0, 0, 0, SidebarLayout.AbsoluteContentSize.Y + 50 * scale)
+    end)
     
     -- ===== CONTENT FRAME (RIGHT) =====
     local ContentFrame = Instance.new("ScrollingFrame")
@@ -381,34 +418,32 @@ function SimpleGUI:CreateWindow(options)
     ContentCorner.CornerRadius = UDim.new(0, 16 * scale)
     ContentCorner.Parent = ContentFrame
     
-    -- ===== LAYOUTS dengan spacing yang lebih baik =====
-    -- Sidebar layout
-    local SidebarLayout = Instance.new("UIListLayout")
-    SidebarLayout.Padding = UDim.new(0, 6 * scale)
-    SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    SidebarLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SidebarLayout.Parent = Sidebar
-    
-    local SidebarPadding = Instance.new("UIPadding")
-    SidebarPadding.PaddingTop = UDim.new(0, 40 * scale)  -- Di bawah header
-    SidebarPadding.PaddingLeft = UDim.new(0, 10 * scale)
-    SidebarPadding.PaddingRight = UDim.new(0, 10 * scale)
-    SidebarPadding.Parent = Sidebar
+    -- Content Container
+    local ContentContainer = Instance.new("Frame")
+    ContentContainer.Name = "ContentContainer"
+    ContentContainer.Size = UDim2.new(1, 0, 0, 0)
+    ContentContainer.BackgroundTransparency = 1
+    ContentContainer.Parent = ContentFrame
     
     -- Content layout
     local ContentList = Instance.new("UIListLayout")
     ContentList.Padding = UDim.new(0, 15 * scale)
     ContentList.HorizontalAlignment = Enum.HorizontalAlignment.Center
     ContentList.SortOrder = Enum.SortOrder.LayoutOrder
-    ContentList.Parent = ContentFrame
+    ContentList.Parent = ContentContainer
     
     local ContentPadding = Instance.new("UIPadding")
     ContentPadding.PaddingLeft = UDim.new(0, 18 * scale)
     ContentPadding.PaddingRight = UDim.new(0, 18 * scale)
     ContentPadding.PaddingTop = UDim.new(0, 18 * scale)
     ContentPadding.PaddingBottom = UDim.new(0, 18 * scale)
-    ContentPadding.Parent = ContentFrame
+    ContentPadding.Parent = ContentContainer
+    
+    -- Update canvas size untuk content
+    ContentList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ContentContainer.Size = UDim2.new(1, 0, 0, ContentList.AbsoluteContentSize.Y + 36 * scale)
+        ContentFrame.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 36 * scale)
+    end)
     
     -- ===== WINDOW OBJECT =====
     local windowObj = {
@@ -431,6 +466,7 @@ function SimpleGUI:CreateWindow(options)
             TitleIcon.TextColor3 = theme.Accent
             TitleIcon.BackgroundColor3 = theme.Accent
             Sidebar.BackgroundColor3 = theme.Sidebar
+            Sidebar.ScrollBarImageColor3 = theme.Accent
             HeaderLabel.TextColor3 = theme.TextSecondary
             ContentFrame.BackgroundColor3 = theme.ContentBg
             ContentFrame.ScrollBarImageColor3 = theme.Accent
@@ -477,7 +513,7 @@ function SimpleGUI:CreateWindow(options)
         local icon = tabOptions.Icon or ""
         local scale = self.WindowData.Scale
         
-        -- Tab Button dengan ikon
+        -- Tab Button (di dalam SidebarContainer)
         local TabButton = Instance.new("TextButton")
         TabButton.Name = tabName .. "_Button"
         TabButton.Size = UDim2.new(1, -20 * scale, 0, 44 * scale)
@@ -490,25 +526,30 @@ function SimpleGUI:CreateWindow(options)
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.AutoButtonColor = false
         TabButton.LayoutOrder = #self.Tabs + 1
-        TabButton.Parent = self.Sidebar
+        TabButton.Parent = SidebarContainer  -- Parent ke SidebarContainer bukan Sidebar langsung
         
         local TabButtonCorner = Instance.new("UICorner")
         TabButtonCorner.CornerRadius = UDim.new(0, 10 * scale)
         TabButtonCorner.Parent = TabButton
         
-        -- Tab Content
+        -- Tab Content (di dalam ContentContainer)
         local TabContent = Instance.new("Frame")
         TabContent.Name = tabName .. "_Content"
-        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.Size = UDim2.new(1, 0, 0, 0)
         TabContent.BackgroundTransparency = 1
         TabContent.Visible = false
-        TabContent.Parent = self.ContentFrame
+        TabContent.Parent = ContentContainer
         
         local TabLayout = Instance.new("UIListLayout")
         TabLayout.Padding = UDim.new(0, 15 * scale)
         TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
         TabLayout.Parent = TabContent
+        
+        -- Update ukuran TabContent berdasarkan isinya
+        TabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            TabContent.Size = UDim2.new(1, 0, 0, TabLayout.AbsoluteContentSize.Y)
+        end)
         
         -- Tab click handler dengan animasi
         TabButton.MouseButton1Click:Connect(function()
@@ -936,7 +977,7 @@ function SimpleGUI:CreateWindow(options)
         return tabObj
     end
     
-    -- ===== MINIMIZE FUNCTIONALITY - MENJADI LOGO B =====
+    -- ===== MINIMIZE FUNCTIONALITY =====
     local originalSize = windowData.Size
     local originalCornerRadius = WindowCorner.CornerRadius
     local isMinimized = false
@@ -945,7 +986,7 @@ function SimpleGUI:CreateWindow(options)
     local MinimizedIcon = Instance.new("TextButton")
     MinimizedIcon.Name = "MinimizedIcon_" .. windowData.Name
     MinimizedIcon.Size = UDim2.new(0, 40 * scale, 0, 40 * scale)
-    MinimizedIcon.Position = UDim2.new(0, 20, 0, 20)  -- Posisi default, bisa diubah nanti
+    MinimizedIcon.Position = UDim2.new(0, 20, 0, 20)
     MinimizedIcon.Text = windowData.Logo
     MinimizedIcon.TextColor3 = theme.Text
     MinimizedIcon.BackgroundColor3 = theme.Accent
@@ -990,7 +1031,6 @@ function SimpleGUI:CreateWindow(options)
         if minimize then
             -- Simpan posisi window sebelum minimize
             local windowPos = MainFrame.Position
-            local windowSize = MainFrame.AbsoluteSize
             
             -- Animasi minimize
             tween(MainFrame, {
@@ -1131,5 +1171,5 @@ function SimpleGUI:CreateWindow(options)
     return windowObj
 end
 
-print("🎉 SimpleGUI v7.0 - Professional Edition loaded!")
+print("🎉 SimpleGUI v7.1 - Professional Edition loaded!")
 return SimpleGUI
