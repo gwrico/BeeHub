@@ -1,7 +1,7 @@
 -- ==============================================
 -- 🎨 SIMPLEGUI v7.1 - BEEHUB FULL EDITION
 -- ==============================================
-print("🔧 Loading SimpleGUI v7.1 - BeeHub Full Edition...")
+--print("🔧 Loading SimpleGUI v7.1 - BeeHub Full Edition...")
 
 local SimpleGUI = {}
 SimpleGUI.__index = SimpleGUI
@@ -59,7 +59,7 @@ SimpleGUI.Themes = {
 }
 
 function SimpleGUI.new()
-    print("🚀 Initializing BeeHub Full Edition...")
+    --print("🚀 Initializing BeeHub Full Edition...")
     
     local self = setmetatable({}, SimpleGUI)
     
@@ -82,7 +82,7 @@ function SimpleGUI.new()
     self.CurrentTheme = "DARK"
     self.MinimizedIcons = {}
     
-    print("✅ BeeHub Full Edition initialized!")
+    --print("✅ BeeHub Full Edition initialized!")
     return self
 end
 
@@ -1076,9 +1076,9 @@ function SimpleGUI:CreateWindow(options)
         end
     end)
     
-    print("✅ Created BeeHub Full Edition window!")
+    --print("✅ Created BeeHub Full Edition window!")
     return windowObj
 end
 
-print("🎉 SimpleGUI v7.1 - BeeHub Full Edition loaded!")
+--print("🎉 SimpleGUI v7.1 - BeeHub Full Edition loaded!")
 return SimpleGUI

@@ -9,7 +9,7 @@ function Teleport.Init(Dependencies)
     local Shared = Dependencies.Shared
     local Bdev = Dependencies.Bdev
     
-    print("📍 Initializing Teleport tab for SimpleGUI v6.3...")
+    --print("📍 Initializing Teleport tab for SimpleGUI v6.3...")
     
     -- Variables for player list management
     local playerButtons = {}
@@ -344,7 +344,7 @@ function Teleport.Init(Dependencies)
     
     -- Initial load
     local initialCount = refreshPlayerList()
-    print("👥 Player list created:", initialCount, "players")
+    --print("👥 Player list created:", initialCount, "players")
     
     -- Refresh button
     Tab:CreateButton({
@@ -357,7 +357,7 @@ function Teleport.Init(Dependencies)
                 Content = "Refreshed! " .. count .. " players online",
                 Duration = 3
             })
-            print("🔄 Player list refreshed:", count, "players")
+            --print("🔄 Player list refreshed:", count, "players")
         end
     })
     
@@ -399,7 +399,7 @@ function Teleport.Init(Dependencies)
         end
     end)
     
-    print("✅ Teleport tab initialized")
+    --print("✅ Teleport tab initialized")
 end
 
 return Teleport

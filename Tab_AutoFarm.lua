@@ -13,7 +13,7 @@ function AutoFarm.Init(Dependencies)
     local EggData = Shared.EggData or {}
     local Functions = Shared.Functions or {}
     
-    print("💰 Initializing AutoFarm tab for SimpleGUI v6.3...")
+    --print("💰 Initializing AutoFarm tab for SimpleGUI v6.3...")
     
     -- Get services
     local RunService = game:GetService("RunService")
@@ -38,7 +38,7 @@ function AutoFarm.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Auto Collect enabled")
+                --print("✅ Auto Collect enabled")
                 
                 -- Start collection loop
                 if collectConnection then
@@ -150,7 +150,7 @@ function AutoFarm.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Auto Collect disabled")
+                --print("❌ Auto Collect disabled")
                 
                 if collectConnection then
                     collectConnection:Disconnect()
@@ -165,7 +165,7 @@ function AutoFarm.Init(Dependencies)
         Name = "CollectNearby",
         Text = "🌀 Collect Nearby Eggs",
         Callback = function()
-            print("🌀 Collecting nearby eggs...")
+            --print("🌀 Collecting nearby eggs...")
             
             local player = Players.LocalPlayer
             local character = player.Character
@@ -252,7 +252,7 @@ function AutoFarm.Init(Dependencies)
                         ProximityPromptService:PromptTriggered(prompt, player)
                     end)
                     collected = collected + 1
-                    print("✅ Collected:", eggInfo.Name)
+                    --print("✅ Collected:", eggInfo.Name)
                     task.wait(0.5)
                 end
             end
@@ -263,7 +263,7 @@ function AutoFarm.Init(Dependencies)
                 Duration = 5
             })
             
-            print("🎉 Total collected:", collected, "eggs")
+            --print("🎉 Total collected:", collected, "eggs")
         end
     })
     
@@ -284,7 +284,7 @@ function AutoFarm.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Auto Hatch enabled")
+                --print("✅ Auto Hatch enabled")
                 
                 if autoHatchConnection then
                     autoHatchConnection:Disconnect()
@@ -323,7 +323,7 @@ function AutoFarm.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Auto Hatch disabled")
+                --print("❌ Auto Hatch disabled")
                 
                 if autoHatchConnection then
                     autoHatchConnection:Disconnect()
@@ -351,7 +351,7 @@ function AutoFarm.Init(Dependencies)
         CurrentValue = 200,
         Callback = function(value)
             collectRange = value
-            print("📊 Collection range set to:", value)
+            --print("📊 Collection range set to:", value)
         end
     })
     
@@ -363,7 +363,7 @@ function AutoFarm.Init(Dependencies)
         CurrentValue = 1.0,
         Callback = function(value)
             collectSpeed = value
-            print("📊 Collection speed set to:", value)
+            --print("📊 Collection speed set to:", value)
         end
     })
     
@@ -372,7 +372,7 @@ function AutoFarm.Init(Dependencies)
         Name = "DisableFarming",
         Text = "🔴 Disable All Farming",
         Callback = function()
-            print("\n🔴 DISABLING ALL FARMING...")
+            --print("\n🔴 DISABLING ALL FARMING...")
             
             -- Disable all toggles
             Variables.autoCollectEnabled = false
@@ -395,11 +395,11 @@ function AutoFarm.Init(Dependencies)
                 Duration = 4
             })
             
-            print("✅ All farming disabled")
+            --print("✅ All farming disabled")
         end
     })
     
-    print("✅ AutoFarm tab initialized for SimpleGUI v6.3")
+    --print("✅ AutoFarm tab initialized for SimpleGUI v6.3")
 end
 
 return AutoFarm

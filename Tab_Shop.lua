@@ -10,7 +10,7 @@ function ShopAutoBuy.Init(Dependencies)
     local Bdev = Dependencies.Bdev
     local GUI = Dependencies.GUI or Shared.GUI
     
-    print("🛍️ Initializing Shop Auto-Buy module...")
+    --print("🛍️ Initializing Shop Auto-Buy module...")
     
     -- ===== CONFIGURASI REMOTE =====
     local REMOTE_PATH = "ReplicatedStorage.RemoteEvent.ServerRemoteEvent"
@@ -74,7 +74,7 @@ function ShopAutoBuy.Init(Dependencies)
             return false 
         end
         
-        print("🛒 Buying: " .. chineseName .. " x" .. quantity)
+        --print("🛒 Buying: " .. chineseName .. " x" .. quantity)
         
         local success, result = pcall(function()
             serverRemote:FireServer(FUNCTION_NAME, chineseName, quantity)
@@ -82,9 +82,9 @@ function ShopAutoBuy.Init(Dependencies)
         end)
         
         if success then
-            print("✅ Purchase successful")
+            --print("✅ Purchase successful")
         else
-            print("❌ Purchase failed:", result)
+            --print("❌ Purchase failed:", result)
             Bdev:Notify({
                 Title = "Purchase Failed",
                 Content = tostring(result),
@@ -111,7 +111,7 @@ function ShopAutoBuy.Init(Dependencies)
             Duration = 4
         })
         
-        print("🤖 Auto-Buy STARTED: " .. selectedSeed.displayName)
+        --print("🤖 Auto-Buy STARTED: " .. selectedSeed.displayName)
         
         local lastBuyTime = 0
         autoBuyConnection = game:GetService("RunService").Heartbeat:Connect(function()
@@ -137,7 +137,7 @@ function ShopAutoBuy.Init(Dependencies)
             Duration = 2
         })
         
-        print("⏹️ Auto-Buy STOPPED")
+        --print("⏹️ Auto-Buy STOPPED")
     end
     
     -- ===== UI ELEMENTS =====
@@ -180,7 +180,7 @@ function ShopAutoBuy.Init(Dependencies)
                     Duration = 2
                 })
                 
-                print("📌 Selected: " .. seed.displayName)
+                --print("📌 Selected: " .. seed.displayName)
             end
         })
         
@@ -203,7 +203,7 @@ function ShopAutoBuy.Init(Dependencies)
         CurrentValue = buyDelay,
         Callback = function(value)
             buyDelay = value
-            print("⏱️ Delay set to: " .. buyDelay .. "s")
+            --print("⏱️ Delay set to: " .. buyDelay .. "s")
         end
     })
     
@@ -216,7 +216,7 @@ function ShopAutoBuy.Init(Dependencies)
         CurrentValue = buyQuantity,
         Callback = function(value)
             buyQuantity = math.floor(value)
-            print("📦 Quantity set to: " .. buyQuantity)
+            --print("📦 Quantity set to: " .. buyQuantity)
         end
     })
     
@@ -251,7 +251,7 @@ function ShopAutoBuy.Init(Dependencies)
             else
                 stopAutoBuy()
             end
-            print("🛑 EMERGENCY STOP activated")
+            --print("🛑 EMERGENCY STOP activated")
         end
     })
     
@@ -337,8 +337,8 @@ function ShopAutoBuy.Init(Dependencies)
         end
     }
     
-    print("✅ Shop Auto-Buy module ready!")
-    print("🎯 Available mutation seeds: " .. #mutationSeeds)
+    --print("✅ Shop Auto-Buy module ready!")
+    --print("🎯 Available mutation seeds: " .. #mutationSeeds)
 end
 
 return ShopAutoBuy

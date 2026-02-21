@@ -13,7 +13,7 @@ function Utilities.Init(Dependencies)
     
     local Services = Shared.Services
     
-    print("🔧 Initializing Utilities tab...")
+    --print("🔧 Initializing Utilities tab...")
     
     -- ===== UTILITIES SECTION =====
     Tab:CreateLabel({
@@ -29,7 +29,7 @@ function Utilities.Init(Dependencies)
         Callback = function()
             if Window and Window.MainFrame then
                 Window.MainFrame.Visible = false
-                print("🗑️ GUI destroyed")
+                --print("🗑️ GUI destroyed")
                 Bdev:Notify({
                     Title = "GUI",
                     Content = "GUI destroyed!",
@@ -130,44 +130,44 @@ function Utilities.Init(Dependencies)
         Name = "GameInfo",
         Text = "📊 Game Info",
         Callback = function()
-            print("\n" .. string.rep("=", 40))
-            print("📊 GAME INFORMATION")
-            print(string.rep("=", 40))
+            --print("\n" .. string.rep("=", 40))
+            --print("📊 GAME INFORMATION")
+            --print(string.rep("=", 40))
             
             -- Basic info
-            print("Place ID:", game.PlaceId)
+            --print("Place ID:", game.PlaceId)
             
             local productInfo = {Name = "Unknown"}
             pcall(function()
                 productInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
             end)
-            print("Game Name:", productInfo.Name)
+            --print("Game Name:", productInfo.Name)
             
-            print("Players:", #Services.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
+            --print("Players:", #Services.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
             
             -- Player info
             local player = Services.Players.LocalPlayer
-            print("\n👤 PLAYER INFO:")
-            print("Username:", player.Name)
-            print("Display Name:", player.DisplayName)
-            print("User ID:", player.UserId)
+            --print("\n👤 PLAYER INFO:")
+            --print("Username:", player.Name)
+            --print("Display Name:", player.DisplayName)
+            --print("User ID:", player.UserId)
             
             -- Character info
             if player.Character then
                 local humanoid = player.Character:FindFirstChild("Humanoid")
                 if humanoid then
-                    print("Walk Speed:", humanoid.WalkSpeed)
-                    print("Jump Power:", humanoid.JumpPower)
+                    --print("Walk Speed:", humanoid.WalkSpeed)
+                    --print("Jump Power:", humanoid.JumpPower)
                 end
             end
             
             -- Check BeeHub system
-            print("\n🐝 BEEHUB SYSTEM:")
-            print("Version: v4.0")
-            print("SimpleGUI: v6.3")
-            print("Loaded Tabs:", #Shared.Tabs)
+            --print("\n🐝 BEEHUB SYSTEM:")
+            --print("Version: v4.0")
+            --print("SimpleGUI: v6.3")
+            --print("Loaded Tabs:", #Shared.Tabs)
             
-            print(string.rep("=", 40))
+            --print(string.rep("=", 40))
             
             Bdev:Notify({
                 Title = "Game Info",
@@ -222,12 +222,12 @@ function Utilities.Init(Dependencies)
                     Content = "Discord link copied!",
                     Duration = 3
                 })
-                print("📋 Discord link copied:", discordLink)
+                --print("📋 Discord link copied:", discordLink)
             else
-                print("\n" .. string.rep("=", 50))
-                print("📋 DISCORD LINK (COPY MANUALLY):")
-                print(discordLink)
-                print(string.rep("=", 50))
+                --print("\n" .. string.rep("=", 50))
+                --print("📋 DISCORD LINK (COPY MANUALLY):")
+                --print(discordLink)
+                --print(string.rep("=", 50))
                 
                 Bdev:Notify({
                     Title = "Discord",
@@ -275,11 +275,11 @@ function Utilities.Init(Dependencies)
                     Content = "Game ID copied!",
                     Duration = 3
                 })
-                print("🎮 Game ID copied:", gameId)
+                --print("🎮 Game ID copied:", gameId)
             else
-                print("\n" .. string.rep("=", 40))
-                print("🎮 GAME ID:", gameId)
-                print(string.rep("=", 40))
+                --print("\n" .. string.rep("=", 40))
+                --print("🎮 GAME ID:", gameId)
+                --print(string.rep("=", 40))
                 
                 Bdev:Notify({
                     Title = "Game ID",
@@ -290,7 +290,7 @@ function Utilities.Init(Dependencies)
         end
     })
     
-    print("✅ Utilities tab initialized")
+    --print("✅ Utilities tab initialized")
 end
 
 return Utilities

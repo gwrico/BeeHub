@@ -12,7 +12,7 @@ function Misc.Init(Dependencies)
     local Variables = Shared.Variables
     local Services = Shared.Services
     
-    print("⚡ Initializing Misc tab...")
+    --print("⚡ Initializing Misc tab...")
     
     -- Initialize variables
     Variables.godModeEnabled = Variables.godModeEnabled or false
@@ -37,7 +37,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Anti-AFK enabled")
+                --print("✅ Anti-AFK enabled")
                 
                 local lastActivity = tick()
                 
@@ -61,7 +61,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Anti-AFK disabled")
+                --print("❌ Anti-AFK disabled")
                 
                 if antiAFKConnection then
                     antiAFKConnection:Disconnect()
@@ -88,7 +88,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ No Clip enabled")
+                --print("✅ No Clip enabled")
                 
                 if noclipConnection then
                     noclipConnection:Disconnect()
@@ -114,7 +114,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ No Clip disabled")
+                --print("❌ No Clip disabled")
                 
                 if noclipConnection then
                     noclipConnection:Disconnect()
@@ -151,7 +151,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Infinite Jump enabled")
+                --print("✅ Infinite Jump enabled")
                 
                 if infiniteJumpConnection then
                     infiniteJumpConnection:Disconnect()
@@ -173,7 +173,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Infinite Jump disabled")
+                --print("❌ Infinite Jump disabled")
                 
                 if infiniteJumpConnection then
                     infiniteJumpConnection:Disconnect()
@@ -198,7 +198,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ God Mode enabled")
+                --print("✅ God Mode enabled")
                 
                 -- Disable old connection
                 if Variables.godModeConnection then
@@ -226,7 +226,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ God Mode disabled")
+                --print("❌ God Mode disabled")
                 
                 if Variables.godModeConnection then
                     Variables.godModeConnection:Disconnect()
@@ -251,7 +251,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Invincibility enabled")
+                --print("✅ Invincibility enabled")
                 
                 -- Stop old loop
                 if Variables.invincibleLoop then
@@ -306,7 +306,7 @@ function Misc.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Invincibility disabled")
+                --print("❌ Invincibility disabled")
                 
                 -- Clean up
                 if Variables.invincibleLoop then
@@ -336,26 +336,26 @@ function Misc.Init(Dependencies)
             if character then
                 local humanoid = character:FindFirstChild("Humanoid")
                 if humanoid then
-                    print("🧪 Testing Invincibility...")
-                    print("Current Health:", humanoid.Health)
-                    print("Max Health:", humanoid.MaxHealth)
+                    --print("🧪 Testing Invincibility...")
+                    --print("Current Health:", humanoid.Health)
+                    --print("Max Health:", humanoid.MaxHealth)
                     
                     -- Test: Take small damage
                     pcall(function()
                         humanoid:TakeDamage(10)
-                        print("Took 10 damage")
-                        print("New Health:", humanoid.Health)
+                        --print("Took 10 damage")
+                        --print("New Health:", humanoid.Health)
                     end)
                     
                     if humanoid.Health <= 0 then
-                        print("❌ TEST FAILED: Character died!")
+                        --print("❌ TEST FAILED: Character died!")
                         Bdev:Notify({
                             Title = "Test Failed",
                             Content = "Invincibility not working!",
                             Duration = 3
                         })
                     else
-                        print("✅ TEST PASSED: Character survived!")
+                        --print("✅ TEST PASSED: Character survived!")
                         Bdev:Notify({
                             Title = "Test Passed",
                             Content = "Invincibility is working!",
@@ -372,7 +372,7 @@ function Misc.Init(Dependencies)
         Name = "DisableAllMisc",
         Text = "🔴 Disable All Misc",
         Callback = function()
-            print("\n🔴 DISABLING ALL MISC FEATURES...")
+            --print("\n🔴 DISABLING ALL MISC FEATURES...")
             
             -- Disable all toggles
             Variables.antiAfkEnabled = false
@@ -413,11 +413,11 @@ function Misc.Init(Dependencies)
                 Duration = 4
             })
             
-            print("✅ All misc features disabled")
+            --print("✅ All misc features disabled")
         end
     })
     
-    print("✅ Misc tab initialized")
+    --print("✅ Misc tab initialized")
 end
 
 return Misc

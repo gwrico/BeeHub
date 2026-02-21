@@ -1,7 +1,7 @@
 -- ==============================================
 -- 🎮 BEEHUB v4.0 - MODULAR SYSTEM (MAIN) - UPDATED FOR SIMPLEGUI v6.3
 -- ==============================================
-print("🔧 Loading BeeHub Modular System v4.0...")
+--print("🔧 Loading BeeHub Modular System v4.0...")
 
 -- Configuration
 local CONFIG = {
@@ -11,7 +11,7 @@ local CONFIG = {
 }
 
 -- Load SimpleGUI v6.3
-print("🖼️ Loading SimpleGUI v6.3...")
+--print("🖼️ Loading SimpleGUI v6.3...")
 local success, SimpleGUI = pcall(function()
     return loadstring(game:HttpGet(CONFIG.SIMPLEGUI_URL))()
 end)
@@ -108,7 +108,7 @@ local Shared = {
 -- Function to load modules safely
 function Shared.LoadModule(moduleName, urlSuffix)
     local moduleUrl = CONFIG.MODULES_URL .. urlSuffix
-    print("📦 Loading module: " .. moduleName .. " from " .. moduleUrl)
+    --print("📦 Loading module: " .. moduleName .. " from " .. moduleUrl)
     
     local success, result = pcall(function()
         return loadstring(game:HttpGet(moduleUrl, true))()
@@ -116,11 +116,11 @@ function Shared.LoadModule(moduleName, urlSuffix)
     
     if success then
         Shared.Modules.Loaded[moduleName] = result
-        print("✅ Module loaded: " .. moduleName)
+        --print("✅ Module loaded: " .. moduleName)
         return result
     else
         local errMsg = "❌ Failed to load " .. moduleName .. ": " .. tostring(result)
-        print(errMsg)
+        --print(errMsg)
         Shared.Modules.Errors[moduleName] = errMsg
         Bdev:Notify({  -- ✅ FIXED: menggunakan titik dua
             Title = "Module Error",
@@ -133,7 +133,7 @@ end
 
 -- Function to initialize all modules
 function Shared.InitializeModules()
-    print("\n🚀 Initializing all modules...")
+    --print("\n🚀 Initializing all modules...")
     
     -- Load Core Shared functions first
     local CoreModule = Shared.LoadModule("Core_Shared", "Core_Shared.lua")
@@ -167,7 +167,7 @@ function Shared.InitializeModules()
                 Bdev = Bdev
             })
             
-            print("✅ Tab initialized: " .. moduleInfo.TabName)
+            --print("✅ Tab initialized: " .. moduleInfo.TabName)
         end
     end
     
@@ -177,19 +177,19 @@ function Shared.InitializeModules()
         loadedCount = loadedCount + 1
     end
     
-    print("\n" .. string.rep("=", 50))
-    print("📊 LOAD SUMMARY:")
-    print("✅ Modules loaded: " .. loadedCount .. "/" .. (#tabModules + 1))
-    print("❌ Errors: " .. #Shared.Modules.Errors)
+    --print("\n" .. string.rep("=", 50))
+    --print("📊 LOAD SUMMARY:")
+    --print("✅ Modules loaded: " .. loadedCount .. "/" .. (#tabModules + 1))
+    --print("❌ Errors: " .. #Shared.Modules.Errors)
     
     if next(Shared.Modules.Errors) then
-        print("\n⚠️ ERRORS:")
+        --print("\n⚠️ ERRORS:")
         for module, errorMsg in pairs(Shared.Modules.Errors) do
-            print("  • " .. module .. ": " .. errorMsg)
+            --print("  • " .. module .. ": " .. errorMsg)
         end
     end
     
-    print(string.rep("=", 50))
+    --print(string.rep("=", 50))
 end
 
 -- Start loading modules
@@ -198,8 +198,8 @@ task.spawn(function()
     Shared.InitializeModules()
     local loadTime = tick() - startTime
     
-    print("\n🎉 BeeHub Modular System v4.0 fully loaded!")
-    print("⏱️ Load time: " .. string.format("%.2f", loadTime) .. " seconds")
+    --print("\n🎉 BeeHub Modular System v4.0 fully loaded!")
+    --print("⏱️ Load time: " .. string.format("%.2f", loadTime) .. " seconds")
     
     Bdev:Notify({  -- ✅ FIXED: menggunakan titik dua
         Title = "BeeHub v4.0",

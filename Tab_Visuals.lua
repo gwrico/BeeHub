@@ -12,7 +12,7 @@ function Visuals.Init(Dependencies)
     local Variables = Shared.Variables
     local Functions = Shared.Functions or {}
     
-    print("👁️ Initializing Visuals tab for SimpleGUI v6.3...")
+    --print("👁️ Initializing Visuals tab for SimpleGUI v6.3...")
     
     -- ===== EGG ESP =====
     local eggHighlights = {}
@@ -31,7 +31,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Egg ESP enabled")
+                --print("✅ Egg ESP enabled")
                 
                 local rarityColors = {
                     [1] = Color3.fromRGB(184, 115, 51),    -- Copper
@@ -113,7 +113,7 @@ function Visuals.Init(Dependencies)
                     end
                 end
                 
-                print("📊 Highlighted " .. highlighted .. " eggs")
+                --print("📊 Highlighted " .. highlighted .. " eggs")
                 
             else
                 Bdev:Notify({  -- ✅ FIXED: Colon syntax
@@ -122,7 +122,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Egg ESP disabled")
+                --print("❌ Egg ESP disabled")
                 
                 -- Cleanup
                 for _, hl in pairs(eggHighlights) do
@@ -165,7 +165,7 @@ function Visuals.Init(Dependencies)
                     Content = "ESP refreshed!",
                     Duration = 3
                 })
-                print("🔄 ESP refreshed")
+                --print("🔄 ESP refreshed")
             else
                 Bdev:Notify({
                     Title = "ESP",
@@ -194,7 +194,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ X-Ray enabled")
+                --print("✅ X-Ray enabled")
                 
                 local function processPart(part)
                     if part:IsA("BasePart") then
@@ -244,7 +244,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ X-Ray disabled")
+                --print("❌ X-Ray disabled")
                 
                 -- Restore original properties
                 for part, props in pairs(xrayParts) do
@@ -283,7 +283,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Player ESP enabled")
+                --print("✅ Player ESP enabled")
                 
                 local function highlightPlayer(player, character)
                     if not character or player == game.Players.LocalPlayer then
@@ -325,7 +325,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Player ESP disabled")
+                --print("❌ Player ESP disabled")
                 
                 -- Remove highlights
                 for _, highlight in pairs(playerHighlights) do
@@ -367,7 +367,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("✅ Chat Logger enabled")
+                --print("✅ Chat Logger enabled")
                 
                 if chatLoggerConnection then
                     chatLoggerConnection:Disconnect()
@@ -375,7 +375,7 @@ function Visuals.Init(Dependencies)
                 
                 chatLoggerConnection = Shared.Services.Players.PlayerChatted:Connect(function(player, message)
                     if Variables.chatLoggerEnabled then
-                        print("💬 [" .. player.Name .. "]: " .. message)
+                        --print("💬 [" .. player.Name .. "]: " .. message)
                     end
                 end)
                 
@@ -386,7 +386,7 @@ function Visuals.Init(Dependencies)
                     Duration = 3
                 })
                 
-                print("❌ Chat Logger disabled")
+                --print("❌ Chat Logger disabled")
                 
                 if chatLoggerConnection then
                     chatLoggerConnection:Disconnect()
@@ -463,7 +463,7 @@ function Visuals.Init(Dependencies)
                 Duration = 3
             })
             
-            print("🧹 All visuals cleared")
+            --print("🧹 All visuals cleared")
         end
     })
     
@@ -485,7 +485,7 @@ function Visuals.Init(Dependencies)
         CurrentValue = 0.7,
         Callback = function(value)
             espTransparency = value
-            print("📊 ESP Transparency set to:", value)
+            --print("📊 ESP Transparency set to:", value)
             
             -- Apply to existing ESP if enabled
             if Variables.eggESPEnabled or Variables.playerESPEnabled then
@@ -498,7 +498,7 @@ function Visuals.Init(Dependencies)
         end
     })
     
-    print("✅ Visuals tab initialized")
+    --print("✅ Visuals tab initialized")
 end
 
 return Visuals

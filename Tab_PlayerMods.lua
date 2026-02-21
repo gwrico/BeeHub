@@ -14,14 +14,14 @@ function PlayerMods.Init(Dependencies)
     local Variables = Shared.Variables
     local Functions = Shared.Functions or {}  -- ✅ HANDLE KASUS FUNCTIONS TIDAK ADA
     
-    print("👤 Initializing PlayerMods tab...")
+    --print("👤 Initializing PlayerMods tab...")
     
     -- ===== SPEED HACK =====
     local customSpeed = 100
     
     -- Pastikan method CreateToggle ada di Tab
     if not Tab.CreateToggle then
-        print("⚠️ CreateToggle not found in Tab object! Using fallback...")
+        --print("⚠️ CreateToggle not found in Tab object! Using fallback...")
         -- Fallback ke button
         Tab:CreateButton({
             Name = "SpeedHack_Fallback",
@@ -59,7 +59,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("✅ Speed hack enabled:", customSpeed)
+                    --print("✅ Speed hack enabled:", customSpeed)
                     
                     local connection
                     connection = Services.RunService.Heartbeat:Connect(function()
@@ -81,7 +81,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("❌ Speed hack disabled")
+                    --print("❌ Speed hack disabled")
                     
                     local char = game.Players.LocalPlayer.Character
                     if char and char:FindFirstChild("Humanoid") then
@@ -107,11 +107,11 @@ function PlayerMods.Init(Dependencies)
                         char.Humanoid.WalkSpeed = value
                     end
                 end
-                print("📊 Speed set to:", value)
+                --print("📊 Speed set to:", value)
             end
         })
     else
-        print("⚠️ CreateSlider not available for Speed")
+        --print("⚠️ CreateSlider not available for Speed")
     end
     
     -- ===== JUMP HACK =====
@@ -132,7 +132,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("✅ Jump hack enabled:", customJump)
+                    --print("✅ Jump hack enabled:", customJump)
                     
                     local connection
                     connection = Services.RunService.Heartbeat:Connect(function()
@@ -154,7 +154,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("❌ Jump hack disabled")
+                    --print("❌ Jump hack disabled")
                     
                     local char = game.Players.LocalPlayer.Character
                     if char and char:FindFirstChild("Humanoid") then
@@ -179,7 +179,7 @@ function PlayerMods.Init(Dependencies)
                         char.Humanoid.JumpPower = value
                     end
                 end
-                print("📊 Jump power set to:", value)
+                --print("📊 Jump power set to:", value)
             end
         })
     end
@@ -202,7 +202,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("✅ Fly hack enabled:", flySpeed)
+                    --print("✅ Fly hack enabled:", flySpeed)
                     
                     -- Initialize fly variables
                     local player = game.Players.LocalPlayer
@@ -289,7 +289,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("❌ Fly hack disabled")
+                    --print("❌ Fly hack disabled")
                     
                     -- Clean up fly objects
                     local char = game.Players.LocalPlayer.Character
@@ -314,7 +314,7 @@ function PlayerMods.Init(Dependencies)
             CurrentValue = 50,
             Callback = function(value)
                 flySpeed = value
-                print("📊 Fly speed set to:", value)
+                --print("📊 Fly speed set to:", value)
             end
         })
     end
@@ -335,7 +335,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("✅ Noclip enabled")
+                    --print("✅ Noclip enabled")
                     
                     local connection
                     connection = Services.RunService.Stepped:Connect(function()
@@ -361,7 +361,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("❌ Noclip disabled")
+                    --print("❌ Noclip disabled")
                     
                     local char = game.Players.LocalPlayer.Character
                     if char then
@@ -392,7 +392,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("✅ Infinite jump enabled")
+                    --print("✅ Infinite jump enabled")
                     
                     local connection
                     connection = Services.UserInputService.JumpRequest:Connect(function()
@@ -414,7 +414,7 @@ function PlayerMods.Init(Dependencies)
                         Duration = 3
                     })
                     
-                    print("❌ Infinite jump disabled")
+                    --print("❌ Infinite jump disabled")
                 end
             end
         })
@@ -425,7 +425,7 @@ function PlayerMods.Init(Dependencies)
         Name = "DisableAll",
         Text = "🔴 Disable All Hacks",
         Callback = function()
-            print("\n🔴 DISABLING ALL HACKS...")
+            --print("\n🔴 DISABLING ALL HACKS...")
             
             -- Disable all toggles
             Variables.speedHackEnabled = false
@@ -463,11 +463,11 @@ function PlayerMods.Init(Dependencies)
                 Duration = 4
             })
             
-            print("✅ All hacks disabled")
+            --print("✅ All hacks disabled")
         end
     })
     
-    print("✅ PlayerMods tab initialized")
+    --print("✅ PlayerMods tab initialized")
 end
 
 return PlayerMods

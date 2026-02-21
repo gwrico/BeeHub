@@ -6,7 +6,7 @@ local Core = {}
 
 -- Initialize shared functions
 function Core.Init(Shared)
-    print("🔧 Initializing core functions...")
+    --print("🔧 Initializing core functions...")
     
     -- Make functions available in Shared
     Shared.Functions = {
@@ -45,7 +45,7 @@ function Core.Init(Shared)
                 if tool:IsA("Tool") then
                     humanoid:EquipTool(tool)
                     Shared.Variables.toolEquipped = true
-                    print("🛠️ Auto-equipped tool:", tool.Name)
+                    --print("🛠️ Auto-equipped tool:", tool.Name)
                     return true
                 end
             end
@@ -68,7 +68,7 @@ function Core.Init(Shared)
                 if success then
                     return true
                 else
-                    print("⚠️ Tool activation failed:", err)
+                    --print("⚠️ Tool activation failed:", err)
                 end
             end
             
@@ -83,7 +83,7 @@ function Core.Init(Shared)
             if success then
                 return true
             else
-                print("⚠️ Virtual mouse click failed:", err)
+                --print("⚠️ Virtual mouse click failed:", err)
                 
                 -- Method 3: Alternative - E key
                 pcall(function()
@@ -222,7 +222,7 @@ function Core.Init(Shared)
             if not character then return false end
             
             -- This would need game-specific implementation
-            print("🥚 Hatching function called - needs game-specific code")
+            --print("🥚 Hatching function called - needs game-specific code")
             
             -- Try common hatch methods
             local vim = Shared.Services.VirtualInputManager
@@ -245,7 +245,7 @@ function Core.Init(Shared)
         end
     }
     
-    print("✅ Core functions initialized (Egg Edition)")
+    --print("✅ Core functions initialized (Egg Edition)")
 end
 
 return Core
