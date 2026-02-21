@@ -110,8 +110,8 @@ function SimpleGUI:CreateWindow(options)
     local scale = isMobile and 0.85 or 1.0
     
     local windowData = {
-        Name = opts.Name or "Speed Hub X",
-        SubName = opts.SubName or "Version 5.0.3 | discord.gg/speedhubx",
+        Name = opts.Name or "Bee Hub X",
+        SubName = opts.SubName or "Version 7.1.0 | discord.gg/abcd",
         Size = opts.Size or UDim2.new(0, 750 * scale, 0, 520 * scale),
         Position = opts.Position or UDim2.new(0.5, -375 * scale, 0.5, -260 * scale),
         IsMobile = isMobile,
