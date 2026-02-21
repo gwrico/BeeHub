@@ -1,7 +1,7 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v6.3 - SIDEBAR TABS (VERTICAL) - FIXED VERSION
+-- 🎨 SIMPLEGUI v7.0 - PROFESSIONAL EDITION
 -- ==============================================
-print("🔧 Loading SimpleGUI v6.3 - Fixed Version...")
+print("🔧 Loading SimpleGUI v7.0 - Professional Edition...")
 
 local SimpleGUI = {}
 SimpleGUI.__index = SimpleGUI
@@ -9,81 +9,153 @@ SimpleGUI.__index = SimpleGUI
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- Modern color schemes
+-- Modern color schemes dengan lebih banyak variasi
 SimpleGUI.Themes = {
     DARK = {
         Name = "Dark",
-        Primary = Color3.fromRGB(33, 33, 45),
-        Secondary = Color3.fromRGB(45, 45, 60),
-        Accent = Color3.fromRGB(98, 147, 255),
-        Text = Color3.fromRGB(240, 240, 245),
-        TextSecondary = Color3.fromRGB(180, 180, 190),
-        Success = Color3.fromRGB(76, 217, 100),
-        Warning = Color3.fromRGB(255, 204, 0),
-        Error = Color3.fromRGB(255, 59, 48),
-        Border = Color3.fromRGB(70, 70, 90),
-        Hover = Color3.fromRGB(65, 65, 85),
-        Active = Color3.fromRGB(120, 170, 255),
+        Primary = Color3.fromRGB(30, 30, 40),
+        Secondary = Color3.fromRGB(45, 45, 55),
+        Accent = Color3.fromRGB(0, 122, 255),
+        AccentLight = Color3.fromRGB(64, 156, 255),
+        Text = Color3.fromRGB(245, 245, 255),
+        TextSecondary = Color3.fromRGB(180, 180, 195),
+        Success = Color3.fromRGB(52, 199, 89),
+        Warning = Color3.fromRGB(255, 149, 0),
+        Error = Color3.fromRGB(255, 69, 58),
+        Border = Color3.fromRGB(60, 60, 70),
+        Hover = Color3.fromRGB(70, 70, 85),
+        Active = Color3.fromRGB(10, 132, 255),
         
         -- UI Specific
-        WindowBg = Color3.fromRGB(33, 33, 45),
-        TitleBar = Color3.fromRGB(45, 45, 60),
-        TabNormal = Color3.fromRGB(50, 50, 70),
-        TabActive = Color3.fromRGB(98, 147, 255),
-        ContentBg = Color3.fromRGB(40, 40, 55),
-        Button = Color3.fromRGB(65, 65, 85),
-        InputBg = Color3.fromRGB(50, 50, 70),
-        ToggleOff = Color3.fromRGB(70, 70, 90),
-        ToggleOn = Color3.fromRGB(98, 147, 255),
-        SliderTrack = Color3.fromRGB(60, 60, 80),
-        SliderFill = Color3.fromRGB(98, 147, 255),
-        Sidebar = Color3.fromRGB(40, 40, 55)
+        WindowBg = Color3.fromRGB(28, 28, 35),
+        TitleBar = Color3.fromRGB(38, 38, 45),
+        TabNormal = Color3.fromRGB(45, 45, 55),
+        TabActive = Color3.fromRGB(0, 122, 255),
+        ContentBg = Color3.fromRGB(35, 35, 42),
+        Button = Color3.fromRGB(58, 58, 68),
+        ButtonHover = Color3.fromRGB(70, 70, 82),
+        InputBg = Color3.fromRGB(48, 48, 55),
+        ToggleOff = Color3.fromRGB(72, 72, 82),
+        ToggleOn = Color3.fromRGB(0, 122, 255),
+        SliderTrack = Color3.fromRGB(58, 58, 68),
+        SliderFill = Color3.fromRGB(0, 122, 255),
+        Sidebar = Color3.fromRGB(35, 35, 42)
+    },
+    
+    LIGHT = {
+        Name = "Light",
+        Primary = Color3.fromRGB(242, 242, 247),
+        Secondary = Color3.fromRGB(255, 255, 255),
+        Accent = Color3.fromRGB(0, 122, 255),
+        AccentLight = Color3.fromRGB(64, 156, 255),
+        Text = Color3.fromRGB(28, 28, 35),
+        TextSecondary = Color3.fromRGB(99, 99, 102),
+        Success = Color3.fromRGB(52, 199, 89),
+        Warning = Color3.fromRGB(255, 149, 0),
+        Error = Color3.fromRGB(255, 69, 58),
+        Border = Color3.fromRGB(209, 209, 214),
+        Hover = Color3.fromRGB(229, 229, 234),
+        Active = Color3.fromRGB(0, 122, 255),
+        
+        -- UI Specific
+        WindowBg = Color3.fromRGB(242, 242, 247),
+        TitleBar = Color3.fromRGB(255, 255, 255),
+        TabNormal = Color3.fromRGB(255, 255, 255),
+        TabActive = Color3.fromRGB(0, 122, 255),
+        ContentBg = Color3.fromRGB(255, 255, 255),
+        Button = Color3.fromRGB(255, 255, 255),
+        ButtonHover = Color3.fromRGB(242, 242, 247),
+        InputBg = Color3.fromRGB(255, 255, 255),
+        ToggleOff = Color3.fromRGB(199, 199, 204),
+        ToggleOn = Color3.fromRGB(0, 122, 255),
+        SliderTrack = Color3.fromRGB(209, 209, 214),
+        SliderFill = Color3.fromRGB(0, 122, 255),
+        Sidebar = Color3.fromRGB(250, 250, 252)
+    },
+    
+    MIDNIGHT = {
+        Name = "Midnight",
+        Primary = Color3.fromRGB(16, 16, 24),
+        Secondary = Color3.fromRGB(28, 28, 38),
+        Accent = Color3.fromRGB(94, 92, 230),
+        AccentLight = Color3.fromRGB(124, 122, 255),
+        Text = Color3.fromRGB(235, 235, 255),
+        TextSecondary = Color3.fromRGB(170, 170, 200),
+        Success = Color3.fromRGB(48, 209, 88),
+        Warning = Color3.fromRGB(255, 159, 10),
+        Error = Color3.fromRGB(255, 55, 95),
+        Border = Color3.fromRGB(44, 44, 58),
+        Hover = Color3.fromRGB(55, 55, 75),
+        Active = Color3.fromRGB(94, 92, 230),
+        
+        -- UI Specific
+        WindowBg = Color3.fromRGB(16, 16, 24),
+        TitleBar = Color3.fromRGB(22, 22, 32),
+        TabNormal = Color3.fromRGB(28, 28, 38),
+        TabActive = Color3.fromRGB(94, 92, 230),
+        ContentBg = Color3.fromRGB(22, 22, 32),
+        Button = Color3.fromRGB(38, 38, 52),
+        ButtonHover = Color3.fromRGB(50, 50, 68),
+        InputBg = Color3.fromRGB(30, 30, 42),
+        ToggleOff = Color3.fromRGB(58, 58, 78),
+        ToggleOn = Color3.fromRGB(94, 92, 230),
+        SliderTrack = Color3.fromRGB(44, 44, 58),
+        SliderFill = Color3.fromRGB(94, 92, 230),
+        Sidebar = Color3.fromRGB(22, 22, 32)
     }
 }
 
 function SimpleGUI.new()
-    print("🚀 Initializing SimpleGUI v6.3...")
+    print("🚀 Initializing SimpleGUI v7.0...")
     
     local self = setmetatable({}, SimpleGUI)
     
-    -- Create ScreenGui
+    -- Create ScreenGui dengan error handling lebih baik
     self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "SimpleGUIv6_" .. math.random(10000, 99999)
+    self.ScreenGui.Name = "SimpleGUI_Pro_" .. math.random(1000, 9999)
     self.ScreenGui.DisplayOrder = 99999
     self.ScreenGui.ResetOnSpawn = false
-    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    self.ScreenGui.IgnoreGuiInset = true
     
-    -- Auto parenting
-    local parents = {
-        game:GetService("CoreGui"),
-        game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    }
+    -- Auto parenting dengan priority
+    local success, err = pcall(function()
+        self.ScreenGui.Parent = game:GetService("CoreGui")
+    end)
     
-    for _, parent in ipairs(parents) do
-        pcall(function()
-            self.ScreenGui.Parent = parent
-            task.wait(0.05)
-        end)
-        if self.ScreenGui.Parent then break end
+    if not success then
+        self.ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
     end
     
     self.Windows = {}
     self.CurrentTheme = "DARK"
+    self.MinimizedIcons = {}
     
-    print("✅ SimpleGUI v6.3 initialized!")
+    print("✅ SimpleGUI v7.0 initialized!")
     return self
 end
 
--- Theme management
+-- Theme management dengan animasi smooth
 function SimpleGUI:SetTheme(themeName)
-    if self.Themes[themeName:upper()] then
-        self.CurrentTheme = themeName:upper()
-        print("🎨 Applied theme: " .. self.Themes[self.CurrentTheme].Name)
+    local themeKey = themeName:upper()
+    if self.Themes[themeKey] then
+        self.CurrentTheme = themeKey
+        print("🎨 Applied theme: " .. self.Themes[themeKey].Name)
         
+        -- Update semua window dengan animasi
         for _, window in pairs(self.Windows) do
             if window.UpdateTheme then
-                window:UpdateTheme(self.Themes[self.CurrentTheme])
+                window:UpdateTheme(self.Themes[themeKey])
+            end
+        end
+        
+        -- Update minimized icons
+        for _, icon in pairs(self.MinimizedIcons) do
+            if icon and icon.UpdateTheme then
+                icon:UpdateTheme(self.Themes[themeKey])
             end
         end
     end
@@ -93,15 +165,21 @@ function SimpleGUI:GetTheme()
     return self.Themes[self.CurrentTheme]
 end
 
--- Animation helper
-local function tween(object, properties, duration)
-    local tweenInfo = TweenInfo.new(duration or 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+-- Animation helper dengan easing yang lebih halus
+local function tween(object, properties, duration, easingStyle)
+    if not object then return nil end
+    
+    local tweenInfo = TweenInfo.new(
+        duration or 0.25, 
+        easingStyle or Enum.EasingStyle.Quint, 
+        Enum.EasingDirection.Out
+    )
     local tween = TweenService:Create(object, tweenInfo, properties)
     tween:Play()
     return tween
 end
 
--- Create window with SIDEBAR TABS
+-- Create window dengan SIDEBAR TABS
 function SimpleGUI:CreateWindow(options)
     local opts = options or {}
     local isMobile = UserInputService.TouchEnabled
@@ -114,7 +192,8 @@ function SimpleGUI:CreateWindow(options)
         ShowThemeTab = opts.ShowThemeTab or false,
         IsMobile = isMobile,
         Scale = scale,
-        SidebarWidth = 180 * scale
+        SidebarWidth = 180 * scale,
+        Logo = opts.Logo or "B"  -- Default logo "B"
     }
     
     local theme = self:GetTheme()
@@ -131,53 +210,77 @@ function SimpleGUI:CreateWindow(options)
     MainFrame.Visible = true
     MainFrame.Parent = self.ScreenGui
     
-    -- Rounded corners
-    local WindowCorner = Instance.new("UICorner")
-    WindowCorner.CornerRadius = UDim.new(0, 12 * scale)
-    WindowCorner.Parent = MainFrame
-    
-    -- Shadow effect
-    local Shadow = Instance.new("Frame")
+    -- Shadow effect yang lebih modern
+    local Shadow = Instance.new("ImageLabel")
     Shadow.Name = "Shadow"
-    Shadow.Size = UDim2.new(1, 10, 1, 10)
-    Shadow.Position = UDim2.new(0, -5, 0, -5)
-    Shadow.BackgroundColor3 = Color3.new(0, 0, 0)
-    Shadow.BackgroundTransparency = 0.8
-    Shadow.BorderSizePixel = 0
+    Shadow.Size = UDim2.new(1, 20, 1, 20)
+    Shadow.Position = UDim2.new(0, -10, 0, -10)
+    Shadow.BackgroundTransparency = 1
+    Shadow.Image = "rbxassetid://13110549987"  -- Soft shadow
+    Shadow.ImageColor3 = Color3.new(0, 0, 0)
+    Shadow.ImageTransparency = 0.7
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(10, 10, 10, 10)
     Shadow.ZIndex = -1
     Shadow.Parent = MainFrame
     
-    local ShadowCorner = Instance.new("UICorner")
-    ShadowCorner.CornerRadius = UDim.new(0, 14 * scale)
-    ShadowCorner.Parent = Shadow
+    -- Rounded corners
+    local WindowCorner = Instance.new("UICorner")
+    WindowCorner.CornerRadius = UDim.new(0, 16 * scale)
+    WindowCorner.Parent = MainFrame
     
-    -- ===== TITLE BAR (TOP) =====
+    -- ===== TITLE BAR (TOP) dengan desain lebih modern =====
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
-    TitleBar.Size = UDim2.new(1, 0, 0, 40 * scale)
+    TitleBar.Size = UDim2.new(1, 0, 0, 44 * scale)
     TitleBar.BackgroundColor3 = theme.TitleBar
     TitleBar.BorderSizePixel = 0
     TitleBar.Parent = MainFrame
     
     local TitleBarCorner = Instance.new("UICorner")
-    TitleBarCorner.CornerRadius = UDim.new(0, 12 * scale)
+    TitleBarCorner.CornerRadius = UDim.new(0, 16 * scale)
     TitleBarCorner.Parent = TitleBar
+    
+    -- Title dengan icon
+    local TitleContainer = Instance.new("Frame")
+    TitleContainer.Name = "TitleContainer"
+    TitleContainer.Size = UDim2.new(0, 200 * scale, 1, 0)
+    TitleContainer.Position = UDim2.new(0, 12 * scale, 0, 0)
+    TitleContainer.BackgroundTransparency = 1
+    TitleContainer.Parent = TitleBar
+    
+    -- Icon/Logo kecil
+    local TitleIcon = Instance.new("TextLabel")
+    TitleIcon.Name = "TitleIcon"
+    TitleIcon.Size = UDim2.new(0, 24 * scale, 0, 24 * scale)
+    TitleIcon.Position = UDim2.new(0, 0, 0.5, -12 * scale)
+    TitleIcon.Text = windowData.Logo
+    TitleIcon.TextColor3 = theme.Accent
+    TitleIcon.BackgroundColor3 = theme.Accent
+    TitleIcon.BackgroundTransparency = 0.9
+    TitleIcon.TextSize = 16 * scale
+    TitleIcon.Font = Enum.Font.GothamBold
+    TitleIcon.Parent = TitleContainer
+    
+    local IconCorner = Instance.new("UICorner")
+    IconCorner.CornerRadius = UDim.new(0, 8 * scale)
+    IconCorner.Parent = TitleIcon
     
     -- Title Text
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
-    TitleLabel.Size = UDim2.new(1, -100 * scale, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 15 * scale, 0, 0)
+    TitleLabel.Size = UDim2.new(1, -32 * scale, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 32 * scale, 0, 0)
     TitleLabel.Text = windowData.Name
     TitleLabel.TextColor3 = theme.Text
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.TextSize = 16 * scale
-    TitleLabel.Font = Enum.Font.SourceSansSemibold
+    TitleLabel.Font = Enum.Font.GothamSemibold
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = TitleBar
+    TitleLabel.Parent = TitleContainer
     
-    -- Control Buttons
-    local buttonSize = 28 * scale
+    -- Control Buttons dengan desain lebih elegan
+    local buttonSize = 30 * scale
     
     -- Theme Button
     local ThemeButton = Instance.new("TextButton")
@@ -185,16 +288,16 @@ function SimpleGUI:CreateWindow(options)
     ThemeButton.Size = UDim2.new(0, buttonSize, 0, buttonSize)
     ThemeButton.Position = UDim2.new(1, -buttonSize * 3 - 20 * scale, 0.5, -buttonSize/2)
     ThemeButton.Text = "🎨"
-    ThemeButton.TextColor3 = theme.Text
+    ThemeButton.TextColor3 = theme.TextSecondary
     ThemeButton.BackgroundColor3 = theme.Button
     ThemeButton.BackgroundTransparency = 0
-    ThemeButton.TextSize = 14 * scale
-    ThemeButton.Font = Enum.Font.SourceSans
+    ThemeButton.TextSize = 16 * scale
+    ThemeButton.Font = Enum.Font.Gotham
     ThemeButton.Visible = windowData.ShowThemeTab
     ThemeButton.Parent = TitleBar
     
     local ThemeButtonCorner = Instance.new("UICorner")
-    ThemeButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
+    ThemeButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
     ThemeButtonCorner.Parent = ThemeButton
     
     -- Minimize Button
@@ -202,49 +305,68 @@ function SimpleGUI:CreateWindow(options)
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.Size = UDim2.new(0, buttonSize, 0, buttonSize)
     MinimizeButton.Position = UDim2.new(1, -buttonSize * 2 - 10 * scale, 0.5, -buttonSize/2)
-    MinimizeButton.Text = "_"
-    MinimizeButton.TextColor3 = theme.Text
+    MinimizeButton.Text = "—"
+    MinimizeButton.TextColor3 = theme.TextSecondary
     MinimizeButton.BackgroundColor3 = theme.Button
     MinimizeButton.BackgroundTransparency = 0
     MinimizeButton.TextSize = 18 * scale
-    MinimizeButton.Font = Enum.Font.SourceSansBold
+    MinimizeButton.Font = Enum.Font.Gotham
     MinimizeButton.Parent = TitleBar
     
     local MinimizeButtonCorner = Instance.new("UICorner")
-    MinimizeButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
+    MinimizeButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
     MinimizeButtonCorner.Parent = MinimizeButton
     
     -- Close Button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.Size = UDim2.new(0, buttonSize, 0, buttonSize)
-    CloseButton.Position = UDim2.new(1, -buttonSize, 0.5, -buttonSize/2)
+    CloseButton.Position = UDim2.new(1, -buttonSize - 5 * scale, 0.5, -buttonSize/2)
     CloseButton.Text = "✕"
     CloseButton.TextColor3 = theme.Error
     CloseButton.BackgroundColor3 = theme.Button
     CloseButton.BackgroundTransparency = 0
     CloseButton.TextSize = 16 * scale
-    CloseButton.Font = Enum.Font.SourceSans
+    CloseButton.Font = Enum.Font.Gotham
     CloseButton.Parent = TitleBar
     
     local CloseButtonCorner = Instance.new("UICorner")
-    CloseButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
+    CloseButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
     CloseButtonCorner.Parent = CloseButton
     
-    -- ===== SIDEBAR (LEFT) =====
+    -- ===== SIDEBAR (LEFT) dengan desain lebih modern =====
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, windowData.SidebarWidth, 1, -40 * scale)
-    Sidebar.Position = UDim2.new(0, 0, 0, 40 * scale)
+    Sidebar.Size = UDim2.new(0, windowData.SidebarWidth, 1, -44 * scale)
+    Sidebar.Position = UDim2.new(0, 0, 0, 44 * scale)
     Sidebar.BackgroundColor3 = theme.Sidebar
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = MainFrame
     
+    -- Sidebar Header dengan separator
+    local SidebarHeader = Instance.new("Frame")
+    SidebarHeader.Name = "SidebarHeader"
+    SidebarHeader.Size = UDim2.new(1, -20, 0, 30 * scale)
+    SidebarHeader.Position = UDim2.new(0, 10, 0, 5)
+    SidebarHeader.BackgroundTransparency = 1
+    SidebarHeader.Parent = Sidebar
+    
+    local HeaderLabel = Instance.new("TextLabel")
+    HeaderLabel.Name = "HeaderLabel"
+    HeaderLabel.Size = UDim2.new(1, 0, 1, 0)
+    HeaderLabel.Text = "MENU"
+    HeaderLabel.TextColor3 = theme.TextSecondary
+    HeaderLabel.BackgroundTransparency = 1
+    HeaderLabel.TextSize = 12 * scale
+    HeaderLabel.Font = Enum.Font.GothamBold
+    HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    HeaderLabel.Parent = SidebarHeader
+    
     -- ===== CONTENT FRAME (RIGHT) =====
     local ContentFrame = Instance.new("ScrollingFrame")
     ContentFrame.Name = "ContentFrame"
-    ContentFrame.Size = UDim2.new(1, -windowData.SidebarWidth, 1, -40 * scale)
-    ContentFrame.Position = UDim2.new(0, windowData.SidebarWidth, 0, 40 * scale)
+    ContentFrame.Size = UDim2.new(1, -windowData.SidebarWidth, 1, -44 * scale)
+    ContentFrame.Position = UDim2.new(0, windowData.SidebarWidth, 0, 44 * scale)
     ContentFrame.BackgroundColor3 = theme.ContentBg
     ContentFrame.BackgroundTransparency = 0
     ContentFrame.BorderSizePixel = 0
@@ -252,39 +374,40 @@ function SimpleGUI:CreateWindow(options)
     ContentFrame.ScrollBarImageColor3 = theme.Accent
     ContentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     ContentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+    ContentFrame.ElasticBehavior = Enum.ElasticBehavior.Always
     ContentFrame.Parent = MainFrame
     
     local ContentCorner = Instance.new("UICorner")
-    ContentCorner.CornerRadius = UDim.new(0, 12 * scale)
+    ContentCorner.CornerRadius = UDim.new(0, 16 * scale)
     ContentCorner.Parent = ContentFrame
     
-    -- ===== LAYOUTS =====
+    -- ===== LAYOUTS dengan spacing yang lebih baik =====
     -- Sidebar layout
     local SidebarLayout = Instance.new("UIListLayout")
-    SidebarLayout.Padding = UDim.new(0, 5 * scale)
+    SidebarLayout.Padding = UDim.new(0, 6 * scale)
     SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     SidebarLayout.VerticalAlignment = Enum.VerticalAlignment.Top
     SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
     SidebarLayout.Parent = Sidebar
     
     local SidebarPadding = Instance.new("UIPadding")
-    SidebarPadding.PaddingTop = UDim.new(0, 10 * scale)
+    SidebarPadding.PaddingTop = UDim.new(0, 40 * scale)  -- Di bawah header
     SidebarPadding.PaddingLeft = UDim.new(0, 10 * scale)
     SidebarPadding.PaddingRight = UDim.new(0, 10 * scale)
     SidebarPadding.Parent = Sidebar
     
     -- Content layout
     local ContentList = Instance.new("UIListLayout")
-    ContentList.Padding = UDim.new(0, 12 * scale)
+    ContentList.Padding = UDim.new(0, 15 * scale)
     ContentList.HorizontalAlignment = Enum.HorizontalAlignment.Center
     ContentList.SortOrder = Enum.SortOrder.LayoutOrder
     ContentList.Parent = ContentFrame
     
     local ContentPadding = Instance.new("UIPadding")
-    ContentPadding.PaddingLeft = UDim.new(0, 15 * scale)
-    ContentPadding.PaddingRight = UDim.new(0, 15 * scale)
-    ContentPadding.PaddingTop = UDim.new(0, 15 * scale)
-    ContentPadding.PaddingBottom = UDim.new(0, 15 * scale)
+    ContentPadding.PaddingLeft = UDim.new(0, 18 * scale)
+    ContentPadding.PaddingRight = UDim.new(0, 18 * scale)
+    ContentPadding.PaddingTop = UDim.new(0, 18 * scale)
+    ContentPadding.PaddingBottom = UDim.new(0, 18 * scale)
     ContentPadding.Parent = ContentFrame
     
     -- ===== WINDOW OBJECT =====
@@ -297,6 +420,7 @@ function SimpleGUI:CreateWindow(options)
         Tabs = {},
         ActiveTab = nil,
         WindowData = windowData,
+        IsMinimized = false,
         
         UpdateTheme = function(self, newTheme)
             theme = newTheme
@@ -304,14 +428,17 @@ function SimpleGUI:CreateWindow(options)
             MainFrame.BackgroundColor3 = theme.WindowBg
             TitleBar.BackgroundColor3 = theme.TitleBar
             TitleLabel.TextColor3 = theme.Text
+            TitleIcon.TextColor3 = theme.Accent
+            TitleIcon.BackgroundColor3 = theme.Accent
             Sidebar.BackgroundColor3 = theme.Sidebar
+            HeaderLabel.TextColor3 = theme.TextSecondary
             ContentFrame.BackgroundColor3 = theme.ContentBg
             ContentFrame.ScrollBarImageColor3 = theme.Accent
             
             ThemeButton.BackgroundColor3 = theme.Button
-            ThemeButton.TextColor3 = theme.Text
+            ThemeButton.TextColor3 = theme.TextSecondary
             MinimizeButton.BackgroundColor3 = theme.Button
-            MinimizeButton.TextColor3 = theme.Text
+            MinimizeButton.TextColor3 = theme.TextSecondary
             CloseButton.BackgroundColor3 = theme.Button
             CloseButton.TextColor3 = theme.Error
             
@@ -347,25 +474,26 @@ function SimpleGUI:CreateWindow(options)
     function windowObj:CreateTab(options)
         local tabOptions = type(options) == "string" and {Name = options} or (options or {})
         local tabName = tabOptions.Name or "Tab_" .. (#self.Tabs + 1)
+        local icon = tabOptions.Icon or ""
         local scale = self.WindowData.Scale
         
-        -- Tab Button
+        -- Tab Button dengan ikon
         local TabButton = Instance.new("TextButton")
         TabButton.Name = tabName .. "_Button"
-        TabButton.Size = UDim2.new(1, -20 * scale, 0, 40 * scale)
-        TabButton.Text = "  " .. tabName
+        TabButton.Size = UDim2.new(1, -20 * scale, 0, 44 * scale)
+        TabButton.Text = icon .. "  " .. tabName
         TabButton.TextColor3 = theme.Text
         TabButton.BackgroundColor3 = theme.TabNormal
         TabButton.BackgroundTransparency = 0
         TabButton.TextSize = 14 * scale
-        TabButton.Font = Enum.Font.SourceSansSemibold
+        TabButton.Font = Enum.Font.GothamSemibold
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.AutoButtonColor = false
         TabButton.LayoutOrder = #self.Tabs + 1
         TabButton.Parent = self.Sidebar
         
         local TabButtonCorner = Instance.new("UICorner")
-        TabButtonCorner.CornerRadius = UDim.new(0, 8 * scale)
+        TabButtonCorner.CornerRadius = UDim.new(0, 10 * scale)
         TabButtonCorner.Parent = TabButton
         
         -- Tab Content
@@ -377,48 +505,48 @@ function SimpleGUI:CreateWindow(options)
         TabContent.Parent = self.ContentFrame
         
         local TabLayout = Instance.new("UIListLayout")
-        TabLayout.Padding = UDim.new(0, 12 * scale)
+        TabLayout.Padding = UDim.new(0, 15 * scale)
         TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
         TabLayout.Parent = TabContent
         
-        -- Tab click handler
+        -- Tab click handler dengan animasi
         TabButton.MouseButton1Click:Connect(function()
             for name, tab in pairs(self.Tabs) do
                 tab.Content.Visible = false
-                tween(tab.Button, {BackgroundColor3 = theme.TabNormal})
+                tween(tab.Button, {BackgroundColor3 = theme.TabNormal}, 0.15)
                 tab.Button.TextColor3 = theme.Text
             end
             
             TabContent.Visible = true
-            tween(TabButton, {BackgroundColor3 = theme.TabActive})
+            tween(TabButton, {BackgroundColor3 = theme.TabActive}, 0.15)
             TabButton.TextColor3 = Color3.new(1, 1, 1)
             self.ActiveTab = tabName
         end)
         
-        -- Button hover effects
-        local function setupButtonHover(button)
-            if button and button:IsA("TextButton") then
-                button.MouseEnter:Connect(function()
-                    if not isMobile then
-                        tween(button, {BackgroundColor3 = theme.Hover})
-                    end
-                end)
-                
-                button.MouseLeave:Connect(function()
-                    if not isMobile then
-                        tween(button, {BackgroundColor3 = theme.Button})
-                    end
-                end)
-            end
+        -- Button hover effects yang lebih smooth
+        local function setupButtonHover(button, hoverColor, normalColor)
+            if not button or not button:IsA("TextButton") then return end
+            
+            button.MouseEnter:Connect(function()
+                if not isMobile and not button.Active then
+                    tween(button, {BackgroundColor3 = hoverColor or theme.ButtonHover}, 0.15)
+                end
+            end)
+            
+            button.MouseLeave:Connect(function()
+                if not isMobile and not button.Active then
+                    tween(button, {BackgroundColor3 = normalColor or theme.Button}, 0.15)
+                end
+            end)
         end
         
-        setupButtonHover(TabButton)
+        setupButtonHover(TabButton, theme.Hover, theme.TabNormal)
         setupButtonHover(ThemeButton)
         setupButtonHover(MinimizeButton)
         setupButtonHover(CloseButton)
         
-        -- ===== TAB BUILDER METHODS - DIPERBAIKI =====
+        -- ===== TAB BUILDER METHODS =====
         local tabObj = {
             Button = TabButton,
             Content = TabContent,
@@ -441,27 +569,29 @@ function SimpleGUI:CreateWindow(options)
                 
                 local Button = Instance.new("TextButton")
                 Button.Name = opts.Name or "Button_" .. #self.Elements + 1
-                Button.Size = UDim2.new(0.9, 0, 0, 40 * scale)
+                Button.Size = UDim2.new(0.9, 0, 0, 42 * scale)
                 Button.Text = opts.Text or Button.Name
                 Button.TextColor3 = theme.Text
                 Button.BackgroundColor3 = theme.Button
                 Button.BackgroundTransparency = 0
                 Button.TextSize = 14 * scale
-                Button.Font = Enum.Font.SourceSansSemibold
+                Button.Font = Enum.Font.Gotham
                 Button.AutoButtonColor = false
                 Button.LayoutOrder = #self.Elements + 1
                 Button.Parent = TabContent
                 
                 local Corner = Instance.new("UICorner")
-                Corner.CornerRadius = UDim.new(0, 8 * scale)
+                Corner.CornerRadius = UDim.new(0, 10 * scale)
                 Corner.Parent = Button
                 
-                setupButtonHover(Button)
+                setupButtonHover(Button, theme.ButtonHover, theme.Button)
                 
                 Button.MouseButton1Click:Connect(function()
-                    tween(Button, {BackgroundColor3 = theme.Active})
+                    tween(Button, {BackgroundColor3 = theme.Active}, 0.1)
                     task.wait(0.1)
-                    tween(Button, {BackgroundColor3 = theme.Button})
+                    tween(Button, {BackgroundColor3 = theme.ButtonHover}, 0.1)
+                    task.wait(0.1)
+                    tween(Button, {BackgroundColor3 = theme.Button}, 0.1)
                     
                     if opts.Callback then
                         pcall(opts.Callback)
@@ -478,12 +608,12 @@ function SimpleGUI:CreateWindow(options)
                 
                 local Label = Instance.new("TextLabel")
                 Label.Name = opts.Name or "Label_" .. #self.Elements + 1
-                Label.Size = UDim2.new(0.9, 0, 0, 28 * scale)
+                Label.Size = UDim2.new(0.9, 0, 0, 30 * scale)
                 Label.Text = opts.Text or Label.Name
-                Label.TextColor3 = theme.Text
+                Label.TextColor3 = opts.Color or theme.Text
                 Label.BackgroundTransparency = 1
-                Label.TextSize = 14 * scale
-                Label.Font = Enum.Font.SourceSans
+                Label.TextSize = opts.Size or 14 * scale
+                Label.Font = opts.Bold and Enum.Font.GothamBold or Enum.Font.Gotham
                 Label.TextXAlignment = opts.Alignment or Enum.TextXAlignment.Left
                 Label.LayoutOrder = #self.Elements + 1
                 Label.Parent = TabContent
@@ -498,7 +628,7 @@ function SimpleGUI:CreateWindow(options)
                 
                 local InputFrame = Instance.new("Frame")
                 InputFrame.Name = opts.Name or "Input_" .. #self.Elements + 1
-                InputFrame.Size = UDim2.new(0.9, 0, 0, 40 * scale)
+                InputFrame.Size = UDim2.new(0.9, 0, 0, 42 * scale)
                 InputFrame.BackgroundTransparency = 1
                 InputFrame.LayoutOrder = #self.Elements + 1
                 InputFrame.Parent = TabContent
@@ -508,29 +638,30 @@ function SimpleGUI:CreateWindow(options)
                 InputBox.Size = UDim2.new(1, 0, 1, 0)
                 InputBox.Text = opts.CurrentValue or ""
                 InputBox.PlaceholderText = opts.PlaceholderText or "Enter text..."
+                InputBox.PlaceholderColor3 = theme.TextSecondary
                 InputBox.TextColor3 = theme.Text
                 InputBox.BackgroundColor3 = theme.InputBg
                 InputBox.BackgroundTransparency = 0
                 InputBox.TextSize = 14 * scale
-                InputBox.Font = Enum.Font.SourceSans
+                InputBox.Font = Enum.Font.Gotham
                 InputBox.ClearTextOnFocus = false
                 InputBox.Parent = InputFrame
                 
                 local Corner = Instance.new("UICorner")
-                Corner.CornerRadius = UDim.new(0, 8 * scale)
+                Corner.CornerRadius = UDim.new(0, 10 * scale)
                 Corner.Parent = InputBox
                 
                 local Padding = Instance.new("UIPadding")
-                Padding.PaddingLeft = UDim.new(0, 12 * scale)
-                Padding.PaddingRight = UDim.new(0, 12 * scale)
+                Padding.PaddingLeft = UDim.new(0, 14 * scale)
+                Padding.PaddingRight = UDim.new(0, 14 * scale)
                 Padding.Parent = InputBox
                 
                 InputBox.Focused:Connect(function()
-                    tween(InputBox, {BackgroundColor3 = theme.Hover})
+                    tween(InputBox, {BackgroundColor3 = theme.Hover}, 0.15)
                 end)
                 
-                InputBox.FocusLost:Connect(function()
-                    tween(InputBox, {BackgroundColor3 = theme.InputBg})
+                InputBox.FocusLost:Connect(function(enterPressed)
+                    tween(InputBox, {BackgroundColor3 = theme.InputBg}, 0.15)
                     if opts.Callback then
                         pcall(opts.Callback, InputBox.Text)
                     end
@@ -540,23 +671,22 @@ function SimpleGUI:CreateWindow(options)
                 return InputBox
             end,
             
-            -- ===== CREATE TOGGLE - FIXED VERSION =====
             CreateToggle = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
                 
                 local ToggleFrame = Instance.new("Frame")
                 ToggleFrame.Name = opts.Name or "Toggle_" .. #self.Elements + 1
-                ToggleFrame.Size = UDim2.new(0.9, 0, 0, 40 * scale)
+                ToggleFrame.Size = UDim2.new(0.9, 0, 0, 42 * scale)
                 ToggleFrame.BackgroundTransparency = 1
                 ToggleFrame.LayoutOrder = #self.Elements + 1
                 ToggleFrame.Parent = TabContent
                 
-                -- Toggle container - PASTIKAN TextButton untuk MouseButton1Click
-                local ToggleContainer = Instance.new("TextButton")  -- TEXTBUTTON BUKAN FRAME
+                -- Toggle container
+                local ToggleContainer = Instance.new("TextButton")
                 ToggleContainer.Name = "ToggleContainer"
-                ToggleContainer.Size = UDim2.new(0, 60 * scale, 0, 30 * scale)
-                ToggleContainer.Position = UDim2.new(0, 0, 0.5, -15 * scale)
+                ToggleContainer.Size = UDim2.new(0, 52 * scale, 0, 28 * scale)
+                ToggleContainer.Position = UDim2.new(0, 0, 0.5, -14 * scale)
                 ToggleContainer.Text = ""
                 ToggleContainer.BackgroundColor3 = theme.ToggleOff
                 ToggleContainer.BackgroundTransparency = 0
@@ -565,14 +695,14 @@ function SimpleGUI:CreateWindow(options)
                 ToggleContainer.Parent = ToggleFrame
                 
                 local ContainerCorner = Instance.new("UICorner")
-                ContainerCorner.CornerRadius = UDim.new(0, 15 * scale)
+                ContainerCorner.CornerRadius = UDim.new(0, 14 * scale)
                 ContainerCorner.Parent = ToggleContainer
                 
                 -- Toggle circle
                 local ToggleCircle = Instance.new("Frame")
                 ToggleCircle.Name = "ToggleCircle"
-                ToggleCircle.Size = UDim2.new(0, 24 * scale, 0, 24 * scale)
-                ToggleCircle.Position = UDim2.new(0, 3 * scale, 0.5, -12 * scale)
+                ToggleCircle.Size = UDim2.new(0, 22 * scale, 0, 22 * scale)
+                ToggleCircle.Position = UDim2.new(0, 3 * scale, 0.5, -11 * scale)
                 ToggleCircle.BackgroundColor3 = Color3.new(1, 1, 1)
                 ToggleCircle.BackgroundTransparency = 0
                 ToggleCircle.BorderSizePixel = 0
@@ -582,16 +712,16 @@ function SimpleGUI:CreateWindow(options)
                 CircleCorner.CornerRadius = UDim.new(0.5, 0)
                 CircleCorner.Parent = ToggleCircle
                 
-                -- Toggle label - PASTIKAN TextButton untuk MouseButton1Click
-                local ToggleLabel = Instance.new("TextButton")  -- TEXTBUTTON BUKAN TextLabel
+                -- Toggle label
+                local ToggleLabel = Instance.new("TextButton")
                 ToggleLabel.Name = "ToggleLabel"
-                ToggleLabel.Size = UDim2.new(1, -70 * scale, 1, 0)
-                ToggleLabel.Position = UDim2.new(0, 70 * scale, 0, 0)
+                ToggleLabel.Size = UDim2.new(1, -62 * scale, 1, 0)
+                ToggleLabel.Position = UDim2.new(0, 62 * scale, 0, 0)
                 ToggleLabel.Text = opts.Text or opts.Name or "Toggle"
                 ToggleLabel.TextColor3 = theme.Text
                 ToggleLabel.BackgroundTransparency = 1
                 ToggleLabel.TextSize = 14 * scale
-                ToggleLabel.Font = Enum.Font.SourceSansSemibold
+                ToggleLabel.Font = Enum.Font.Gotham
                 ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
                 ToggleLabel.AutoButtonColor = false
                 ToggleLabel.Parent = ToggleFrame
@@ -599,64 +729,51 @@ function SimpleGUI:CreateWindow(options)
                 -- Toggle state
                 local isToggled = opts.CurrentValue or false
                 
-                -- Update toggle appearance
                 local function updateToggle()
                     if isToggled then
-                        tween(ToggleContainer, {BackgroundColor3 = theme.ToggleOn}, 0.2)
-                        tween(ToggleCircle, {Position = UDim2.new(1, -27 * scale, 0.5, -12 * scale)}, 0.2)
+                        tween(ToggleContainer, {BackgroundColor3 = theme.ToggleOn}, 0.2, Enum.EasingStyle.Back)
+                        tween(ToggleCircle, {Position = UDim2.new(1, -25 * scale, 0.5, -11 * scale)}, 0.2)
                     else
-                        tween(ToggleContainer, {BackgroundColor3 = theme.ToggleOff}, 0.2)
-                        tween(ToggleCircle, {Position = UDim2.new(0, 3 * scale, 0.5, -12 * scale)}, 0.2)
+                        tween(ToggleContainer, {BackgroundColor3 = theme.ToggleOff}, 0.2, Enum.EasingStyle.Back)
+                        tween(ToggleCircle, {Position = UDim2.new(0, 3 * scale, 0.5, -11 * scale)}, 0.2)
                     end
                 end
                 
-                -- Initial state
                 updateToggle()
                 
-                -- Toggle click - SEKARANG VALID karena ToggleContainer adalah TextButton
-                ToggleContainer.MouseButton1Click:Connect(function()
+                local function toggle()
                     isToggled = not isToggled
                     updateToggle()
-                    
                     if opts.Callback then
                         pcall(opts.Callback, isToggled)
                     end
-                end)
+                end
                 
-                -- Label click - SEKARANG VALID karena ToggleLabel adalah TextButton
-                ToggleLabel.MouseButton1Click:Connect(function()
-                    isToggled = not isToggled
-                    updateToggle()
-                    
-                    if opts.Callback then
-                        pcall(opts.Callback, isToggled)
-                    end
-                end)
+                ToggleContainer.MouseButton1Click:Connect(toggle)
+                ToggleLabel.MouseButton1Click:Connect(toggle)
                 
                 table.insert(self.Elements, ToggleFrame)
                 
-                -- Return toggle object
                 return {
                     Frame = ToggleFrame,
-                    Container = ToggleContainer,
-                    Circle = ToggleCircle,
-                    Label = ToggleLabel,
                     GetValue = function() return isToggled end,
                     SetValue = function(value)
                         isToggled = value
                         updateToggle()
+                        if opts.Callback then
+                            pcall(opts.Callback, isToggled)
+                        end
                     end
                 }
             end,
             
-            -- ===== CREATE SLIDER =====
             CreateSlider = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
                 
                 local SliderFrame = Instance.new("Frame")
                 SliderFrame.Name = opts.Name or "Slider_" .. #self.Elements + 1
-                SliderFrame.Size = UDim2.new(0.9, 0, 0, 60 * scale)
+                SliderFrame.Size = UDim2.new(0.9, 0, 0, 70 * scale)
                 SliderFrame.BackgroundTransparency = 1
                 SliderFrame.LayoutOrder = #self.Elements + 1
                 SliderFrame.Parent = TabContent
@@ -664,32 +781,32 @@ function SimpleGUI:CreateWindow(options)
                 -- Label
                 local SliderLabel = Instance.new("TextLabel")
                 SliderLabel.Name = "SliderLabel"
-                SliderLabel.Size = UDim2.new(1, 0, 0, 20 * scale)
+                SliderLabel.Size = UDim2.new(1, 0, 0, 22 * scale)
                 SliderLabel.Text = opts.Name or "Slider"
                 SliderLabel.TextColor3 = theme.Text
                 SliderLabel.BackgroundTransparency = 1
                 SliderLabel.TextSize = 14 * scale
-                SliderLabel.Font = Enum.Font.SourceSansSemibold
+                SliderLabel.Font = Enum.Font.Gotham
                 SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
                 SliderLabel.Parent = SliderFrame
                 
                 -- Value display
                 local ValueLabel = Instance.new("TextLabel")
                 ValueLabel.Name = "ValueLabel"
-                ValueLabel.Size = UDim2.new(0, 60 * scale, 0, 20 * scale)
+                ValueLabel.Size = UDim2.new(0, 60 * scale, 0, 22 * scale)
                 ValueLabel.Position = UDim2.new(1, -60 * scale, 0, 0)
                 ValueLabel.Text = tostring(opts.CurrentValue or (opts.Range and opts.Range[1]) or 50)
-                ValueLabel.TextColor3 = theme.Text
+                ValueLabel.TextColor3 = theme.Accent
                 ValueLabel.BackgroundTransparency = 1
                 ValueLabel.TextSize = 14 * scale
-                ValueLabel.Font = Enum.Font.SourceSans
+                ValueLabel.Font = Enum.Font.GothamBold
                 ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
                 ValueLabel.Parent = SliderFrame
                 
                 -- Slider track
                 local SliderTrack = Instance.new("Frame")
                 SliderTrack.Name = "SliderTrack"
-                SliderTrack.Size = UDim2.new(1, 0, 0, 20 * scale)
+                SliderTrack.Size = UDim2.new(1, 0, 0, 24 * scale)
                 SliderTrack.Position = UDim2.new(0, 0, 0, 30 * scale)
                 SliderTrack.BackgroundColor3 = theme.SliderTrack
                 SliderTrack.BackgroundTransparency = 0
@@ -697,7 +814,7 @@ function SimpleGUI:CreateWindow(options)
                 SliderTrack.Parent = SliderFrame
                 
                 local TrackCorner = Instance.new("UICorner")
-                TrackCorner.CornerRadius = UDim.new(0, 10 * scale)
+                TrackCorner.CornerRadius = UDim.new(0, 12 * scale)
                 TrackCorner.Parent = SliderTrack
                 
                 -- Slider fill
@@ -710,10 +827,10 @@ function SimpleGUI:CreateWindow(options)
                 SliderFill.Parent = SliderTrack
                 
                 local FillCorner = Instance.new("UICorner")
-                FillCorner.CornerRadius = UDim.new(0, 10 * scale)
+                FillCorner.CornerRadius = UDim.new(0, 12 * scale)
                 FillCorner.Parent = SliderFill
                 
-                -- Slider thumb (TextButton untuk mouse events)
+                -- Slider thumb
                 local SliderThumb = Instance.new("TextButton")
                 SliderThumb.Name = "SliderThumb"
                 SliderThumb.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
@@ -734,7 +851,6 @@ function SimpleGUI:CreateWindow(options)
                 local currentValue = opts.CurrentValue or range[1]
                 local isDragging = false
                 
-                -- Update slider position
                 local function updateSliderPosition(value)
                     currentValue = math.clamp(
                         math.floor((value - range[1]) / increment) * increment + range[1],
@@ -745,29 +861,23 @@ function SimpleGUI:CreateWindow(options)
                     local percentage = (currentValue - range[1]) / (range[2] - range[1])
                     local fillWidth = math.clamp(percentage, 0, 1)
                     
-                    -- Update visuals
-                    tween(SliderFill, {Size = UDim2.new(fillWidth, 0, 1, 0)})
-                    tween(SliderThumb, {Position = UDim2.new(fillWidth, -14 * scale, 0.5, -14 * scale)})
+                    SliderFill.Size = UDim2.new(fillWidth, 0, 1, 0)
+                    SliderThumb.Position = UDim2.new(fillWidth, -14 * scale, 0.5, -14 * scale)
                     ValueLabel.Text = tostring(currentValue)
                     
-                    -- Call callback
                     if opts.Callback then
                         pcall(opts.Callback, currentValue)
                     end
                 end
                 
-                -- Initial position
                 updateSliderPosition(currentValue)
                 
-                -- Drag events
                 SliderThumb.MouseButton1Down:Connect(function()
                     isDragging = true
-                    tween(SliderThumb, {Size = UDim2.new(0, 32 * scale, 0, 32 * scale)})
-                    tween(SliderThumb, {BackgroundColor3 = theme.Active})
+                    tween(SliderThumb, {Size = UDim2.new(0, 32 * scale, 0, 32 * scale)}, 0.1)
                 end)
                 
-                local connection
-                connection = UserInputService.InputChanged:Connect(function(input)
+                UserInputService.InputChanged:Connect(function(input)
                     if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                         local mousePos = UserInputService:GetMouseLocation()
                         local trackPos = SliderTrack.AbsolutePosition
@@ -782,16 +892,12 @@ function SimpleGUI:CreateWindow(options)
                 end)
                 
                 UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        if isDragging then
-                            isDragging = false
-                            tween(SliderThumb, {Size = UDim2.new(0, 28 * scale, 0, 28 * scale)})
-                            tween(SliderThumb, {BackgroundColor3 = theme.Accent})
-                        end
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 and isDragging then
+                        isDragging = false
+                        tween(SliderThumb, {Size = UDim2.new(0, 28 * scale, 0, 28 * scale)}, 0.1)
                     end
                 end)
                 
-                -- Click on track to set value
                 SliderTrack.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
                         local mousePos = UserInputService:GetMouseLocation()
@@ -808,11 +914,8 @@ function SimpleGUI:CreateWindow(options)
                 
                 table.insert(self.Elements, SliderFrame)
                 
-                -- Return slider object
                 return {
                     Frame = SliderFrame,
-                    Track = SliderTrack,
-                    Thumb = SliderThumb,
                     GetValue = function() return currentValue end,
                     SetValue = function(value)
                         updateSliderPosition(value)
@@ -823,7 +926,6 @@ function SimpleGUI:CreateWindow(options)
         
         self.Tabs[tabName] = tabObj
         
-        -- Set first tab as active
         if #self.Tabs == 1 then
             TabButton.BackgroundColor3 = theme.TabActive
             TabButton.TextColor3 = Color3.new(1, 1, 1)
@@ -834,97 +936,157 @@ function SimpleGUI:CreateWindow(options)
         return tabObj
     end
     
--- ===== MINIMIZE FUNCTIONALITY (FIXED CORNERS) =====
-local isMinimized = false
-local originalSize = windowData.Size
-local originalCornerRadius = WindowCorner.CornerRadius  -- Simpan radius asli
-
-MinimizeButton.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    if isMinimized then
-        -- Minimize: kecilkan jadi hanya cukup untuk 2 tombol
-        MainFrame.Size = UDim2.new(0, 70 * scale, 0, 30 * scale) -- Lebar 70px, tinggi 30px
-        
-        -- Ubah corner radius menjadi lebih kecil proporsional
-        WindowCorner.CornerRadius = UDim.new(0, 6 * scale)  -- Radius lebih kecil untuk ukuran kecil
-        ShadowCorner.CornerRadius = UDim.new(0, 8 * scale)  -- Shadow mengikuti
-        
-        -- SEMBUNYIKAN SEMUA
-        TitleLabel.Visible = false  -- Hilangkan title text
-        ThemeButton.Visible = false  -- Hilangkan theme button
-        Sidebar.Visible = false
-        ContentFrame.Visible = false
-        
-        -- Update tampilan tombol minimize jadi restore
-        MinimizeButton.Text = "□"
-        
-        -- Reposisi tombol agar sejajar
-        MinimizeButton.Position = UDim2.new(0, 5, 0.5, -11)
-        CloseButton.Position = UDim2.new(1, -27, 0.5, -11)
-        
-        -- Ukuran tombol lebih kecil
-        MinimizeButton.Size = UDim2.new(0, 22 * scale, 0, 22 * scale)
-        CloseButton.Size = UDim2.new(0, 22 * scale, 0, 22 * scale)
-        
-        -- Update corner tombol agar proporsional
-        local buttonCorner = MinimizeButton:FindFirstChildOfClass("UICorner")
-        if buttonCorner then
-            buttonCorner.CornerRadius = UDim.new(0, 4 * scale)
+    -- ===== MINIMIZE FUNCTIONALITY - MENJADI LOGO B =====
+    local originalSize = windowData.Size
+    local originalCornerRadius = WindowCorner.CornerRadius
+    local isMinimized = false
+    
+    -- Buat minimized icon (logo B)
+    local MinimizedIcon = Instance.new("TextButton")
+    MinimizedIcon.Name = "MinimizedIcon_" .. windowData.Name
+    MinimizedIcon.Size = UDim2.new(0, 40 * scale, 0, 40 * scale)
+    MinimizedIcon.Position = UDim2.new(0, 20, 0, 20)  -- Posisi default, bisa diubah nanti
+    MinimizedIcon.Text = windowData.Logo
+    MinimizedIcon.TextColor3 = theme.Text
+    MinimizedIcon.BackgroundColor3 = theme.Accent
+    MinimizedIcon.BackgroundTransparency = 0
+    MinimizedIcon.TextSize = 20 * scale
+    MinimizedIcon.Font = Enum.Font.GothamBold
+    MinimizedIcon.Visible = false
+    MinimizedIcon.Parent = self.ScreenGui
+    
+    -- Shadow untuk icon
+    local IconShadow = Instance.new("ImageLabel")
+    IconShadow.Name = "IconShadow"
+    IconShadow.Size = UDim2.new(1, 8, 1, 8)
+    IconShadow.Position = UDim2.new(0, -4, 0, -4)
+    IconShadow.BackgroundTransparency = 1
+    IconShadow.Image = "rbxassetid://13110549987"
+    IconShadow.ImageColor3 = Color3.new(0, 0, 0)
+    IconShadow.ImageTransparency = 0.7
+    IconShadow.ScaleType = Enum.ScaleType.Slice
+    IconShadow.SliceCenter = Rect.new(10, 10, 10, 10)
+    IconShadow.ZIndex = -1
+    IconShadow.Parent = MinimizedIcon
+    
+    local IconCorner = Instance.new("UICorner")
+    IconCorner.CornerRadius = UDim.new(0, 12 * scale)
+    IconCorner.Parent = MinimizedIcon
+    
+    -- Simpan icon untuk update theme nanti
+    self.MinimizedIcons[windowData.Name] = {
+        Icon = MinimizedIcon,
+        UpdateTheme = function(self, newTheme)
+            MinimizedIcon.BackgroundColor3 = newTheme.Accent
+            MinimizedIcon.TextColor3 = newTheme.Text
         end
+    }
+    
+    -- Fungsi minimize/restore
+    local function setMinimized(minimize)
+        isMinimized = minimize
+        windowObj.IsMinimized = minimize
         
-        buttonCorner = CloseButton:FindFirstChildOfClass("UICorner")
-        if buttonCorner then
-            buttonCorner.CornerRadius = UDim.new(0, 4 * scale)
+        if minimize then
+            -- Simpan posisi window sebelum minimize
+            local windowPos = MainFrame.Position
+            local windowSize = MainFrame.AbsoluteSize
+            
+            -- Animasi minimize
+            tween(MainFrame, {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = windowPos
+            }, 0.2)
+            
+            task.wait(0.15)
+            MainFrame.Visible = false
+            
+            -- Tampilkan icon di posisi window
+            MinimizedIcon.Position = UDim2.new(
+                windowPos.X.Scale,
+                windowPos.X.Offset,
+                windowPos.Y.Scale,
+                windowPos.Y.Offset
+            )
+            MinimizedIcon.Visible = true
+            
+            -- Animasi icon muncul
+            MinimizedIcon.Size = UDim2.new(0, 0, 0, 0)
+            tween(MinimizedIcon, {Size = UDim2.new(0, 40 * scale, 0, 40 * scale)}, 0.2, Enum.EasingStyle.Back)
+            
+            MinimizeButton.Text = "⬤"  -- Ganti icon jadi lingkaran (untuk restore)
+        else
+            -- Sembunyikan icon
+            tween(MinimizedIcon, {Size = UDim2.new(0, 0, 0, 0)}, 0.15)
+            task.wait(0.1)
+            MinimizedIcon.Visible = false
+            
+            -- Tampilkan window
+            MainFrame.Visible = true
+            MainFrame.Size = UDim2.new(0, 0, 0, 0)
+            tween(MainFrame, {Size = originalSize}, 0.2, Enum.EasingStyle.Back)
+            tween(MainFrame, {Position = originalSize and MainFrame.Position or UDim2.new(0.5, -350 * scale, 0.5, -250 * scale)}, 0.2)
+            
+            -- Kembalikan corner radius
+            WindowCorner.CornerRadius = originalCornerRadius
+            
+            MinimizeButton.Text = "—"
         end
-    else
-        -- Restore: kembalikan semua
-        MainFrame.Size = originalSize
-        
-        -- Kembalikan corner radius ke ukuran semula
-        WindowCorner.CornerRadius = originalCornerRadius
-        ShadowCorner.CornerRadius = UDim.new(0, 14 * scale)
-        
-        -- TAMPILKAN KEMBALI SEMUA
-        TitleLabel.Visible = true
-        ThemeButton.Visible = windowData.ShowThemeTab
-        Sidebar.Visible = true
-        ContentFrame.Visible = true
-        
-        -- Kembalikan tombol ke ukuran normal
-        MinimizeButton.Text = "_"
-        
-        -- Kembalikan posisi tombol ke posisi awal
-        ThemeButton.Position = UDim2.new(1, -(28 * 3) - 20 * scale, 0.5, -14 * scale)
-        MinimizeButton.Position = UDim2.new(1, -(28 * 2) - 10 * scale, 0.5, -14 * scale)
-        CloseButton.Position = UDim2.new(1, -28 * scale, 0.5, -14 * scale)
-        
-        -- Kembalikan ukuran tombol
-        ThemeButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
-        MinimizeButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
-        CloseButton.Size = UDim2.new(0, 28 * scale, 0, 28 * scale)
-        
-        -- Kembalikan corner radius tombol
-        local function restoreButtonCorner(button)
-            local corner = button:FindFirstChildOfClass("UICorner")
-            if corner then
-                corner.CornerRadius = UDim.new(0, 6 * scale)
-            end
-        end
-        
-        restoreButtonCorner(ThemeButton)
-        restoreButtonCorner(MinimizeButton)
-        restoreButtonCorner(CloseButton)
     end
-end)
+    
+    MinimizeButton.MouseButton1Click:Connect(function()
+        setMinimized(not isMinimized)
+    end)
+    
+    -- Klik icon untuk restore
+    MinimizedIcon.MouseButton1Click:Connect(function()
+        setMinimized(false)
+    end)
+    
+    -- Drag untuk icon
+    local iconDragging = false
+    local iconDragStart, iconStartPos
+    
+    MinimizedIcon.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            iconDragging = true
+            iconDragStart = input.Position
+            iconStartPos = MinimizedIcon.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if iconDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - iconDragStart
+            MinimizedIcon.Position = UDim2.new(
+                iconStartPos.X.Scale,
+                iconStartPos.X.Offset + delta.X,
+                iconStartPos.Y.Scale,
+                iconStartPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and iconDragging then
+            iconDragging = false
+        end
+    end)
     
     -- Close button
     CloseButton.MouseButton1Click:Connect(function()
-        tween(MainFrame, {Size = UDim2.new(0, 0, 0, 0)})
-        task.wait(0.2)
-        MainFrame.Visible = false
+        if isMinimized then
+            tween(MinimizedIcon, {Size = UDim2.new(0, 0, 0, 0)}, 0.15)
+            task.wait(0.15)
+            MinimizedIcon.Visible = false
+        else
+            tween(MainFrame, {Size = UDim2.new(0, 0, 0, 0)}, 0.2)
+            task.wait(0.2)
+            MainFrame.Visible = false
+        end
     end)
     
-    -- Dragging
+    -- Dragging window
     local dragging = false
     local dragStart, startPos
     
@@ -933,7 +1095,7 @@ end)
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
-            tween(TitleBar, {BackgroundColor3 = theme.Hover})
+            tween(TitleBar, {BackgroundColor3 = theme.Hover}, 0.15)
         end
     end)
     
@@ -950,22 +1112,24 @@ end)
     end)
     
     UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and dragging then
             dragging = false
-            tween(TitleBar, {BackgroundColor3 = theme.TitleBar})
+            tween(TitleBar, {BackgroundColor3 = theme.TitleBar}, 0.15)
         end
     end)
     
     -- Create theme tab if requested
     if windowData.ShowThemeTab then
-        local ThemeTab = windowObj:CreateTab("🎨 Theme")
-        ThemeTab:CreateLabel({Text = "Select Theme:", Alignment = Enum.TextXAlignment.Center})
-        ThemeTab:CreateButton({Text = "🌙 Dark", Callback = function() self:SetTheme("DARK") end})
+        local ThemeTab = windowObj:CreateTab({Name = "Theme", Icon = "🎨"})
+        ThemeTab:CreateLabel({Text = "Color Theme", Size = 16, Bold = true, Alignment = Enum.TextXAlignment.Center})
+        ThemeTab:CreateButton({Text = "🌙 Dark Mode", Callback = function() self:SetTheme("DARK") end})
+        ThemeTab:CreateButton({Text = "☀️ Light Mode", Callback = function() self:SetTheme("LIGHT") end})
+        ThemeTab:CreateButton({Text = "🌃 Midnight Mode", Callback = function() self:SetTheme("MIDNIGHT") end})
     end
     
-    print("✅ Created window with sidebar tabs: " .. windowData.Name)
+    print("✅ Created professional window: " .. windowData.Name)
     return windowObj
 end
 
-print("🎉 SimpleGUI v6.3 - FIXED VERSION loaded!")
+print("🎉 SimpleGUI v7.0 - Professional Edition loaded!")
 return SimpleGUI
