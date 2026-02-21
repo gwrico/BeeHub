@@ -290,52 +290,6 @@ function Utilities.Init(Dependencies)
         end
     })
     
-    -- ===== CHANGE THEME =====
-    Tab:CreateLabel({
-        Name = "ThemeLabel",
-        Text = "🎨 Quick Theme:",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    Tab:CreateButton({
-        Name = "DarkTheme",
-        Text = "🌙 Dark Theme",
-        Callback = function()
-            GUI:SetTheme("DARK")
-            Bdev:Notify({
-                Title = "Theme",
-                Content = "Dark theme applied!",
-                Duration = 3
-            })
-        end
-    })
-    
-    Tab:CreateButton({
-        Name = "LightTheme",
-        Text = "☀️ Light Theme",
-        Callback = function()
-            GUI:SetTheme("LIGHT")
-            Bdev:Notify({
-                Title = "Theme",
-                Content = "Light theme applied!",
-                Duration = 3
-            })
-        end
-    })
-    
-    Tab:CreateButton({
-        Name = "PurpleTheme",
-        Text = "💜 Purple Theme",
-        Callback = function()
-            GUI:SetTheme("PURPLE")
-            Bdev:Notify({
-                Title = "Theme",
-                Content = "Purple theme applied!",
-                Duration = 3
-            })
-        end
-    })
-    
     print("✅ Utilities tab initialized")
 end
 
