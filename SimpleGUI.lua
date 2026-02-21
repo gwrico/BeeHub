@@ -1,7 +1,7 @@
 -- ==============================================
--- 🎨 SIMPLEGUI v7.1 - SPEEDHUB FULL EDITION
+-- 🎨 SIMPLEGUI v7.1 - BEEHUB FULL EDITION
 -- ==============================================
-print("🔧 Loading SimpleGUI v7.1 - SpeedHub Full Edition...")
+print("🔧 Loading SimpleGUI v7.1 - BeeHub Full Edition...")
 
 local SimpleGUI = {}
 SimpleGUI.__index = SimpleGUI
@@ -12,15 +12,15 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- SpeedHub Color Scheme
+-- BeeHub Color Scheme
 SimpleGUI.Themes = {
     DARK = {
-        Name = "SpeedHub Dark",
-        -- Warna dasar SpeedHub
+        Name = "BeeHub Dark",
+        -- Warna dasar BeeHub
         Primary = Color3.fromRGB(20, 20, 30),      -- Background utama gelap
         Secondary = Color3.fromRGB(30, 30, 40),     -- Background sekunder
-        Accent = Color3.fromRGB(0, 180, 255),       -- Biru terang SpeedHub
-        AccentLight = Color3.fromRGB(100, 210, 255), -- Biru lebih terang
+        Accent = Color3.fromRGB(255, 185, 0),       -- Kuning BeeHub (seperti madu/lebah)
+        AccentLight = Color3.fromRGB(255, 215, 100), -- Kuning lebih terang
         Text = Color3.fromRGB(255, 255, 255),       -- Text putih
         TextSecondary = Color3.fromRGB(200, 200, 210), -- Text abu-abu terang
         TextMuted = Color3.fromRGB(150, 150, 160),   -- Text abu-abu gelap
@@ -29,15 +29,15 @@ SimpleGUI.Themes = {
         Error = Color3.fromRGB(255, 70, 70),
         Border = Color3.fromRGB(50, 50, 65),
         BorderLight = Color3.fromRGB(70, 70, 85),
-        Hover = Color3.fromRGB(0, 200, 255, 0.3),    -- Biru dengan transparansi
-        Active = Color3.fromRGB(0, 180, 255),
+        Hover = Color3.fromRGB(255, 200, 50, 0.3),   -- Kuning dengan transparansi
+        Active = Color3.fromRGB(255, 185, 0),
         
         -- UI Specific dengan transparansi
         WindowBg = Color3.fromRGB(15, 15, 22),       -- Lebih gelap
         TitleBar = Color3.fromRGB(22, 22, 30),
         TabNormal = Color3.fromRGB(28, 28, 38),
-        TabActive = Color3.fromRGB(0, 180, 255),
-        TabHover = Color3.fromRGB(40, 40, 55),
+        TabActive = Color3.fromRGB(255, 185, 0),     -- Kuning untuk tab aktif
+        TabHover = Color3.fromRGB(45, 45, 60),
         ContentBg = Color3.fromRGB(18, 18, 25),      -- Content background gelap
         ContentBgLight = Color3.fromRGB(25, 25, 35),
         Button = Color3.fromRGB(40, 40, 52),
@@ -45,26 +45,26 @@ SimpleGUI.Themes = {
         InputBg = Color3.fromRGB(30, 30, 40),
         InputBgFocus = Color3.fromRGB(40, 40, 55),
         ToggleOff = Color3.fromRGB(70, 70, 85),
-        ToggleOn = Color3.fromRGB(0, 180, 255),
+        ToggleOn = Color3.fromRGB(255, 185, 0),      -- Kuning untuk toggle on
         ToggleCircle = Color3.fromRGB(255, 255, 255),
         SliderTrack = Color3.fromRGB(45, 45, 58),
-        SliderFill = Color3.fromRGB(0, 180, 255),
+        SliderFill = Color3.fromRGB(255, 185, 0),    -- Kuning untuk slider fill
         SliderThumb = Color3.fromRGB(255, 255, 255),
         Sidebar = Color3.fromRGB(20, 20, 28),
         
         -- Transparansi
         Overlay = Color3.fromRGB(0, 0, 0, 0.5),
-        Glow = Color3.fromRGB(0, 180, 255, 0.2)
+        Glow = Color3.fromRGB(255, 185, 0, 0.2)      -- Kuning glow
     }
 }
 
 function SimpleGUI.new()
-    print("🚀 Initializing SpeedHub Full Edition...")
+    print("🚀 Initializing BeeHub Full Edition...")
     
     local self = setmetatable({}, SimpleGUI)
     
     self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "SpeedHub_Full_" .. math.random(1000, 9999)
+    self.ScreenGui.Name = "BeeHub_Full_" .. math.random(1000, 9999)
     self.ScreenGui.DisplayOrder = 99999
     self.ScreenGui.ResetOnSpawn = false
     self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -82,7 +82,7 @@ function SimpleGUI.new()
     self.CurrentTheme = "DARK"
     self.MinimizedIcons = {}
     
-    print("✅ SpeedHub Full Edition initialized!")
+    print("✅ BeeHub Full Edition initialized!")
     return self
 end
 
@@ -103,15 +103,15 @@ local function tween(object, properties, duration, easingStyle)
     return tween
 end
 
--- Create window dengan tampilan SpeedHub full
+-- Create window dengan tampilan BeeHub full
 function SimpleGUI:CreateWindow(options)
     local opts = options or {}
     local isMobile = UserInputService.TouchEnabled
     local scale = isMobile and 0.85 or 1.0
     
     local windowData = {
-        Name = opts.Name or "BeeHub X",
-        SubName = opts.SubName or "Version 7.1.0 | discord.gg/abcd",
+        Name = opts.Name or "BeeHub v4.0",           -- BeeHub v4.0
+        SubName = opts.SubName or "Prototype Edition | discord.gg/abcd",  -- Prototype Edition | discord.gg/abcd
         Size = opts.Size or UDim2.new(0, 750 * scale, 0, 520 * scale),
         Position = opts.Position or UDim2.new(0.5, -375 * scale, 0.5, -260 * scale),
         IsMobile = isMobile,
@@ -124,7 +124,7 @@ function SimpleGUI:CreateWindow(options)
     
     -- ===== MAIN WINDOW FRAME =====
     local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "SpeedHub_Window"
+    MainFrame.Name = "BeeHub_Window"
     MainFrame.Size = windowData.Size
     MainFrame.Position = windowData.Position
     MainFrame.BackgroundColor3 = theme.WindowBg
@@ -165,7 +165,7 @@ function SimpleGUI:CreateWindow(options)
     TitleBarCorner.CornerRadius = UDim.new(0, 8 * scale)
     TitleBarCorner.Parent = TitleBar
     
-    -- Bottom line untuk title bar
+    -- Bottom line untuk title bar (warna kuning)
     local TitleBarLine = Instance.new("Frame")
     TitleBarLine.Name = "TitleBarLine"
     TitleBarLine.Size = UDim2.new(1, 0, 0, 1)
@@ -183,7 +183,7 @@ function SimpleGUI:CreateWindow(options)
     TitleContainer.BackgroundTransparency = 1
     TitleContainer.Parent = TitleBar
     
-    -- Icon/Logo
+    -- Icon/Logo (tetap B)
     local TitleIcon = Instance.new("TextLabel")
     TitleIcon.Name = "TitleIcon"
     TitleIcon.Size = UDim2.new(0, 32 * scale, 0, 32 * scale)
@@ -208,7 +208,7 @@ function SimpleGUI:CreateWindow(options)
     TitleTextFrame.BackgroundTransparency = 1
     TitleTextFrame.Parent = TitleContainer
     
-    -- Main Title
+    -- Main Title (BeeHub v4.0)
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
     TitleLabel.Size = UDim2.new(1, 0, 0.5, -2)
@@ -221,7 +221,7 @@ function SimpleGUI:CreateWindow(options)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent = TitleTextFrame
     
-    -- Sub Title (Version & Discord)
+    -- Sub Title (Prototype Edition | discord.gg/abcd)
     local SubTitleLabel = Instance.new("TextLabel")
     SubTitleLabel.Name = "SubTitle"
     SubTitleLabel.Size = UDim2.new(1, 0, 0.5, -2)
@@ -310,7 +310,7 @@ function SimpleGUI:CreateWindow(options)
     HeaderLabel.Size = UDim2.new(1, -20, 1, 0)
     HeaderLabel.Position = UDim2.new(0, 12, 0, 10)
     HeaderLabel.Text = "MENU"
-    HeaderLabel.TextColor3 = theme.Accent
+    HeaderLabel.TextColor3 = theme.Accent  -- Kuning untuk MENU
     HeaderLabel.BackgroundTransparency = 1
     HeaderLabel.TextSize = 13 * scale
     HeaderLabel.Font = Enum.Font.GothamBold
@@ -400,7 +400,7 @@ function SimpleGUI:CreateWindow(options)
         HeaderTitle.Name = "HeaderTitle"
         HeaderTitle.Size = UDim2.new(0, 100, 1, 0)
         HeaderTitle.Text = title
-        HeaderTitle.TextColor3 = theme.Accent
+        HeaderTitle.TextColor3 = theme.Accent  -- Kuning untuk section header
         HeaderTitle.BackgroundTransparency = 1
         HeaderTitle.TextSize = 14 * scale
         HeaderTitle.Font = Enum.Font.GothamBold
@@ -458,7 +458,7 @@ function SimpleGUI:CreateWindow(options)
                     
                     if self.ActiveTab == tabName then
                         tabData.Button.BackgroundColor3 = theme.TabActive
-                        tabData.Button.TextColor3 = Color3.new(1, 1, 1)
+                        tabData.Button.TextColor3 = Color3.new(0, 0, 0)  -- Text hitam di tab aktif (kontras dengan kuning)
                     end
                 end
                 
@@ -533,7 +533,7 @@ function SimpleGUI:CreateWindow(options)
             
             TabContent.Visible = true
             tween(TabButton, {BackgroundColor3 = theme.TabActive}, 0.15)
-            TabButton.TextColor3 = Color3.new(1, 1, 1)
+            TabButton.TextColor3 = Color3.new(0, 0, 0)  -- Text hitam saat aktif
             self.ActiveTab = tabName
         end)
         
@@ -571,7 +571,7 @@ function SimpleGUI:CreateWindow(options)
                 
                 if windowObj.ActiveTab == tabName then
                     TabButton.BackgroundColor3 = newTheme.TabActive
-                    TabButton.TextColor3 = Color3.new(1, 1, 1)
+                    TabButton.TextColor3 = Color3.new(0, 0, 0)  -- Text hitam di tab aktif
                 end
             end,
             
@@ -774,7 +774,7 @@ function SimpleGUI:CreateWindow(options)
                 ValueLabel.Size = UDim2.new(0, 45, 0, 20 * scale)
                 ValueLabel.Position = UDim2.new(1, -45, 0, 0)
                 ValueLabel.Text = tostring(opts.CurrentValue or (opts.Range and opts.Range[1]) or 50)
-                ValueLabel.TextColor3 = theme.Accent
+                ValueLabel.TextColor3 = theme.Accent  -- Kuning untuk value
                 ValueLabel.BackgroundTransparency = 1
                 ValueLabel.TextSize = 13 * scale
                 ValueLabel.Font = Enum.Font.GothamBold
@@ -799,7 +799,7 @@ function SimpleGUI:CreateWindow(options)
                 local SliderFill = Instance.new("Frame")
                 SliderFill.Name = "SliderFill"
                 SliderFill.Size = UDim2.new(0, 0, 1, 0)
-                SliderFill.BackgroundColor3 = theme.SliderFill
+                SliderFill.BackgroundColor3 = theme.SliderFill  -- Kuning
                 SliderFill.BackgroundTransparency = 0
                 SliderFill.BorderSizePixel = 0
                 SliderFill.Parent = SliderTrack
@@ -906,7 +906,7 @@ function SimpleGUI:CreateWindow(options)
         
         if #self.Tabs == 1 then
             TabButton.BackgroundColor3 = theme.TabActive
-            TabButton.TextColor3 = Color3.new(1, 1, 1)
+            TabButton.TextColor3 = Color3.new(0, 0, 0)  -- Text hitam untuk tab pertama
             TabContent.Visible = true
             self.ActiveTab = tabName
         end
@@ -920,12 +920,12 @@ function SimpleGUI:CreateWindow(options)
     
     -- Minimized icon
     local MinimizedIcon = Instance.new("TextButton")
-    MinimizedIcon.Name = "MinimizedIcon_SpeedHub"
+    MinimizedIcon.Name = "MinimizedIcon_BeeHub"
     MinimizedIcon.Size = UDim2.new(0, 42 * scale, 0, 42 * scale)
     MinimizedIcon.Position = UDim2.new(0, 20, 0, 20)
     MinimizedIcon.Text = "B"
     MinimizedIcon.TextColor3 = Color3.new(1, 1, 1)
-    MinimizedIcon.BackgroundColor3 = theme.Accent
+    MinimizedIcon.BackgroundColor3 = theme.Accent  -- Kuning
     MinimizedIcon.BackgroundTransparency = 0
     MinimizedIcon.TextSize = 20 * scale
     MinimizedIcon.Font = Enum.Font.GothamBold
@@ -1076,9 +1076,9 @@ function SimpleGUI:CreateWindow(options)
         end
     end)
     
-    print("✅ Created SpeedHub Full Edition window!")
+    print("✅ Created BeeHub Full Edition window!")
     return windowObj
 end
 
-print("🎉 SimpleGUI v7.1 - SpeedHub Full Edition loaded!")
+print("🎉 SimpleGUI v7.1 - BeeHub Full Edition loaded!")
 return SimpleGUI
