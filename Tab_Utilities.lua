@@ -182,7 +182,7 @@ function Utilities.Init(Dependencies)
         Name = "CopyDiscord",
         Text = "💬 Copy Discord",
         Callback = function()
-            local discordLink = "https://discord.gg/example"
+            local discordLink = "https://discord.gg/abcd"
             
             local copied = false
             
