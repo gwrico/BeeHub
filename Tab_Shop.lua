@@ -88,8 +88,8 @@ function ShopAutoBuy.Init(Dependencies)
         return true
     end
     
-    -- ===== FUNGSI BELI BIBIT =====
-    local function buySeed(seedName, amount)
+        -- ===== FUNGSI BELI BIBIT =====
+    local function buySeed(seedName, amount, isAuto)
         if not checkRemote() then return false end
         
         amount = amount or 1
@@ -105,13 +105,17 @@ function ShopAutoBuy.Init(Dependencies)
         end)
         
         if success then
-            Bdev:Notify({
-                Title = "✅ Berhasil",
-                Content = string.format("%s x%d", seedName, amount),
-                Duration = 2
-            })
+            -- Hanya tampilkan notifikasi jika MANUAL (bukan auto)
+            if not isAuto then
+                Bdev:Notify({
+                    Title = "✅ Berhasil",
+                    Content = string.format("%s x%d", seedName, amount),
+                    Duration = 2
+                })
+            end
             return true
         else
+            -- Notifikasi error tetap tampil (penting untuk diketahui user)
             Bdev:Notify({
                 Title = "❌ Gagal",
                 Content = "Mungkin uang tidak cukup?",
