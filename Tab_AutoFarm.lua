@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - DENGAN TEXT INPUT
+-- 💰 AUTO FARM TAB MODULE - UNTUK PLANT CROP
 -- ==============================================
 
 local AutoFarm = {}
@@ -37,44 +37,18 @@ function AutoFarm.Init(Dependencies)
     local plantConnection = nil
     local autoPlantToggleRef = nil
     local statusLabelRef = nil
-    local seedDropdownRef = nil
     
-    -- Default position (dari script Anda)
-    local defaultPos = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
+    -- Default position
+    local defaultPos = Vector3.new(67.13851165771484, 39.296875, -263.7070617675781)
     
     -- Custom position
     local customX = defaultPos.X
     local customY = defaultPos.Y
     local customZ = defaultPos.Z
     
-    -- Selected seed
-    local selectedSeed = "Bibit Padi"  -- Default
-    
     -- References
     local xInput, yInput, zInput
-    local delayInputRef = nil
     local plantCount = 0
-    
-    -- ===== DAFTAR BIBIT =====
-    local seedsList = {
-        {Display = "🌾 Padi", Name = "Bibit Padi"},
-        {Display = "🌽 Jagung", Name = "Bibit Jagung"},
-        {Display = "🍅 Tomat", Name = "Bibit Tomat"},
-        {Display = "🍆 Terong", Name = "Bibit Terong"},
-        {Display = "🍓 Strawberry", Name = "Bibit Strawberry"}
-    }
-    
-    -- Buat array untuk dropdown
-    local seedDisplayOptions = {}
-    for i, seed in ipairs(seedsList) do
-        seedDisplayOptions[i] = seed.Display
-    end
-    
-    -- Mapping Display -> Name
-    local displayToName = {}
-    for i, seed in ipairs(seedsList) do
-        displayToName[seed.Display] = seed.Name
-    end
     
     -- Dapatkan remote PlantCrop
     local function getPlantRemote()
@@ -181,40 +155,6 @@ function AutoFarm.Init(Dependencies)
         Text = "🔴 Status: INACTIVE (Auto Plant OFF)",
         Color = Color3.fromRGB(255, 70, 70),
         Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- ===== PILIHAN BIBIT SECTION =====
-    local seedHeader = Tab:CreateLabel({
-        Name = "Header_Bibit",
-        Text = "───── 🌱 PILIH BIBIT ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Dropdown untuk memilih bibit
-    seedDropdownRef = Tab:CreateDropdown({
-        Name = "SeedDropdown",
-        Text = "Jenis Bibit:",
-        Options = seedDisplayOptions,
-        Default = seedDisplayOptions[1],
-        Callback = function(value)
-            selectedSeed = displayToName[value]
-            Bdev:Notify({
-                Title = "✅ Bibit Dipilih",
-                Content = value,
-                Duration = 1
-            })
-            print("🌱 Selected seed:", selectedSeed)
-        end
-    })
-    
-    -- Label info bibit terpilih
-    local seedInfoLabel = Tab:CreateLabel({
-        Name = "SeedInfo",
-        Text = "➤ Bibit aktif: " .. seedsList[1].Display,
-        Color = Color3.fromRGB(255, 255, 255),
-        Alignment = Enum.TextXAlignment.Left
     })
     
     -- ===== POSISI SECTION =====
@@ -409,7 +349,7 @@ function AutoFarm.Init(Dependencies)
     -- ===== PENGATURAN DELAY =====
     local delayHeader = Tab:CreateLabel({
         Name = "Header_Delay",
-        Text = "───── ⏱️ PENGATURAN ─────",
+        Text = "───── ⏱️ PENGATURAN DELAY ─────",
         Color = Color3.fromRGB(255, 185, 0),
         Bold = true,
         Alignment = Enum.TextXAlignment.Center
@@ -447,7 +387,7 @@ function AutoFarm.Init(Dependencies)
     
     local DelayBox = Instance.new("TextBox")
     DelayBox.Name = "DelayBox"
-    DelayBox.Size = UDim2.new(1, -60, 1, 0)
+    DelayBox.Size = UDim2.new(1, -80, 1, 0)
     DelayBox.Position = UDim2.new(0, 50, 0, 0)
     DelayBox.Text = "1.0"
     DelayBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -519,7 +459,7 @@ function AutoFarm.Init(Dependencies)
                 plantCount = 0
                 Bdev:Notify({
                     Title = "🤖 Auto Plant ON",
-                    Content = string.format("Menanam %s...", selectedSeed),
+                    Content = "Mulai menanam...",
                     Duration = 2
                 })
                 
@@ -535,8 +475,9 @@ function AutoFarm.Init(Dependencies)
                         local delay = tonumber(DelayBox.Text) or 1.0
                         local plantPos = Vector3.new(customX, customY, customZ)
                         
+                        -- FIRESERVER SESUAI FORMAT: hanya 1 argument (Vector3)
                         local success = pcall(function()
-                            remote:FireServer(selectedSeed, plantPos)
+                            remote:FireServer(plantPos)
                         end)
                         
                         if success then
@@ -550,7 +491,7 @@ function AutoFarm.Init(Dependencies)
             else
                 Bdev:Notify({
                     Title = "🤖 Auto Plant OFF",
-                    Content = string.format("Total tanam: %d kali (%s)", plantCount, selectedSeed),
+                    Content = string.format("Total tanam: %d kali", plantCount),
                     Duration = 3
                 })
                 
@@ -608,13 +549,13 @@ function AutoFarm.Init(Dependencies)
         local plantPos = Vector3.new(customX, customY, customZ)
         
         local success = pcall(function()
-            plantRemote:FireServer(selectedSeed, plantPos)
+            plantRemote:FireServer(plantPos)
         end)
         
         if success then
             Bdev:Notify({
                 Title = "✅ Success",
-                Content = string.format("Menanam %s", selectedSeed),
+                Content = "Menanam berhasil!",
                 Duration = 1
             })
         end
@@ -675,12 +616,6 @@ function AutoFarm.Init(Dependencies)
             updatePositionInputs(Vector3.new(x, y, z))
         end,
         GetStatus = function() return Variables.autoPlantEnabled end,
-        GetSelectedSeed = function() return selectedSeed end,
-        SetSeed = function(seedDisplay)
-            if seedDropdownRef and seedDropdownRef.SetValue then
-                seedDropdownRef:SetValue(seedDisplay)
-            end
-        end,
         StopAuto = function()
             if autoPlantToggleRef and autoPlantToggleRef.SetValue then
                 autoPlantToggleRef:SetValue(false)
@@ -690,12 +625,12 @@ function AutoFarm.Init(Dependencies)
             local remote = getPlantRemote()
             if remote then
                 local pos = Vector3.new(customX, customY, customZ)
-                pcall(function() remote:FireServer(selectedSeed, pos) end)
+                pcall(function() remote:FireServer(pos) end)
             end
         end
     }
     
-    print("✅ AutoFarm module loaded - dengan Text Input")
+    print("✅ AutoFarm module loaded - Sesuai format PlantCrop")
     
     return cleanup
 end
