@@ -134,7 +134,7 @@ function Teleport.Init(Dependencies)
         if #players == 0 then
             if playerDropdownRef then
                 playerDropdownRef.UpdateOptions({"-- Tidak ada player --"})
-                playerDropdownRef.SetValue("-- Tidak ada player --")
+                -- Jangan set value otomatis, biarkan user memilih
             end
             if infoLabelRef then
                 infoLabelRef.Text = "➤ Target: Tidak ada player online"
@@ -154,17 +154,10 @@ function Teleport.Init(Dependencies)
                         end
                     end
                     
-                    if found then
-                        playerDropdownRef.SetValue("👤 " .. selectedPlayer.Name)
-                    else
-                        selectedPlayer = getPlayerFromDisplay(players[1])
-                        playerDropdownRef.SetValue(players[1])
+                    if not found then
+                        selectedPlayer = nil
                         updateInfoLabel()
                     end
-                else
-                    selectedPlayer = getPlayerFromDisplay(players[1])
-                    playerDropdownRef.SetValue(players[1])
-                    updateInfoLabel()
                 end
             end
         end
@@ -197,17 +190,10 @@ function Teleport.Init(Dependencies)
     SearchFrame.LayoutOrder = #Tab.Elements + 1
     SearchFrame.Parent = Tab.Content
     
-    local SearchLayout = Instance.new("UIListLayout")
-    SearchLayout.FillDirection = Enum.FillDirection.Horizontal
-    SearchLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    SearchLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    SearchLayout.Padding = UDim.new(0, 5)
-    SearchLayout.Parent = SearchFrame
-    
     -- Search Box
     local SearchBoxFrame = Instance.new("Frame")
     SearchBoxFrame.Name = "SearchBoxFrame"
-    SearchBoxFrame.Size = UDim2.new(0, 180, 0, 36)
+    SearchBoxFrame.Size = UDim2.new(0.75, 0, 0, 36)
     SearchBoxFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
     SearchBoxFrame.BackgroundTransparency = 0
     SearchBoxFrame.Parent = SearchFrame
@@ -243,13 +229,14 @@ function Teleport.Init(Dependencies)
     -- Refresh Button
     local RefreshBtn = Instance.new("TextButton")
     RefreshBtn.Name = "RefreshBtn"
-    RefreshBtn.Size = UDim2.new(0, 50, 0, 36)
-    RefreshBtn.Text = "🔄"
+    RefreshBtn.Size = UDim2.new(0.2, 0, 0, 36)
+    RefreshBtn.Position = UDim2.new(0.78, 5, 0, 0)
+    RefreshBtn.Text = "🔄 Refresh"
     RefreshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     RefreshBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
     RefreshBtn.BackgroundTransparency = 0
-    RefreshBtn.TextSize = 18
-    RefreshBtn.Font = Enum.Font.GothamBold
+    RefreshBtn.TextSize = 14
+    RefreshBtn.Font = Enum.Font.Gotham
     RefreshBtn.AutoButtonColor = false
     RefreshBtn.Parent = SearchFrame
     
@@ -257,11 +244,21 @@ function Teleport.Init(Dependencies)
     RefreshCorner.CornerRadius = UDim.new(0, 6)
     RefreshCorner.Parent = RefreshBtn
     
-    -- 4. DROPDOWN PLAYER
+    -- 4. DROPDOWN PLAYER (PASTIKAN INI DIBUAT)
     local initialPlayers = getPlayerList()
+    
+    -- Tambahkan label untuk dropdown
+    local dropdownLabel = Tab:CreateLabel({
+        Name = "DropdownLabel",
+        Text = "📋 Pilih Player:",
+        Color = Color3.fromRGB(255, 255, 255),
+        Alignment = Enum.TextXAlignment.Left
+    })
+    
+    -- Buat dropdown
     playerDropdownRef = Tab:CreateDropdown({
         Name = "PlayerDropdown",
-        Text = "Pilih Player:",
+        Text = "Pilih Player:",  -- Ini akan menjadi label di dalam dropdown
         Options = #initialPlayers > 0 and initialPlayers or {"-- Tidak ada player --"},
         Default = #initialPlayers > 0 and initialPlayers[1] or "-- Tidak ada player --",
         Callback = function(value)
@@ -271,6 +268,15 @@ function Teleport.Init(Dependencies)
                 selectedPlayer = getPlayerFromDisplay(value)
             end
             updateInfoLabel()
+            
+            -- Notifikasi
+            if selectedPlayer then
+                Bdev:Notify({
+                    Title = "✅ Dipilih",
+                    Content = selectedPlayer.Name,
+                    Duration = 1
+                })
+            end
         end
     })
     
@@ -279,6 +285,13 @@ function Teleport.Init(Dependencies)
         selectedPlayer = getPlayerFromDisplay(initialPlayers[1])
         updateInfoLabel()
     end
+    
+    -- Spacer
+    Tab:CreateLabel({
+        Name = "Spacer",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
     
     -- 5. TOMBOL TELEPORT
     local TeleportBtn = Instance.new("TextButton")
@@ -371,7 +384,7 @@ function Teleport.Init(Dependencies)
         end
     }
     
-    print("✅ Teleport module loaded - dengan Search")
+    print("✅ Teleport module loaded - dengan Dropdown Fix")
     
     return cleanup
 end
