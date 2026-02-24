@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - DENGAN AUTO RECORD POSISI & BATCH PLANTING
+-- 💰 AUTO FARM TAB MODULE - DENGAN AUTO RECORD POSISI
 -- ==============================================
 
 local AutoFarm = {}
@@ -24,8 +24,13 @@ function AutoFarm.Init(Dependencies)
     -- Default position (dari script Anda)
     local defaultPos = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
     
-    -- Position yang akan digunakan
-    local targetPosition = defaultPos
+    -- Custom position (akan diupdate dari posisi player)
+    local customX = defaultPos.X
+    local customY = defaultPos.Y
+    local customZ = defaultPos.Z
+    
+    -- References untuk slider (agar bisa diupdate nilainya)
+    local xSlider, ySlider, zSlider
     
     -- Dapatkan remote PlantCrop
     local function getPlantRemote()
@@ -61,16 +66,29 @@ function AutoFarm.Init(Dependencies)
         return humanoidRootPart.Position
     end
     
-    -- Fungsi untuk update posisi target
-    local function updateTargetPosition(newPos)
+    -- Fungsi untuk update slider dengan nilai baru
+    local function updatePositionSliders(newPos)
         if not newPos then return end
-        targetPosition = newPos
+        
+        customX = newPos.X
+        customY = newPos.Y
+        customZ = newPos.Z
+        
+        -- Update slider jika reference tersedia
+        if xSlider then
+            xSlider:SetValue(customX)
+        end
+        if ySlider then
+            ySlider:SetValue(customY)
+        end
+        if zSlider then
+            zSlider:SetValue(customZ)
+        end
         
         -- Tampilkan notifikasi
         Bdev:Notify({
             Title = "Position Recorded",
-            Content = string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", 
-                targetPosition.X, targetPosition.Y, targetPosition.Z),
+            Content = string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", customX, customY, customZ),
             Duration = 3
         })
     end
@@ -126,8 +144,11 @@ function AutoFarm.Init(Dependencies)
                     
                     local remote = getPlantRemote()
                     if remote then
+                        -- Gunakan custom position yang sudah direkam
+                        local plantPos = Vector3.new(customX, customY, customZ)
+                        
                         pcall(function()
-                            remote:FireServer(targetPosition)
+                            remote:FireServer(plantPos)
                         end)
                         
                         task.wait(plantDelay or 1.0)
@@ -164,8 +185,11 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
+            -- Gunakan custom position
+            local plantPos = Vector3.new(customX, customY, customZ)
+            
             local success = pcall(function()
-                plantRemote:FireServer(targetPosition)
+                plantRemote:FireServer(plantPos)
             end)
             
             if success then
@@ -203,8 +227,8 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
-            -- Record posisi
-            updateTargetPosition(playerPos)
+            -- Record posisi ke slider
+            updatePositionSliders(playerPos)
             
             -- Tanam di posisi tersebut
             local success = pcall(function()
@@ -221,7 +245,7 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== RECORD POSISI SAJA =====
+    -- ===== RECORD POSISI SAJA (TANPA MENANAM) =====
     Tab:CreateButton({
         Name = "RecordOnly",
         Text = "📝 Record My Position Only",
@@ -236,11 +260,11 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
-            updateTargetPosition(playerPos)
+            updatePositionSliders(playerPos)
             
             Bdev:Notify({
                 Title = "Position Recorded",
-                Content = "✅ Posisi tersimpan!",
+                Content = "✅ Posisi tersimpan di slider!",
                 Duration = 2
             })
         end
@@ -261,6 +285,7 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
+            local plantPos = Vector3.new(customX, customY, customZ)
             local count = 0
             
             Bdev:Notify({
@@ -271,7 +296,7 @@ function AutoFarm.Init(Dependencies)
             
             for i = 1, 5 do
                 local success = pcall(function()
-                    plantRemote:FireServer(targetPosition)
+                    plantRemote:FireServer(plantPos)
                 end)
                 
                 if success then
@@ -289,27 +314,116 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== TAMPILAN POSISI TARGET =====
+    -- ===== CUSTOM POSITION dengan AUTO RECORD =====
     Tab:CreateLabel({
-        Name = "TargetPosLabel",
-        Text = string.format("🎯 Target: X: %.1f, Y: %.1f, Z: %.1f", 
-            targetPosition.X, targetPosition.Y, targetPosition.Z),
+        Name = "PositionLabel",
+        Text = "📌 CUSTOM PLANT POSITION",
         Alignment = Enum.TextXAlignment.Center
     })
     
     -- Tombol record cepat
     Tab:CreateButton({
         Name = "QuickRecord",
-        Text = "🎯 REKAM POSISI SAYA",
+        Text = "🎯 RECORD MY CURRENT POSITION",
         Callback = function()
             local playerPos = getPlayerPosition()
             if playerPos then
-                updateTargetPosition(playerPos)
+                updatePositionSliders(playerPos)
             else
                 Bdev:Notify({
                     Title = "Error",
                     Content = "❌ Tidak bisa dapatkan posisi!",
                     Duration = 2
+                })
+            end
+        end
+    })
+    
+    -- Slider X dengan nilai awal dari default
+    xSlider = Tab:CreateSlider({
+        Name = "PosX",
+        Text = "X: " .. string.format("%.2f", customX),
+        Range = {-1000, 1000},
+        Increment = 0.1,
+        CurrentValue = customX,
+        Callback = function(value)
+            customX = value
+        end
+    })
+    
+    -- Slider Y
+    ySlider = Tab:CreateSlider({
+        Name = "PosY",
+        Text = "Y: " .. string.format("%.2f", customY),
+        Range = {0, 1000},
+        Increment = 0.1,
+        CurrentValue = customY,
+        Callback = function(value)
+            customY = value
+        end
+    })
+    
+    -- Slider Z
+    zSlider = Tab:CreateSlider({
+        Name = "PosZ",
+        Text = "Z: " .. string.format("%.2f", customZ),
+        Range = {-1000, 1000},
+        Increment = 0.1,
+        CurrentValue = customZ,
+        Callback = function(value)
+            customZ = value
+        end
+    })
+    
+    -- Info posisi saat ini (real-time)
+    Tab:CreateLabel({
+        Name = "CurrentPosInfo",
+        Text = "📍 Posisi Anda saat ini: (gerak untuk update)",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Tampilkan posisi real-time (optional)
+    local posDisplayConnection
+    local posLabel = Tab:CreateLabel({
+        Name = "LivePosition",
+        Text = "X: 0, Y: 0, Z: 0",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Update posisi real-time
+    posDisplayConnection = RunService.Heartbeat:Connect(function()
+        local pos = getPlayerPosition()
+        if pos and posLabel then
+            posLabel:SetText(string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", pos.X, pos.Y, pos.Z))
+        end
+    end)
+    
+    -- Button untuk custom position
+    Tab:CreateButton({
+        Name = "PlantCustom",
+        Text = "🌱 Plant at Custom Position",
+        Callback = function()
+            local plantRemote = getPlantRemote()
+            if not plantRemote then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Remote tidak ditemukan!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local customPos = Vector3.new(customX, customY, customZ)
+            
+            local success = pcall(function()
+                plantRemote:FireServer(customPos)
+            end)
+            
+            if success then
+                Bdev:Notify({
+                    Title = "Success",
+                    Content = string.format("✅ Tanam di (%.1f, %.1f, %.1f)", customX, customY, customZ),
+                    Duration = 3
                 })
             end
         end
@@ -323,7 +437,7 @@ function AutoFarm.Init(Dependencies)
         Text = "⏱️ Auto Plant Delay: " .. string.format("%.1fs", plantDelay),
         Range = {0.2, 3.0},
         Increment = 0.1,
-        CurrentValue = plantDelay,
+        CurrentValue = 1.0,
         Callback = function(value)
             plantDelay = value
         end
@@ -343,7 +457,7 @@ function AutoFarm.Init(Dependencies)
         if input.KeyCode == Enum.KeyCode.R then
             local playerPos = getPlayerPosition()
             if playerPos then
-                updateTargetPosition(playerPos)
+                updatePositionSliders(playerPos)
                 Bdev:Notify({
                     Title = "Quick Record",
                     Content = "✅ Posisi direkam (tekan R)",
@@ -402,291 +516,10 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ============================================================
-    -- ===== FITUR BARU: BATCH PLANTING (VERSI AMAN) =====
-    -- ============================================================
+    -- Cleanup saat tab ditutup (jika ada)
+    -- (Tambahkan jika SimpleGUI mendukung)
     
-    Tab:CreateLabel({
-        Name = "BatchSeparator",
-        Text = "══════════════════════════════",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    Tab:CreateLabel({
-        Name = "BatchTitle",
-        Text = "🌾 BATCH PLANTING (Jumlah & Jeda)",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Variable untuk batch
-    local totalSeeds = 50
-    local batchSize = 50
-    local batchDelay = 2.0
-    local isBatchPlanting = false
-    
-    -- ===== TOTAL BIBIT =====
-    Tab:CreateLabel({
-        Name = "TotalSeedLabel",
-        Text = "📦 TOTAL BIBIT:",
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    local totalSeedSlider = Tab:CreateSlider({
-        Name = "TotalSeedCount",
-        Text = "Total: " .. totalSeeds .. " bibit",
-        Range = {1, 1000},
-        Increment = 1,
-        CurrentValue = totalSeeds,
-        Callback = function(value)
-            totalSeeds = value
-        end
-    })
-    
-    Tab:CreateTextBox({
-        Name = "TotalSeedInput",
-        Text = "Input total:",
-        PlaceholderText = "Contoh: 100",
-        Callback = function(text)
-            local num = tonumber(text)
-            if num and num > 0 then
-                if num > 10000 then num = 10000 end
-                totalSeeds = math.floor(num)
-                totalSeedSlider:SetValue(totalSeeds)
-                Bdev:Notify({
-                    Title = "Total diatur",
-                    Content = "🌱 " .. totalSeeds .. " bibit",
-                    Duration = 2
-                })
-            else
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Masukkan angka valid",
-                    Duration = 2
-                })
-            end
-        end
-    })
-    
-    -- ===== JUMLAH PER BATCH =====
-    Tab:CreateLabel({
-        Name = "BatchSizeLabel",
-        Text = "📦 PER BATCH:",
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    local batchSizeSlider = Tab:CreateSlider({
-        Name = "BatchSize",
-        Text = "Per Batch: " .. batchSize .. " bibit",
-        Range = {1, 200},
-        Increment = 1,
-        CurrentValue = batchSize,
-        Callback = function(value)
-            batchSize = value
-        end
-    })
-    
-    Tab:CreateTextBox({
-        Name = "BatchInput",
-        Text = "Input per batch:",
-        PlaceholderText = "Contoh: 25",
-        Callback = function(text)
-            local num = tonumber(text)
-            if num and num > 0 then
-                if num > 500 then num = 500 end
-                batchSize = math.floor(num)
-                batchSizeSlider:SetValue(batchSize)
-                Bdev:Notify({
-                    Title = "Batch diatur",
-                    Content = "📦 " .. batchSize .. " per batch",
-                    Duration = 2
-                })
-            else
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Masukkan angka valid",
-                    Duration = 2
-                })
-            end
-        end
-    })
-    
-    -- ===== JEDA PER BATCH =====
-    Tab:CreateLabel({
-        Name = "DelayBatchLabel",
-        Text = "⏱️ JEDA PER BATCH (detik):",
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    local batchDelaySlider = Tab:CreateSlider({
-        Name = "BatchDelay",
-        Text = "Jeda: " .. string.format("%.1f detik", batchDelay),
-        Range = {0.5, 60.0},
-        Increment = 0.5,
-        CurrentValue = batchDelay,
-        Callback = function(value)
-            batchDelay = value
-        end
-    })
-    
-    Tab:CreateTextBox({
-        Name = "DelayBatchInput",
-        Text = "Input jeda:",
-        PlaceholderText = "Contoh: 5",
-        Callback = function(text)
-            local num = tonumber(text)
-            if num and num > 0 then
-                if num > 300 then num = 300 end
-                batchDelay = num
-                batchDelaySlider:SetValue(batchDelay)
-                Bdev:Notify({
-                    Title = "Jeda diatur",
-                    Content = "⏱️ " .. string.format("%.1f detik", batchDelay),
-                    Duration = 2
-                })
-            else
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Masukkan angka valid",
-                    Duration = 2
-                })
-            end
-        end
-    })
-    
-    -- ===== INFO BATCH =====
-    local batchInfoLabel = Tab:CreateLabel({
-        Name = "BatchInfo",
-        Text = string.format("📊 %d bibit ÷ %d = %d batch", totalSeeds, batchSize, math.ceil(totalSeeds / batchSize)),
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- ===== FUNGSI BATCH PLANTING =====
-    local function startBatchPlanting()
-        if isBatchPlanting then
-            Bdev:Notify({
-                Title = "Info",
-                Content = "⏳ Masih ada proses batch",
-                Duration = 2
-            })
-            return
-        end
-        
-        local remote = getPlantRemote()
-        if not remote then
-            Bdev:Notify({
-                Title = "Error",
-                Content = "❌ Remote tidak ditemukan!",
-                Duration = 3
-            })
-            return
-        end
-        
-        if totalSeeds <= 0 then
-            Bdev:Notify({
-                Title = "Error",
-                Content = "❌ Total bibit harus lebih dari 0",
-                Duration = 2
-            })
-            return
-        end
-        
-        isBatchPlanting = true
-        local planted = 0
-        local batchCounter = 0
-        local totalBatches = math.ceil(totalSeeds / batchSize)
-        
-        Bdev:Notify({
-            Title = "Mulai Batch",
-            Content = string.format("🌾 %d bibit, %d batch", totalSeeds, totalBatches),
-            Duration = 3
-        })
-        
-        -- Jalankan di thread terpisah
-        task.spawn(function()
-            for i = 1, totalSeeds do
-                if not isBatchPlanting then break end
-                
-                local success = pcall(function()
-                    remote:FireServer(targetPosition)
-                end)
-                
-                if success then
-                    planted = planted + 1
-                    batchCounter = batchCounter + 1
-                end
-                
-                -- Update progress setiap 5 bibit
-                if i % 5 == 0 or i == totalSeeds then
-                    Bdev:Notify({
-                        Title = "Progress",
-                        Content = string.format("📊 %d/%d bibit", i, totalSeeds),
-                        Duration = 1
-                    })
-                end
-                
-                -- Cek apakah sudah mencapai 1 batch DAN masih ada bibit tersisa
-                if batchCounter >= batchSize and i < totalSeeds then
-                    local currentBatch = math.ceil(i / batchSize)
-                    Bdev:Notify({
-                        Title = "Batch " .. currentBatch .. " Selesai",
-                        Content = string.format("⏳ Jeda %d detik...", batchDelay),
-                        Duration = math.min(batchDelay, 3)
-                    })
-                    
-                    -- Tunggu sesuai delay
-                    local waitStart = tick()
-                    while isBatchPlanting and (tick() - waitStart) < batchDelay do
-                        task.wait(0.1)
-                    end
-                    
-                    batchCounter = 0
-                end
-                
-                -- Jeda kecil antar tanam
-                if i < totalSeeds then
-                    task.wait(0.1)
-                end
-            end
-            
-            isBatchPlanting = false
-            Bdev:Notify({
-                Title = "Selesai",
-                Content = string.format("✅ %d/%d bibit ditanam", planted, totalSeeds),
-                Duration = 4
-            })
-        end)
-    end
-    
-    -- ===== TOMBOL MULAI BATCH =====
-    Tab:CreateButton({
-        Name = "StartBatchPlant",
-        Text = "▶️ MULAI BATCH PLANTING",
-        Callback = startBatchPlanting
-    })
-    
-    -- ===== TOMBOL HENTIKAN BATCH =====
-    Tab:CreateButton({
-        Name = "StopBatchPlant",
-        Text = "⏹️ HENTIKAN BATCH",
-        Callback = function()
-            if isBatchPlanting then
-                isBatchPlanting = false
-                Bdev:Notify({
-                    Title = "Info",
-                    Content = "⏹️ Batch planting dihentikan",
-                    Duration = 2
-                })
-            else
-                Bdev:Notify({
-                    Title = "Info",
-                    Content = "⚠️ Tidak ada proses batch",
-                    Duration = 2
-                })
-            end
-        end
-    })
-    
-    print("✅ AutoFarm Plant module loaded dengan AUTO RECORD POSISI + BATCH PLANTING")
+    print("✅ AutoFarm Plant module loaded dengan AUTO RECORD POSISI")
 end
 
 return AutoFarm
