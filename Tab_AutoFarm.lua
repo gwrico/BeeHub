@@ -109,41 +109,6 @@ function AutoFarm.Init(Dependencies)
         })
     end
     
-    -- ===== BATCH SETTINGS =====
-    Tab:CreateLabel({
-        Name = "BatchSettingsLabel",
-        Text = "⚙️ BATCH SETTINGS",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Jumlah tanaman per batch
-    local batchSize = 5
-    
-    Tab:CreateSlider({
-        Name = "BatchSize",
-        Text = "🌾 Jumlah per batch: " .. batchSize,
-        Range = {1, 50},
-        Increment = 1,
-        CurrentValue = 5,
-        Callback = function(value)
-            batchSize = value
-        end
-    })
-    
-    -- Delay antar tanaman dalam batch
-    local batchDelay = 0.3
-    
-    Tab:CreateSlider({
-        Name = "BatchDelay",
-        Text = "⏱️ Delay antar tanaman: " .. string.format("%.1fs", batchDelay),
-        Range = {0.1, 2.0},
-        Increment = 0.1,
-        CurrentValue = 0.3,
-        Callback = function(value)
-            batchDelay = value
-        end
-    })
-    
     -- ===== AUTO PLANT CROPS =====
     Tab:CreateToggle({
         Name = "AutoPlant",
@@ -186,7 +151,7 @@ function AutoFarm.Init(Dependencies)
                             remote:FireServer(plantPos)
                         end)
                         
-                        task.wait(plantDelay or 1.0)
+                        task.wait(1.0) -- Default delay 1 detik
                     end
                 end)
                 
@@ -305,64 +270,6 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== PLANT BATCH (sesuai jumlah & delay yang diatur) =====
-    Tab:CreateButton({
-        Name = "PlantBatch",
-        Text = "🔁 Plant Batch",
-        Callback = function()
-            local plantRemote = getPlantRemote()
-            if not plantRemote then
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Remote tidak ditemukan!",
-                    Duration = 3
-                })
-                return
-            end
-            
-            local plantPos = Vector3.new(customX, customY, customZ)
-            local count = 0
-            
-            Bdev:Notify({
-                Title = "Planting",
-                Content = string.format("⏳ Menanam %dx dengan delay %.1fs...", batchSize, batchDelay),
-                Duration = 3
-            })
-            
-            for i = 1, batchSize do
-                local success = pcall(function()
-                    plantRemote:FireServer(plantPos)
-                end)
-                
-                if success then
-                    count = count + 1
-                end
-                
-                task.wait(batchDelay)
-            end
-            
-            Bdev:Notify({
-                Title = "Complete",
-                Content = string.format("✅ %d/%d tanaman berhasil", count, batchSize),
-                Duration = 3
-            })
-        end
-    })
-    
-    -- ===== PLANT DELAY (untuk AutoPlant) =====
-    local plantDelay = 1.0
-    
-    Tab:CreateSlider({
-        Name = "PlantDelay",
-        Text = "⏱️ Auto Plant Delay: " .. string.format("%.1fs", plantDelay),
-        Range = {0.2, 3.0},
-        Increment = 0.1,
-        CurrentValue = 1.0,
-        Callback = function(value)
-            plantDelay = value
-        end
-    })
-    
     -- ===== KEYBIND INSTANT RECORD (tekan R untuk record) =====
     Tab:CreateLabel({
         Name = "KeybindInfo",
@@ -386,35 +293,6 @@ function AutoFarm.Init(Dependencies)
             end
         end
     end)
-    
-    -- ===== TEST REMOTE =====
-    Tab:CreateButton({
-        Name = "TestRemote",
-        Text = "🔍 Test Remote Connection",
-        Callback = function()
-            local remote = getPlantRemote()
-            
-            if remote then
-                Bdev:Notify({
-                    Title = "Remote OK",
-                    Content = "✅ PlantCrop tersedia!",
-                    Duration = 3
-                })
-                
-                print("\n=== PLANT CROP REMOTE INFO ===")
-                print("Status: ✅ TERSEDIA")
-                print("Path: " .. remote:GetFullName())
-                print("Class: " .. remote.ClassName)
-                print("===============================\n")
-            else
-                Bdev:Notify({
-                    Title = "Remote Error",
-                    Content = "❌ PlantCrop TIDAK ditemukan!",
-                    Duration = 4
-                })
-            end
-        end
-    })
     
     -- ===== STOP AUTO PLANT =====
     Tab:CreateButton({
