@@ -14,168 +14,6 @@ function Visuals.Init(Dependencies)
     
     --print("👁️ Initializing Visuals tab for SimpleGUI v6.3...")
     
-    -- ===== EGG ESP =====
-    local eggHighlights = {}
-    
-    Tab:CreateToggle({
-        Name = "EggESP",
-        Text = "🥚 Egg ESP",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.eggESPEnabled = value
-            
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
-                    Title = "Egg ESP",
-                    Content = "Egg ESP enabled! Find eggs easily",
-                    Duration = 3
-                })
-                
-                --print("✅ Egg ESP enabled")
-                
-                local rarityColors = {
-                    [1] = Color3.fromRGB(184, 115, 51),    -- Copper
-                    [2] = Color3.fromRGB(192, 192, 192),   -- Silver
-                    [3] = Color3.fromRGB(255, 215, 0),     -- Gold
-                    [4] = Color3.fromRGB(80, 200, 120),    -- Emerald
-                    [5] = Color3.fromRGB(224, 17, 95),     -- Ruby
-                    [6] = Color3.fromRGB(185, 242, 255),   -- Diamond
-                    [7] = Color3.fromRGB(16, 20, 31),      -- Obsidian
-                    [8] = Color3.fromRGB(148, 0, 211)      -- Mystery
-                }
-                
-                -- Clear existing highlights
-                for _, hl in pairs(eggHighlights) do
-                    if Functions.safeDestroy then
-                        Functions.safeDestroy(hl)
-                    elseif hl and hl.Parent then
-                        pcall(function() 
-                            hl:Destroy() 
-                        end)
-                    end
-                end
-                eggHighlights = {}
-                
-                local highlighted = 0
-                
-                -- Find all eggs in workspace
-                for _, obj in pairs(Shared.Services.Workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
-                        local objName = obj.Name
-                        
-                        -- Check against EggData
-                        for eggName, eggData in pairs(Shared.EggData) do
-                            -- Flexible pattern matching
-                            local patterns = {
-                                eggName,
-                                eggName:gsub(" Egg", ""),
-                                eggName:gsub(" Lucky Block", ""),
-                                eggName:lower(),
-                                eggName:gsub(" Egg", ""):lower()
-                            }
-                            
-                            local isMatch = false
-                            for _, pattern in ipairs(patterns) do
-                                if objName:lower():find(pattern:lower(), 1, true) then
-                                    isMatch = true
-                                    break
-                                end
-                            end
-                            
-                            if isMatch then
-                                local highlight
-                                
-                                -- Method 1: Use Functions.createHighlight if available
-                                if Functions.createHighlight then
-                                    highlight = Functions.createHighlight(
-                                        obj, 
-                                        rarityColors[eggData.rarityId] or Color3.new(1, 1, 1),
-                                        0.5
-                                    )
-                                else
-                                    -- Method 2: Create highlight manually
-                                    highlight = Instance.new("Highlight")
-                                    highlight.Name = "EggESP_" .. eggName
-                                    highlight.Adornee = obj
-                                    highlight.FillColor = rarityColors[eggData.rarityId] or Color3.new(1, 1, 1)
-                                    highlight.FillTransparency = 0.5
-                                    highlight.OutlineColor = Color3.new(1, 1, 1)
-                                    highlight.OutlineTransparency = 0
-                                    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                                    highlight.Parent = game:GetService("CoreGui")
-                                end
-                                
-                                table.insert(eggHighlights, highlight)
-                                highlighted = highlighted + 1
-                                break
-                            end
-                        end
-                    end
-                end
-                
-                --print("📊 Highlighted " .. highlighted .. " eggs")
-                
-            else
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
-                    Title = "Egg ESP",
-                    Content = "Egg ESP disabled!",
-                    Duration = 3
-                })
-                
-                --print("❌ Egg ESP disabled")
-                
-                -- Cleanup
-                for _, hl in pairs(eggHighlights) do
-                    if Functions.safeDestroy then
-                        Functions.safeDestroy(hl)
-                    elseif hl and hl.Parent then
-                        pcall(function() 
-                            hl:Destroy() 
-                        end)
-                    end
-                end
-                eggHighlights = {}
-                
-                -- Also clean from CoreGui
-                local CoreGui = game:GetService("CoreGui")
-                for _, obj in pairs(CoreGui:GetChildren()) do
-                    if obj.Name:find("EggESP_") then
-                        pcall(function() 
-                            obj:Destroy() 
-                        end)
-                    end
-                end
-            end
-        end
-    })
-    
-    -- ===== AUTO REFRESH EGG ESP =====
-    Tab:CreateButton({
-        Name = "RefreshESP",
-        Text = "🔄 Refresh ESP",
-        Callback = function()
-            if Variables.eggESPEnabled then
-                -- Turn off then on to refresh
-                Variables.eggESPEnabled = false
-                task.wait(0.1)
-                Variables.eggESPEnabled = true
-                
-                Bdev:Notify({
-                    Title = "ESP",
-                    Content = "ESP refreshed!",
-                    Duration = 3
-                })
-                --print("🔄 ESP refreshed")
-            else
-                Bdev:Notify({
-                    Title = "ESP",
-                    Content = "Turn on ESP first!",
-                    Duration = 3
-                })
-            end
-        end
-    })
-    
     -- ===== X-RAY VISION =====
     local xrayParts = {}
     local xrayConnection = nil
@@ -350,48 +188,29 @@ function Visuals.Init(Dependencies)
         end
     })
     
-    -- ===== CHAT LOGGER =====
-    local chatLoggerConnection = nil
-    
-    Tab:CreateToggle({
-        Name = "ChatLogger",
-        Text = "💬 Chat Logger",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.chatLoggerEnabled = value
-            
-            if value then
+    -- ===== AUTO REFRESH ESP =====
+    Tab:CreateButton({
+        Name = "RefreshESP",
+        Text = "🔄 Refresh ESP",
+        Callback = function()
+            if Variables.playerESPEnabled then
+                -- Turn off then on to refresh
+                Variables.playerESPEnabled = false
+                task.wait(0.1)
+                Variables.playerESPEnabled = true
+                
                 Bdev:Notify({
-                    Title = "Chat Logger",
-                    Content = "Chat logger enabled!",
+                    Title = "ESP",
+                    Content = "ESP refreshed!",
                     Duration = 3
                 })
-                
-                --print("✅ Chat Logger enabled")
-                
-                if chatLoggerConnection then
-                    chatLoggerConnection:Disconnect()
-                end
-                
-                chatLoggerConnection = Shared.Services.Players.PlayerChatted:Connect(function(player, message)
-                    if Variables.chatLoggerEnabled then
-                        --print("💬 [" .. player.Name .. "]: " .. message)
-                    end
-                end)
-                
+                --print("🔄 ESP refreshed")
             else
                 Bdev:Notify({
-                    Title = "Chat Logger",
-                    Content = "Chat logger disabled!",
+                    Title = "ESP",
+                    Content = "Turn on ESP first!",
                     Duration = 3
                 })
-                
-                --print("❌ Chat Logger disabled")
-                
-                if chatLoggerConnection then
-                    chatLoggerConnection:Disconnect()
-                    chatLoggerConnection = nil
-                end
             end
         end
     })
@@ -402,10 +221,8 @@ function Visuals.Init(Dependencies)
         Text = "🧹 Clear All Visuals",
         Callback = function()
             -- Disable all toggles
-            Variables.eggESPEnabled = false
             Variables.xrayEnabled = false
             Variables.playerESPEnabled = false
-            Variables.chatLoggerEnabled = false
             
             -- Clean X-Ray
             for part, props in pairs(xrayParts) do
@@ -423,16 +240,7 @@ function Visuals.Init(Dependencies)
                 xrayConnection = nil
             end
             
-            -- Clean ESP highlights
-            for _, hl in pairs(eggHighlights) do
-                if hl and hl.Parent then
-                    pcall(function()
-                        hl:Destroy()
-                    end)
-                end
-            end
-            eggHighlights = {}
-            
+            -- Clean Player ESP highlights
             for _, hl in pairs(playerHighlights) do
                 if hl and hl.Parent then
                     pcall(function()
@@ -445,16 +253,11 @@ function Visuals.Init(Dependencies)
             -- Clean CoreGui
             local CoreGui = game:GetService("CoreGui")
             for _, obj in pairs(CoreGui:GetChildren()) do
-                if obj.Name:find("EggESP_") or obj.Name:find("PlayerESP_") then
+                if obj.Name:find("PlayerESP_") then
                     pcall(function()
                         obj:Destroy()
                     end)
                 end
-            end
-            
-            if chatLoggerConnection then
-                chatLoggerConnection:Disconnect()
-                chatLoggerConnection = nil
             end
             
             Bdev:Notify({
@@ -488,7 +291,7 @@ function Visuals.Init(Dependencies)
             --print("📊 ESP Transparency set to:", value)
             
             -- Apply to existing ESP if enabled
-            if Variables.eggESPEnabled or Variables.playerESPEnabled then
+            if Variables.playerESPEnabled then
                 Bdev:Notify({
                     Title = "Settings",
                     Content = "Change will apply after ESP refresh",
