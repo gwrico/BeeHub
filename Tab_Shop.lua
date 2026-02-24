@@ -46,8 +46,8 @@ function ShopAutoBuy.Init(Dependencies)
     end
     
     -- ===== STATE VARIABLES =====
-    local selectedDisplay = seedDisplayOptions[1]  -- Simpan display name
-    local selectedSeed = displayToName[selectedDisplay]  -- Dapatkan nama asli
+    local selectedDisplay = seedDisplayOptions[1]
+    local selectedSeed = displayToName[selectedDisplay]
     local autoBuyEnabled = false
     local autoBuyConnection = nil
     local buyDelay = 2
@@ -55,9 +55,9 @@ function ShopAutoBuy.Init(Dependencies)
     
     -- Variable untuk menyimpan references
     local dropdownRef = nil
-    local infoLabelRef = nil  -- Reference untuk info label
-    local qtySliderRef = nil
-    local delaySliderRef = nil
+    local infoLabelRef = nil
+    local qtyInputRef = nil
+    local delayInputRef = nil
     local autoBuyToggleRef = nil
     
     -- ===== FUNGSI CEK REMOTE =====
@@ -115,8 +115,8 @@ function ShopAutoBuy.Init(Dependencies)
         autoBuyEnabled = true
         
         Bdev:Notify({
-            Title = "Auto Buy ON",
-            Content = string.format("Membeli %s setiap %d detik", selectedDisplay, buyDelay),
+            Title = "🤖 Auto Buy ON",
+            Content = string.format("%s setiap %d detik", selectedDisplay, buyDelay),
             Duration = 3
         })
         
@@ -139,7 +139,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
         
         Bdev:Notify({
-            Title = "Auto Buy OFF",
+            Title = "⏹️ Auto Buy OFF",
             Content = "Dihentikan",
             Duration = 2
         })
@@ -170,11 +170,8 @@ function ShopAutoBuy.Init(Dependencies)
         Options = seedDisplayOptions,
         Default = seedDisplayOptions[1],
         Callback = function(value)
-            -- value adalah display name yang dipilih
             selectedDisplay = value
             selectedSeed = displayToName[value]
-            
-            -- Update info label
             updateInfoLabel()
             
             Bdev:Notify({
@@ -183,10 +180,8 @@ function ShopAutoBuy.Init(Dependencies)
                 Duration = 1
             })
             
-            -- Debug
             print("✅ Dipilih:", value, "->", selectedSeed)
             
-            -- Jika auto buy sedang aktif, restart dengan bibit baru
             if autoBuyEnabled then
                 stopAutoBuy()
                 startAutoBuy()
@@ -209,139 +204,247 @@ function ShopAutoBuy.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- 2. PENGATURAN SECTION
+    -- 2. PENGATURAN & AUTO BUY SECTION (DIGABUNG)
     local header2 = Tab:CreateLabel({
-        Name = "Header_Pengaturan",
-        Text = "───── ⚙️ PENGATURAN ─────",
+        Name = "Header_PengaturanAuto",
+        Text = "───── ⚙️ PENGATURAN & AUTO BUY ─────",
         Color = Color3.fromRGB(255, 185, 0),
         Bold = true,
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Slider Jumlah
-    qtySliderRef = Tab:CreateSlider({
-        Name = "QtySlider",
-        Text = "Jumlah: " .. buyQuantity,
-        Range = {1, 10},
-        Increment = 1,
-        CurrentValue = 1,
-        Callback = function(value)
-            buyQuantity = value
-            -- Update text slider
-            if qtySliderRef and qtySliderRef.Frame then
-                local label = qtySliderRef.Frame:FindFirstChild("SliderLabel")
-                if label then
-                    label.Text = "Jumlah: " .. value
-                end
-            end
-        end
-    })
+    -- Frame untuk pengaturan dalam satu baris (jumlah & delay)
+    local SettingsFrame = Instance.new("Frame")
+    SettingsFrame.Name = "SettingsFrame"
+    SettingsFrame.Size = UDim2.new(0.95, 0, 0, 40)
+    SettingsFrame.BackgroundTransparency = 1
+    SettingsFrame.LayoutOrder = #Tab.Elements + 1
+    SettingsFrame.Parent = Tab.Content
     
-    -- Slider Delay
-    delaySliderRef = Tab:CreateSlider({
-        Name = "DelaySlider",
-        Text = "Delay: " .. buyDelay .. " detik",
-        Range = {0.5, 5},
-        Increment = 0.5,
-        CurrentValue = 2,
-        Callback = function(value)
+    -- Layout horizontal untuk settings
+    local SettingsLayout = Instance.new("UIListLayout")
+    SettingsLayout.FillDirection = Enum.FillDirection.Horizontal
+    SettingsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    SettingsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    SettingsLayout.Padding = UDim.new(0, 10)
+    SettingsLayout.Parent = SettingsFrame
+    
+    -- TextBox untuk Jumlah (modern)
+    local QtyFrame = Instance.new("Frame")
+    QtyFrame.Name = "QtyFrame"
+    QtyFrame.Size = UDim2.new(0, 80, 0, 36)
+    QtyFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    QtyFrame.BackgroundTransparency = 0
+    QtyFrame.Parent = SettingsFrame
+    
+    local QtyCorner = Instance.new("UICorner")
+    QtyCorner.CornerRadius = UDim.new(0, 6)
+    QtyCorner.Parent = QtyFrame
+    
+    local QtyLabel = Instance.new("TextLabel")
+    QtyLabel.Name = "QtyLabel"
+    QtyLabel.Size = UDim2.new(0, 30, 1, 0)
+    QtyLabel.Text = "x"
+    QtyLabel.TextColor3 = Color3.fromRGB(255, 185, 0)
+    QtyLabel.BackgroundTransparency = 1
+    QtyLabel.TextSize = 16
+    QtyLabel.Font = Enum.Font.GothamBold
+    QtyLabel.Parent = QtyFrame
+    
+    local QtyBox = Instance.new("TextBox")
+    QtyBox.Name = "QtyBox"
+    QtyBox.Size = UDim2.new(1, -30, 1, 0)
+    QtyBox.Position = UDim2.new(0, 30, 0, 0)
+    QtyBox.Text = tostring(buyQuantity)
+    QtyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    QtyBox.BackgroundTransparency = 1
+    QtyBox.TextSize = 14
+    QtyBox.Font = Enum.Font.Gotham
+    QtyBox.ClearTextOnFocus = false
+    QtyBox.Parent = QtyFrame
+    
+    -- TextBox untuk Delay (modern)
+    local DelayFrame = Instance.new("Frame")
+    DelayFrame.Name = "DelayFrame"
+    DelayFrame.Size = UDim2.new(0, 100, 0, 36)
+    DelayFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    DelayFrame.BackgroundTransparency = 0
+    DelayFrame.Parent = SettingsFrame
+    
+    local DelayCorner = Instance.new("UICorner")
+    DelayCorner.CornerRadius = UDim.new(0, 6)
+    DelayCorner.Parent = DelayFrame
+    
+    local DelayLabel = Instance.new("TextLabel")
+    DelayLabel.Name = "DelayLabel"
+    DelayLabel.Size = UDim2.new(0, 40, 1, 0)
+    DelayLabel.Text = "⏱️"
+    DelayLabel.TextColor3 = Color3.fromRGB(255, 185, 0)
+    DelayLabel.BackgroundTransparency = 1
+    DelayLabel.TextSize = 16
+    DelayLabel.Font = Enum.Font.GothamBold
+    DelayLabel.Parent = DelayFrame
+    
+    local DelayBox = Instance.new("TextBox")
+    DelayBox.Name = "DelayBox"
+    DelayBox.Size = UDim2.new(1, -40, 1, 0)
+    DelayBox.Position = UDim2.new(0, 40, 0, 0)
+    DelayBox.Text = tostring(buyDelay) .. "s"
+    DelayBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DelayBox.BackgroundTransparency = 1
+    DelayBox.TextSize = 14
+    DelayBox.Font = Enum.Font.Gotham
+    DelayBox.ClearTextOnFocus = false
+    DelayBox.Parent = DelayFrame
+    
+    -- Fungsi untuk validasi input
+    QtyBox.FocusLost:Connect(function()
+        local value = tonumber(QtyBox.Text)
+        if value and value >= 1 and value <= 10 then
+            buyQuantity = math.floor(value)
+            QtyBox.Text = tostring(buyQuantity)
+        else
+            QtyBox.Text = tostring(buyQuantity)
+            Bdev:Notify({
+                Title = "❌ Invalid",
+                Content = "Jumlah harus 1-10",
+                Duration = 2
+            })
+        end
+    end)
+    
+    DelayBox.FocusLost:Connect(function()
+        local text = DelayBox.Text:gsub("s", "")
+        local value = tonumber(text)
+        if value and value >= 0.5 and value <= 5 then
             buyDelay = value
-            -- Update text slider
-            if delaySliderRef and delaySliderRef.Frame then
-                local label = delaySliderRef.Frame:FindFirstChild("SliderLabel")
-                if label then
-                    label.Text = "Delay: " .. value .. " detik"
-                end
-            end
+            DelayBox.Text = tostring(buyDelay) .. "s"
             
-            -- Update auto buy loop jika sedang aktif
             if autoBuyEnabled then
                 stopAutoBuy()
                 startAutoBuy()
             end
+        else
+            DelayBox.Text = tostring(buyDelay) .. "s"
+            Bdev:Notify({
+                Title = "❌ Invalid",
+                Content = "Delay harus 0.5-5 detik",
+                Duration = 2
+            })
         end
-    })
+    end)
     
-    -- Spacer
-    Tab:CreateLabel({
-        Name = "Spacer2",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
+    -- Tombol Aksi Cepat
+    local ActionFrame = Instance.new("Frame")
+    ActionFrame.Name = "ActionFrame"
+    ActionFrame.Size = UDim2.new(0.95, 0, 0, 40)
+    ActionFrame.BackgroundTransparency = 1
+    ActionFrame.LayoutOrder = #Tab.Elements + 1
+    ActionFrame.Parent = Tab.Content
     
-    -- 3. MANUAL SECTION
-    local header3 = Tab:CreateLabel({
-        Name = "Header_Manual",
-        Text = "───── 🖱️ MANUAL ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
+    local ActionLayout = Instance.new("UIListLayout")
+    ActionLayout.FillDirection = Enum.FillDirection.Horizontal
+    ActionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    ActionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    ActionLayout.Padding = UDim.new(0, 10)
+    ActionLayout.Parent = ActionFrame
     
-    -- Tombol Beli Manual
-    Tab:CreateButton({
-        Name = "ManualBuy",
-        Text = "🛒 BELI MANUAL",
-        Callback = function()
-            buySeed(selectedSeed, buyQuantity)
+    -- Tombol Beli Sekarang
+    local BuyNowBtn = Instance.new("TextButton")
+    BuyNowBtn.Name = "BuyNowBtn"
+    BuyNowBtn.Size = UDim2.new(0, 120, 0, 36)
+    BuyNowBtn.Text = "🛒 BELI"
+    BuyNowBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BuyNowBtn.BackgroundColor3 = Color3.fromRGB(255, 185, 0)
+    BuyNowBtn.BackgroundTransparency = 0
+    BuyNowBtn.TextSize = 14
+    BuyNowBtn.Font = Enum.Font.GothamBold
+    BuyNowBtn.AutoButtonColor = false
+    BuyNowBtn.Parent = ActionFrame
+    
+    local BuyCorner = Instance.new("UICorner")
+    BuyCorner.CornerRadius = UDim.new(0, 6)
+    BuyCorner.Parent = BuyNowBtn
+    
+    BuyNowBtn.MouseButton1Click:Connect(function()
+        buySeed(selectedSeed, buyQuantity)
+    end)
+    
+    -- Toggle Auto Buy (dalam bentuk tombol modern)
+    local AutoToggleBtn = Instance.new("TextButton")
+    AutoToggleBtn.Name = "AutoToggleBtn"
+    AutoToggleBtn.Size = UDim2.new(0, 120, 0, 36)
+    AutoToggleBtn.Text = "🤖 AUTO OFF"
+    AutoToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    AutoToggleBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+    AutoToggleBtn.BackgroundTransparency = 0
+    AutoToggleBtn.TextSize = 14
+    AutoToggleBtn.Font = Enum.Font.GothamBold
+    AutoToggleBtn.AutoButtonColor = false
+    AutoToggleBtn.Parent = ActionFrame
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 6)
+    ToggleCorner.Parent = AutoToggleBtn
+    
+    -- Fungsi untuk update tampilan tombol auto
+    local function updateAutoButton()
+        if autoBuyEnabled then
+            AutoToggleBtn.Text = "🤖 AUTO ON"
+            AutoToggleBtn.BackgroundColor3 = Color3.fromRGB(255, 185, 0)
+        else
+            AutoToggleBtn.Text = "🤖 AUTO OFF"
+            AutoToggleBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
         end
-    })
+    end
     
-    -- Tombol Test Beli 1
-    Tab:CreateButton({
-        Name = "TestBuy",
-        Text = "🧪 TEST BELI (1x)",
-        Callback = function()
-            buySeed(selectedSeed, 1)
-        end
-    })
-    
-    -- Spacer
-    Tab:CreateLabel({
-        Name = "Spacer3",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- 4. AUTO BUY SECTION
-    local header4 = Tab:CreateLabel({
-        Name = "Header_AutoBuy",
-        Text = "───── 🤖 AUTO BUY ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Toggle Auto Buy
-    autoBuyToggleRef = Tab:CreateToggle({
-        Name = "AutoBuyToggle",
-        Text = "AKTIFKAN AUTO BUY",
-        CurrentValue = false,
-        Callback = function(value)
-            if value then
-                if not checkRemote() then
-                    if autoBuyToggleRef and autoBuyToggleRef.SetValue then
-                        autoBuyToggleRef:SetValue(false)
-                    end
-                    return
-                end
+    AutoToggleBtn.MouseButton1Click:Connect(function()
+        if not autoBuyEnabled then
+            if checkRemote() then
                 startAutoBuy()
-            else
-                stopAutoBuy()
             end
+        else
+            stopAutoBuy()
         end
-    })
+        updateAutoButton()
+    end)
     
-    -- Tombol Stop
-    Tab:CreateButton({
-        Name = "StopButton",
-        Text = "⏹️ STOP AUTO BUY",
-        Callback = function()
-            if autoBuyToggleRef and autoBuyToggleRef.SetValue then
-                autoBuyToggleRef:SetValue(false)
-            end
+    -- Tombol Stop (X)
+    local StopBtn = Instance.new("TextButton")
+    StopBtn.Name = "StopBtn"
+    StopBtn.Size = UDim2.new(0, 40, 0, 36)
+    StopBtn.Text = "✕"
+    StopBtn.TextColor3 = Color3.fromRGB(255, 70, 70)
+    StopBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+    StopBtn.BackgroundTransparency = 0
+    StopBtn.TextSize = 16
+    StopBtn.Font = Enum.Font.GothamBold
+    StopBtn.AutoButtonColor = false
+    StopBtn.Parent = ActionFrame
+    
+    local StopCorner = Instance.new("UICorner")
+    StopCorner.CornerRadius = UDim.new(0, 6)
+    StopCorner.Parent = StopBtn
+    
+    StopBtn.MouseButton1Click:Connect(function()
+        if autoBuyEnabled then
+            stopAutoBuy()
+            updateAutoButton()
         end
-    })
+    end)
+    
+    -- Hover effects
+    local function setupHover(btn, normalColor, hoverColor)
+        btn.MouseEnter:Connect(function()
+            tween(btn, {BackgroundColor3 = hoverColor}, 0.15)
+        end)
+        btn.MouseLeave:Connect(function()
+            tween(btn, {BackgroundColor3 = normalColor}, 0.15)
+        end)
+    end
+    
+    setupHover(BuyNowBtn, Color3.fromRGB(255, 185, 0), Color3.fromRGB(255, 215, 100))
+    setupHover(StopBtn, Color3.fromRGB(40, 40, 52), Color3.fromRGB(55, 55, 70))
     
     -- ===== CLEANUP FUNCTION =====
     local function cleanup()
@@ -368,7 +471,12 @@ function ShopAutoBuy.Init(Dependencies)
             }
         end,
         StopAutoBuy = stopAutoBuy,
-        StartAutoBuy = startAutoBuy,
+        StartAutoBuy = function()
+            if checkRemote() then
+                startAutoBuy()
+                updateAutoButton()
+            end
+        end,
         SetSeed = function(seedDisplay)
             if displayToName[seedDisplay] then
                 selectedDisplay = seedDisplay
@@ -382,25 +490,19 @@ function ShopAutoBuy.Init(Dependencies)
         SetQuantity = function(value)
             if value >= 1 and value <= 10 then
                 buyQuantity = value
-                if qtySliderRef and qtySliderRef.SetValue then
-                    qtySliderRef:SetValue(value)
-                end
+                QtyBox.Text = tostring(value)
             end
         end,
         SetDelay = function(value)
             if value >= 0.5 and value <= 5 then
                 buyDelay = value
-                if delaySliderRef and delaySliderRef.SetValue then
-                    delaySliderRef:SetValue(value)
-                end
+                DelayBox.Text = tostring(value) .. "s"
             end
-        end,
-        UpdateInfoLabel = updateInfoLabel  -- Fungsi untuk manual update jika perlu
+        end
     }
     
-    print("✅ Shop module loaded - dengan Dropdown (fixed info label)")
+    print("✅ Shop module loaded - Modern Edition")
     
-    -- Return cleanup function
     return cleanup
 end
 
