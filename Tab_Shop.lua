@@ -315,14 +315,14 @@ function ShopAutoBuy.Init(Dependencies)
     -- Fungsi untuk validasi input
     QtyBox.FocusLost:Connect(function()
         local value = tonumber(QtyBox.Text)
-        if value and value >= 1 and value <= 10 then
+        if value and value >= 1 and value <= 99 then
             buyQuantity = math.floor(value)
             QtyBox.Text = tostring(buyQuantity)
         else
             QtyBox.Text = tostring(buyQuantity)
             Bdev:Notify({
                 Title = "❌ Invalid",
-                Content = "Jumlah harus 1-10",
+                Content = "Jumlah harus 1-99",
                 Duration = 2
             })
         end
