@@ -29,6 +29,9 @@ function AutoFarm.Init(Dependencies)
     local customY = defaultPos.Y
     local customZ = defaultPos.Z
     
+    -- Variabel untuk jenis bibit
+    local selectedSeed = "Bibit Padi" -- Default
+    
     -- References untuk slider (agar bisa diupdate nilainya)
     local xSlider, ySlider, zSlider
     
@@ -48,6 +51,28 @@ function AutoFarm.Init(Dependencies)
             local tutorial = remotes:FindFirstChild("TutorialRemotes")
             if tutorial then
                 return tutorial:FindFirstChild("PlantCrop")
+            end
+        end
+        
+        return nil
+    end
+    
+    -- Dapatkan remote RequestShop
+    local function getShopRemote()
+        local success, remote = pcall(function()
+            return ReplicatedStorage.Remotes.TutorialRemotes.RequestShop
+        end)
+        
+        if success and remote then
+            return remote
+        end
+        
+        -- Coba cari dengan aman
+        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+        if remotes then
+            local tutorial = remotes:FindFirstChild("TutorialRemotes")
+            if tutorial then
+                return tutorial:FindFirstChild("RequestShop")
             end
         end
         
@@ -93,6 +118,64 @@ function AutoFarm.Init(Dependencies)
         })
     end
     
+    -- Fungsi untuk membeli bibit
+    local function buySeed(seedName, amount)
+        local shopRemote = getShopRemote()
+        if not shopRemote then
+            Bdev:Notify({
+                Title = "Error",
+                Content = "❌ Remote shop tidak ditemukan!",
+                Duration = 3
+            })
+            return false
+        end
+        
+        local arguments = {
+            [1] = "BUY",
+            [2] = seedName,
+            [3] = amount
+        }
+        
+        local success, result = pcall(function()
+            return shopRemote:InvokeServer(unpack(arguments))
+        end)
+        
+        if success then
+            Bdev:Notify({
+                Title = "Purchase Success",
+                Content = string.format("✅ Membeli %s x%d", seedName, amount),
+                Duration = 2
+            })
+            return true
+        else
+            Bdev:Notify({
+                Title = "Purchase Failed",
+                Content = string.format("❌ Gagal membeli %s", seedName),
+                Duration = 2
+            })
+            return false
+        end
+    end
+    
+    -- Fungsi untuk mendapatkan daftar bibit dari shop
+    local function getSeedList()
+        local shopRemote = getShopRemote()
+        if not shopRemote then return {} end
+        
+        local arguments = {
+            [1] = "GET_LIST"
+        }
+        
+        local success, result = pcall(function()
+            return shopRemote:InvokeServer(unpack(arguments))
+        end)
+        
+        if success and result then
+            return result
+        end
+        return {}
+    end
+    
     -- ===== CEK KETERSEDIAAN REMOTE =====
     local plantRemote = getPlantRemote()
     if plantRemote then
@@ -108,6 +191,53 @@ function AutoFarm.Init(Dependencies)
             Duration = 4
         })
     end
+    
+    -- ===== SEED SELECTION =====
+    Tab:CreateLabel({
+        Name = "SeedLabel",
+        Text = "🌾 PILIH JENIS BIBIT",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Dropdown untuk memilih bibit
+    local seedDropdown = Tab:CreateDropdown({
+        Name = "SeedSelector",
+        Text = "Pilih Bibit: " .. selectedSeed,
+        Items = {
+            "Bibit Padi",
+            "Bibit Jagung", 
+            "Bibit Tomat",
+            "Bibit Terong",
+            "Bibit Strawberry"
+        },
+        CurrentItem = selectedSeed,
+        Callback = function(value)
+            selectedSeed = value
+            Bdev:Notify({
+                Title = "Seed Selected",
+                Content = string.format("✅ Bibit: %s", value),
+                Duration = 1
+            })
+        end
+    })
+    
+    -- Tombol untuk membeli bibit
+    Tab:CreateButton({
+        Name = "BuySeed",
+        Text = "💰 Beli Bibit Terpilih (1x)",
+        Callback = function()
+            buySeed(selectedSeed, 1)
+        end
+    })
+    
+    -- Tombol untuk membeli bibit dalam jumlah banyak
+    Tab:CreateButton({
+        Name = "BuySeed10",
+        Text = "💰💰 Beli Bibit 10x",
+        Callback = function()
+            buySeed(selectedSeed, 10)
+        end
+    })
     
     -- ===== AUTO PLANT CROPS =====
     Tab:CreateToggle({
@@ -131,7 +261,7 @@ function AutoFarm.Init(Dependencies)
                 
                 Bdev:Notify({
                     Title = "Auto Plant",
-                    Content = "🌱 Auto planting ENABLED",
+                    Content = string.format("🌱 Auto planting %s ENABLED", selectedSeed),
                     Duration = 2
                 })
                 
@@ -195,7 +325,7 @@ function AutoFarm.Init(Dependencies)
             if success then
                 Bdev:Notify({
                     Title = "Success",
-                    Content = "✅ Tanam berhasil!",
+                    Content = string.format("✅ %s ditanam!", selectedSeed),
                     Duration = 2
                 })
             end
@@ -238,7 +368,7 @@ function AutoFarm.Init(Dependencies)
             if success then
                 Bdev:Notify({
                     Title = "Success",
-                    Content = "✅ Posisi direkam & tanaman ditanam!",
+                    Content = string.format("✅ Posisi direkam & %s ditanam!", selectedSeed),
                     Duration = 3
                 })
             end
@@ -314,7 +444,7 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    print("✅ AutoFarm Plants module loaded dengan AUTO RECORD POSISI")
+    print("✅ AutoFarm Plants module loaded dengan AUTO RECORD POSISI & SEED SELECTOR")
 end
 
 return AutoFarm
