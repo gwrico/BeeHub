@@ -120,7 +120,7 @@ function AutoFarm.Init(Dependencies)
     local batchSize = 5
     
     Tab:CreateSlider({
-        Name = "BatchSize",
+        Name = "Jumlah Bibit",
         Text = "🌾 Jumlah per batch: " .. batchSize,
         Range = {1, 50},
         Increment = 1,
@@ -134,7 +134,7 @@ function AutoFarm.Init(Dependencies)
     local batchDelay = 0.3
     
     Tab:CreateSlider({
-        Name = "BatchDelay",
+        Name = "Delay Plant",
         Text = "⏱️ Delay antar tanaman: " .. string.format("%.1fs", batchDelay),
         Range = {0.1, 2.0},
         Increment = 0.1,
@@ -353,9 +353,9 @@ function AutoFarm.Init(Dependencies)
     local plantDelay = 1.0
     
     Tab:CreateSlider({
-        Name = "PlantDelay",
+        Name = "Delay AutoPlant",
         Text = "⏱️ Auto Plant Delay: " .. string.format("%.1fs", plantDelay),
-        Range = {0.2, 3.0},
+        Range = {0.2, 120.0},
         Increment = 0.1,
         CurrentValue = 1.0,
         Callback = function(value)
