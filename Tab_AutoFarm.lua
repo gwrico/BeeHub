@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - MINIMALIS
+-- 💰 AUTO FARM TAB MODULE - DENGAN AUTO RECORD POSISI
 -- ==============================================
 
 local AutoFarm = {}
@@ -16,38 +16,21 @@ function AutoFarm.Init(Dependencies)
     local RunService = game:GetService("RunService")
     local Players = game:GetService("Players")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local TweenService = game:GetService("TweenService")
-    
-    -- ===== FUNGSI TWEEN LOKAL =====
-    local function tween(object, properties, duration, easingStyle)
-        if not object then return nil end
-        
-        local tweenInfo = TweenInfo.new(
-            duration or 0.2, 
-            easingStyle or Enum.EasingStyle.Quint, 
-            Enum.EasingDirection.Out
-        )
-        local tween = TweenService:Create(object, tweenInfo, properties)
-        tween:Play()
-        return tween
-    end
+    local UserInputService = game:GetService("UserInputService")
     
     -- Auto-plant variables
     local plantConnection = nil
-    local autoPlantToggleRef = nil
     
-    -- Default position
-    local defaultPos = Vector3.new(67.13851165771484, 39.296875, -263.7070617675781)
+    -- Default position (dari script Anda)
+    local defaultPos = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
     
-    -- Custom position
+    -- Custom position (akan diupdate dari posisi player)
     local customX = defaultPos.X
     local customY = defaultPos.Y
     local customZ = defaultPos.Z
     
-    -- References
-    local xInput, yInput, zInput
-    local plantCount = 0
-    local delay = 1.0
+    -- References untuk slider (agar bisa diupdate nilainya)
+    local xSlider, ySlider, zSlider
     
     -- Dapatkan remote PlantCrop
     local function getPlantRemote()
@@ -59,6 +42,7 @@ function AutoFarm.Init(Dependencies)
             return remote
         end
         
+        -- Coba cari dengan aman
         local remotes = ReplicatedStorage:FindFirstChild("Remotes")
         if remotes then
             local tutorial = remotes:FindFirstChild("TutorialRemotes")
@@ -82,23 +66,53 @@ function AutoFarm.Init(Dependencies)
         return humanoidRootPart.Position
     end
     
-    -- Fungsi untuk update input dengan nilai baru
-    local function updatePositionInputs(newPos)
+    -- Fungsi untuk update slider dengan nilai baru
+    local function updatePositionSliders(newPos)
         if not newPos then return end
         
         customX = newPos.X
         customY = newPos.Y
         customZ = newPos.Z
         
-        if xInput then xInput.Text = string.format("%.1f", customX) end
-        if yInput then yInput.Text = string.format("%.1f", customY) end
-        if zInput then zInput.Text = string.format("%.1f", customZ) end
+        -- Update slider jika reference tersedia
+        if xSlider then
+            xSlider:SetValue(customX)
+        end
+        if ySlider then
+            ySlider:SetValue(customY)
+        end
+        if zSlider then
+            zSlider:SetValue(customZ)
+        end
+        
+        -- Tampilkan notifikasi
+        Bdev:Notify({
+            Title = "Position Recorded",
+            Content = string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", customX, customY, customZ),
+            Duration = 3
+        })
     end
     
-    -- ===== AUTO PLANT TOGGLE =====
-    autoPlantToggleRef = Tab:CreateToggle({
+    -- ===== CEK KETERSEDIAAN REMOTE =====
+    local plantRemote = getPlantRemote()
+    if plantRemote then
+        Bdev:Notify({
+            Title = "PlantCrop Ready",
+            Content = "✅ Remote PlantCrop ditemukan!",
+            Duration = 3
+        })
+    else
+        Bdev:Notify({
+            Title = "Warning",
+            Content = "⚠️ Remote PlantCrop tidak ditemukan!",
+            Duration = 4
+        })
+    end
+    
+    -- ===== AUTO PLANT CROPS =====
+    Tab:CreateToggle({
         Name = "AutoPlant",
-        Text = "🌱 AUTO PLANT",
+        Text = "🌱 Auto Plant Crops",
         CurrentValue = false,
         Callback = function(value)
             Variables.autoPlantEnabled = value
@@ -106,31 +120,48 @@ function AutoFarm.Init(Dependencies)
             if value then
                 local plantRemote = getPlantRemote()
                 if not plantRemote then
-                    Bdev:Notify({Title = "❌ Error", Content = "Remote tidak ditemukan!", Duration = 3})
-                    if autoPlantToggleRef and autoPlantToggleRef.SetValue then
-                        autoPlantToggleRef:SetValue(false)
-                    end
+                    Bdev:Notify({
+                        Title = "Error",
+                        Content = "❌ PlantCrop remote tidak ditemukan!",
+                        Duration = 4
+                    })
                     Variables.autoPlantEnabled = false
                     return
                 end
                 
-                plantCount = 0
+                Bdev:Notify({
+                    Title = "Auto Plant",
+                    Content = "🌱 Auto planting ENABLED",
+                    Duration = 2
+                })
                 
-                if plantConnection then plantConnection:Disconnect() end
+                if plantConnection then
+                    plantConnection:Disconnect()
+                end
                 
                 plantConnection = RunService.Heartbeat:Connect(function()
                     if not Variables.autoPlantEnabled then return end
                     
                     local remote = getPlantRemote()
                     if remote then
+                        -- Gunakan custom position yang sudah direkam
                         local plantPos = Vector3.new(customX, customY, customZ)
-                        pcall(function() remote:FireServer(plantPos) end)
-                        plantCount = plantCount + 1
-                        task.wait(delay)
+                        
+                        pcall(function()
+                            remote:FireServer(plantPos)
+                        end)
+                        
+                        task.wait(1.0) -- Default delay 1 detik
                     end
                 end)
                 
             else
+                Bdev:Notify({
+                    Title = "Auto Plant",
+                    Content = "🌱 Auto planting DISABLED",
+                    Duration = 2
+                })
+                
                 if plantConnection then
                     plantConnection:Disconnect()
                     plantConnection = nil
@@ -139,204 +170,151 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== POSISI SECTION =====
-    -- Frame untuk input koordinat (X Y Z dalam satu baris)
-    local CoordFrame = Instance.new("Frame")
-    CoordFrame.Name = "CoordFrame"
-    CoordFrame.Size = UDim2.new(0.95, 0, 0, 50)
-    CoordFrame.BackgroundTransparency = 1
-    CoordFrame.LayoutOrder = #Tab.Elements + 1
-    CoordFrame.Parent = Tab.Content
-    
-    local CoordLayout = Instance.new("UIListLayout")
-    CoordLayout.FillDirection = Enum.FillDirection.Horizontal
-    CoordLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    CoordLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    CoordLayout.Padding = UDim.new(0, 5)
-    CoordLayout.Parent = CoordFrame
-    
-    -- Fungsi buat textbox koordinat
-    local function createCoordBox(parent, label, default, posIndex)
-        local frame = Instance.new("Frame")
-        frame.Name = label .. "Frame"
-        frame.Size = UDim2.new(0, 90, 0, 36)
-        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-        frame.BackgroundTransparency = 0
-        frame.Parent = parent
-        
-        local inputCorner = Instance.new("UICorner")
-        inputCorner.CornerRadius = UDim.new(0, 6)
-        inputCorner.Parent = frame
-        
-        local labelObj = Instance.new("TextLabel")
-        labelObj.Name = "Label"
-        labelObj.Size = UDim2.new(0, 20, 1, 0)
-        labelObj.Text = label
-        labelObj.TextColor3 = Color3.fromRGB(255, 185, 0)
-        labelObj.BackgroundTransparency = 1
-        labelObj.TextSize = 14
-        labelObj.Font = Enum.Font.GothamBold
-        labelObj.Parent = frame
-        
-        local textBox = Instance.new("TextBox")
-        textBox.Name = "Value"
-        textBox.Size = UDim2.new(1, -25, 1, 0)
-        textBox.Position = UDim2.new(0, 20, 0, 0)
-        textBox.Text = string.format("%.1f", default)
-        textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-        textBox.BackgroundTransparency = 1
-        textBox.TextSize = 14
-        textBox.Font = Enum.Font.Gotham
-        textBox.ClearTextOnFocus = false
-        textBox.Parent = frame
-        
-        textBox.FocusLost:Connect(function()
-            local value = tonumber(textBox.Text)
-            if value then
-                if posIndex == "X" then customX = value
-                elseif posIndex == "Y" then customY = value
-                elseif posIndex == "Z" then customZ = value end
-                textBox.Text = string.format("%.1f", value)
-            else
-                if posIndex == "X" then textBox.Text = string.format("%.1f", customX)
-                elseif posIndex == "Y" then textBox.Text = string.format("%.1f", customY)
-                elseif posIndex == "Z" then textBox.Text = string.format("%.1f", customZ) end
+    -- ===== MANUAL PLANT =====
+    Tab:CreateButton({
+        Name = "ManualPlant",
+        Text = "🌿 Plant Now (1x)",
+        Callback = function()
+            local plantRemote = getPlantRemote()
+            if not plantRemote then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Remote tidak ditemukan!",
+                    Duration = 3
+                })
+                return
             end
-        end)
-        
-        return textBox
-    end
-    
-    -- Buat 3 textbox untuk X, Y, Z
-    xInput = createCoordBox(CoordFrame, "X", customX, "X")
-    yInput = createCoordBox(CoordFrame, "Y", customY, "Y")
-    zInput = createCoordBox(CoordFrame, "Z", customZ, "Z")
-    
-    -- ===== TOMBOL AKSI =====
-    local ActionFrame = Instance.new("Frame")
-    ActionFrame.Name = "ActionFrame"
-    ActionFrame.Size = UDim2.new(0.95, 0, 0, 40)
-    ActionFrame.BackgroundTransparency = 1
-    ActionFrame.LayoutOrder = #Tab.Elements + 1
-    ActionFrame.Parent = Tab.Content
-    
-    local ActionLayout = Instance.new("UIListLayout")
-    ActionLayout.FillDirection = Enum.FillDirection.Horizontal
-    ActionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    ActionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    ActionLayout.Padding = UDim.new(0, 5)
-    ActionLayout.Parent = ActionFrame
-    
-    -- Tombol Record
-    local RecordBtn = Instance.new("TextButton")
-    RecordBtn.Size = UDim2.new(0, 70, 0, 36)
-    RecordBtn.Text = "📝"
-    RecordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    RecordBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
-    RecordBtn.BackgroundTransparency = 0
-    RecordBtn.TextSize = 16
-    RecordBtn.Font = Enum.Font.GothamBold
-    RecordBtn.AutoButtonColor = false
-    RecordBtn.Parent = ActionFrame
-    
-    local RecordCorner = Instance.new("UICorner")
-    RecordCorner.CornerRadius = UDim.new(0, 6)
-    RecordCorner.Parent = RecordBtn
-    
-    RecordBtn.MouseButton1Click:Connect(function()
-        local playerPos = getPlayerPosition()
-        if playerPos then updatePositionInputs(playerPos) end
-    end)
-    
-    -- Tombol Reset
-    local ResetBtn = Instance.new("TextButton")
-    ResetBtn.Size = UDim2.new(0, 70, 0, 36)
-    ResetBtn.Text = "🔄"
-    ResetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ResetBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
-    ResetBtn.BackgroundTransparency = 0
-    ResetBtn.TextSize = 16
-    ResetBtn.Font = Enum.Font.GothamBold
-    ResetBtn.AutoButtonColor = false
-    ResetBtn.Parent = ActionFrame
-    
-    local ResetCorner = Instance.new("UICorner")
-    ResetCorner.CornerRadius = UDim.new(0, 6)
-    ResetCorner.Parent = ResetBtn
-    
-    ResetBtn.MouseButton1Click:Connect(function()
-        updatePositionInputs(defaultPos)
-    end)
-    
-    -- Tombol Plant
-    local PlantBtn = Instance.new("TextButton")
-    PlantBtn.Size = UDim2.new(0, 70, 0, 36)
-    PlantBtn.Text = "🌿"
-    PlantBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    PlantBtn.BackgroundColor3 = Color3.fromRGB(255, 185, 0)
-    PlantBtn.BackgroundTransparency = 0
-    PlantBtn.TextSize = 16
-    PlantBtn.Font = Enum.Font.GothamBold
-    PlantBtn.AutoButtonColor = false
-    PlantBtn.Parent = ActionFrame
-    
-    local PlantCorner = Instance.new("UICorner")
-    PlantCorner.CornerRadius = UDim.new(0, 6)
-    PlantCorner.Parent = PlantBtn
-    
-    PlantBtn.MouseButton1Click:Connect(function()
-        local plantRemote = getPlantRemote()
-        if plantRemote then
+            
+            -- Gunakan custom position
             local plantPos = Vector3.new(customX, customY, customZ)
-            pcall(function() plantRemote:FireServer(plantPos) end)
+            
+            local success = pcall(function()
+                plantRemote:FireServer(plantPos)
+            end)
+            
+            if success then
+                Bdev:Notify({
+                    Title = "Success",
+                    Content = "✅ Tanam berhasil!",
+                    Duration = 2
+                })
+            end
+        end
+    })
+    
+    -- ===== PLANT DI POSISI PLAYER (SEKALIGUS RECORD) =====
+    Tab:CreateButton({
+        Name = "PlantAndRecord",
+        Text = "📍 Plant & Record My Position",
+        Callback = function()
+            local plantRemote = getPlantRemote()
+            if not plantRemote then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Remote tidak ditemukan!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local playerPos = getPlayerPosition()
+            if not playerPos then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Tidak bisa dapatkan posisi!",
+                    Duration = 2
+                })
+                return
+            end
+            
+            -- Record posisi ke slider
+            updatePositionSliders(playerPos)
+            
+            -- Tanam di posisi tersebut
+            local success = pcall(function()
+                plantRemote:FireServer(playerPos)
+            end)
+            
+            if success then
+                Bdev:Notify({
+                    Title = "Success",
+                    Content = "✅ Posisi direkam & tanaman ditanam!",
+                    Duration = 3
+                })
+            end
+        end
+    })
+    
+    -- ===== RECORD POSISI SAJA (TANPA MENANAM) =====
+    Tab:CreateButton({
+        Name = "RecordOnly",
+        Text = "📝 Record My Position Only",
+        Callback = function()
+            local playerPos = getPlayerPosition()
+            if not playerPos then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Tidak bisa dapatkan posisi!",
+                    Duration = 2
+                })
+                return
+            end
+            
+            updatePositionSliders(playerPos)
+            
+            Bdev:Notify({
+                Title = "Position Recorded",
+                Content = "✅ Posisi tersimpan di slider!",
+                Duration = 2
+            })
+        end
+    })
+    
+    -- ===== KEYBIND INSTANT RECORD (tekan R untuk record) =====
+    Tab:CreateLabel({
+        Name = "KeybindInfo",
+        Text = "⌨️ Tekan R untuk record posisi",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Keybind R untuk record cepat
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode.R then
+            local playerPos = getPlayerPosition()
+            if playerPos then
+                updatePositionSliders(playerPos)
+                Bdev:Notify({
+                    Title = "Quick Record",
+                    Content = "✅ Posisi direkam (tekan R)",
+                    Duration = 1
+                })
+            end
         end
     end)
     
-    -- Tombol Stop
-    local StopBtn = Instance.new("TextButton")
-    StopBtn.Size = UDim2.new(0, 70, 0, 36)
-    StopBtn.Text = "⏹️"
-    StopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    StopBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    StopBtn.BackgroundTransparency = 0
-    StopBtn.TextSize = 16
-    StopBtn.Font = Enum.Font.GothamBold
-    StopBtn.AutoButtonColor = false
-    StopBtn.Parent = ActionFrame
-    
-    local StopCorner = Instance.new("UICorner")
-    StopCorner.CornerRadius = UDim.new(0, 6)
-    StopCorner.Parent = StopBtn
-    
-    StopBtn.MouseButton1Click:Connect(function()
-        if autoPlantToggleRef and autoPlantToggleRef.SetValue then
-            autoPlantToggleRef:SetValue(false)
+    -- ===== STOP AUTO PLANT =====
+    Tab:CreateButton({
+        Name = "StopPlanting",
+        Text = "⏹️ STOP Auto Plant",
+        Callback = function()
+            Variables.autoPlantEnabled = false
+            
+            if plantConnection then
+                plantConnection:Disconnect()
+                plantConnection = nil
+            end
+            
+            Bdev:Notify({
+                Title = "Stopped",
+                Content = "⏹️ Auto planting dihentikan",
+                Duration = 2
+            })
         end
-    end)
+    })
     
-    -- ===== HOVER EFFECTS =====
-    local function setupHover(btn, normalColor, hoverColor)
-        btn.MouseEnter:Connect(function() tween(btn, {BackgroundColor3 = hoverColor}, 0.15) end)
-        btn.MouseLeave:Connect(function() tween(btn, {BackgroundColor3 = normalColor}, 0.15) end)
-    end
-    
-    setupHover(RecordBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
-    setupHover(ResetBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
-    setupHover(PlantBtn, Color3.fromRGB(255, 185, 0), Color3.fromRGB(255, 215, 100))
-    setupHover(StopBtn, Color3.fromRGB(200, 50, 50), Color3.fromRGB(220, 80, 80))
-    
-    -- ===== CLEANUP =====
-    local function cleanup()
-        if plantConnection then
-            plantConnection:Disconnect()
-            plantConnection = nil
-        end
-        Variables.autoPlantEnabled = false
-    end
-    
-    print("✅ AutoFarm module loaded - Minimalis")
-    
-    return cleanup
+    print("✅ AutoFarm Plants module loaded dengan AUTO RECORD POSISI")
 end
 
 return AutoFarm
