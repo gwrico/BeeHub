@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - UNTUK PLANT CROP
+-- 💰 AUTO FARM TAB MODULE - MINIMALIS
 -- ==============================================
 
 local AutoFarm = {}
@@ -47,7 +47,7 @@ function AutoFarm.Init(Dependencies)
     -- References
     local xInput, yInput, zInput
     local plantCount = 0
-    local delay = 1.0 -- Default delay 1 detik
+    local delay = 1.0
     
     -- Dapatkan remote PlantCrop
     local function getPlantRemote()
@@ -59,7 +59,6 @@ function AutoFarm.Init(Dependencies)
             return remote
         end
         
-        -- Coba cari dengan aman
         local remotes = ReplicatedStorage:FindFirstChild("Remotes")
         if remotes then
             local tutorial = remotes:FindFirstChild("TutorialRemotes")
@@ -91,63 +90,15 @@ function AutoFarm.Init(Dependencies)
         customY = newPos.Y
         customZ = newPos.Z
         
-        -- Update input jika reference tersedia
-        if xInput then
-            xInput.Text = string.format("%.1f", customX)
-        end
-        if yInput then
-            yInput.Text = string.format("%.1f", customY)
-        end
-        if zInput then
-            zInput.Text = string.format("%.1f", customZ)
-        end
-        
-        -- Tampilkan notifikasi
-        Bdev:Notify({
-            Title = "📍 Position Recorded",
-            Content = string.format("X: %.1f, Y: %.1f, Z: %.1f", customX, customY, customZ),
-            Duration = 2
-        })
+        if xInput then xInput.Text = string.format("%.1f", customX) end
+        if yInput then yInput.Text = string.format("%.1f", customY) end
+        if zInput then zInput.Text = string.format("%.1f", customZ) end
     end
     
-    -- ===== CEK KETERSEDIAAN REMOTE =====
-    local plantRemote = getPlantRemote()
-    if plantRemote then
-        Bdev:Notify({
-            Title = "✅ PlantCrop Ready",
-            Content = "Remote PlantCrop ditemukan!",
-            Duration = 3
-        })
-    else
-        Bdev:Notify({
-            Title = "⚠️ Warning",
-            Content = "Remote PlantCrop tidak ditemukan!",
-            Duration = 4
-        })
-    end
-    
-    -- ===== HEADER =====
-    local header = Tab:CreateLabel({
-        Name = "Header_AutoFarm",
-        Text = "───── 🌾 AUTO FARM ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- ===== AUTO PLANT SECTION (DIPINDAH KE ATAS) =====
-    local autoHeader = Tab:CreateLabel({
-        Name = "Header_Auto",
-        Text = "───── 🤖 AUTO PLANT ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Auto Plant Toggle (dengan status digabung)
+    -- ===== AUTO PLANT TOGGLE =====
     autoPlantToggleRef = Tab:CreateToggle({
         Name = "AutoPlant",
-        Text = "🌱 AUTO PLANT CROPS",
+        Text = "🌱 AUTO PLANT",
         CurrentValue = false,
         Callback = function(value)
             Variables.autoPlantEnabled = value
@@ -155,11 +106,7 @@ function AutoFarm.Init(Dependencies)
             if value then
                 local plantRemote = getPlantRemote()
                 if not plantRemote then
-                    Bdev:Notify({
-                        Title = "❌ Error",
-                        Content = "PlantCrop remote tidak ditemukan!",
-                        Duration = 4
-                    })
+                    Bdev:Notify({Title = "❌ Error", Content = "Remote tidak ditemukan!", Duration = 3})
                     if autoPlantToggleRef and autoPlantToggleRef.SetValue then
                         autoPlantToggleRef:SetValue(false)
                     end
@@ -168,15 +115,8 @@ function AutoFarm.Init(Dependencies)
                 end
                 
                 plantCount = 0
-                Bdev:Notify({
-                    Title = "🤖 Auto Plant ON",
-                    Content = "Mulai menanam... (Delay 1 detik)",
-                    Duration = 2
-                })
                 
-                if plantConnection then
-                    plantConnection:Disconnect()
-                end
+                if plantConnection then plantConnection:Disconnect() end
                 
                 plantConnection = RunService.Heartbeat:Connect(function()
                     if not Variables.autoPlantEnabled then return end
@@ -184,26 +124,13 @@ function AutoFarm.Init(Dependencies)
                     local remote = getPlantRemote()
                     if remote then
                         local plantPos = Vector3.new(customX, customY, customZ)
-                        
-                        local success = pcall(function()
-                            remote:FireServer(plantPos)
-                        end)
-                        
-                        if success then
-                            plantCount = plantCount + 1
-                        end
-                        
-                        task.wait(delay) -- Delay 1 detik
+                        pcall(function() remote:FireServer(plantPos) end)
+                        plantCount = plantCount + 1
+                        task.wait(delay)
                     end
                 end)
                 
             else
-                Bdev:Notify({
-                    Title = "🤖 Auto Plant OFF",
-                    Content = string.format("Total tanam: %d kali", plantCount),
-                    Duration = 3
-                })
-                
                 if plantConnection then
                     plantConnection:Disconnect()
                     plantConnection = nil
@@ -212,42 +139,11 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- Info delay (sebagai informasi saja)
-    Tab:CreateLabel({
-        Name = "DelayInfo",
-        Text = "⏱️ Delay: 1 detik (fixed)",
-        Color = Color3.fromRGB(150, 150, 160),
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Spacer
-    Tab:CreateLabel({
-        Name = "Spacer1",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
     -- ===== POSISI SECTION =====
-    local posHeader = Tab:CreateLabel({
-        Name = "Header_Posisi",
-        Text = "───── 📍 POSISI TANAM ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Info posisi default
-    Tab:CreateLabel({
-        Name = "DefaultPosInfo",
-        Text = string.format("Default: X=%.1f, Y=%.1f, Z=%.1f", defaultPos.X, defaultPos.Y, defaultPos.Z),
-        Color = Color3.fromRGB(150, 150, 160),
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Frame untuk input koordinat
+    -- Frame untuk input koordinat (X Y Z dalam satu baris)
     local CoordFrame = Instance.new("Frame")
     CoordFrame.Name = "CoordFrame"
-    CoordFrame.Size = UDim2.new(0.95, 0, 0, 80)
+    CoordFrame.Size = UDim2.new(0.95, 0, 0, 50)
     CoordFrame.BackgroundTransparency = 1
     CoordFrame.LayoutOrder = #Tab.Elements + 1
     CoordFrame.Parent = Tab.Content
@@ -256,20 +152,25 @@ function AutoFarm.Init(Dependencies)
     CoordLayout.FillDirection = Enum.FillDirection.Horizontal
     CoordLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     CoordLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    CoordLayout.Padding = UDim.new(0, 10)
+    CoordLayout.Padding = UDim.new(0, 5)
     CoordLayout.Parent = CoordFrame
     
     -- Fungsi buat textbox koordinat
     local function createCoordBox(parent, label, default, posIndex)
         local frame = Instance.new("Frame")
         frame.Name = label .. "Frame"
-        frame.Size = UDim2.new(0, 100, 0, 50)
-        frame.BackgroundTransparency = 1
+        frame.Size = UDim2.new(0, 90, 0, 36)
+        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        frame.BackgroundTransparency = 0
         frame.Parent = parent
+        
+        local inputCorner = Instance.new("UICorner")
+        inputCorner.CornerRadius = UDim.new(0, 6)
+        inputCorner.Parent = frame
         
         local labelObj = Instance.new("TextLabel")
         labelObj.Name = "Label"
-        labelObj.Size = UDim2.new(1, 0, 0, 20)
+        labelObj.Size = UDim2.new(0, 20, 1, 0)
         labelObj.Text = label
         labelObj.TextColor3 = Color3.fromRGB(255, 185, 0)
         labelObj.BackgroundTransparency = 1
@@ -277,51 +178,29 @@ function AutoFarm.Init(Dependencies)
         labelObj.Font = Enum.Font.GothamBold
         labelObj.Parent = frame
         
-        local inputFrame = Instance.new("Frame")
-        inputFrame.Name = "InputFrame"
-        inputFrame.Size = UDim2.new(1, 0, 0, 30)
-        inputFrame.Position = UDim2.new(0, 0, 0, 20)
-        inputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-        inputFrame.BackgroundTransparency = 0
-        inputFrame.Parent = frame
-        
-        local inputCorner = Instance.new("UICorner")
-        inputCorner.CornerRadius = UDim.new(0, 6)
-        inputCorner.Parent = inputFrame
-        
         local textBox = Instance.new("TextBox")
         textBox.Name = "Value"
-        textBox.Size = UDim2.new(1, -10, 1, 0)
-        textBox.Position = UDim2.new(0, 5, 0, 0)
+        textBox.Size = UDim2.new(1, -25, 1, 0)
+        textBox.Position = UDim2.new(0, 20, 0, 0)
         textBox.Text = string.format("%.1f", default)
         textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
         textBox.BackgroundTransparency = 1
         textBox.TextSize = 14
         textBox.Font = Enum.Font.Gotham
         textBox.ClearTextOnFocus = false
-        textBox.Parent = inputFrame
+        textBox.Parent = frame
         
-        -- Event untuk validasi
         textBox.FocusLost:Connect(function()
             local value = tonumber(textBox.Text)
             if value then
-                if posIndex == "X" then
-                    customX = value
-                elseif posIndex == "Y" then
-                    customY = value
-                elseif posIndex == "Z" then
-                    customZ = value
-                end
+                if posIndex == "X" then customX = value
+                elseif posIndex == "Y" then customY = value
+                elseif posIndex == "Z" then customZ = value end
                 textBox.Text = string.format("%.1f", value)
             else
-                -- Kembalikan ke nilai sebelumnya
-                if posIndex == "X" then
-                    textBox.Text = string.format("%.1f", customX)
-                elseif posIndex == "Y" then
-                    textBox.Text = string.format("%.1f", customY)
-                elseif posIndex == "Z" then
-                    textBox.Text = string.format("%.1f", customZ)
-                end
+                if posIndex == "X" then textBox.Text = string.format("%.1f", customX)
+                elseif posIndex == "Y" then textBox.Text = string.format("%.1f", customY)
+                elseif posIndex == "Z" then textBox.Text = string.format("%.1f", customZ) end
             end
         end)
         
@@ -333,93 +212,10 @@ function AutoFarm.Init(Dependencies)
     yInput = createCoordBox(CoordFrame, "Y", customY, "Y")
     zInput = createCoordBox(CoordFrame, "Z", customZ, "Z")
     
-    -- ===== TOMBOL POSISI =====
-    local PosButtonFrame = Instance.new("Frame")
-    PosButtonFrame.Name = "PosButtonFrame"
-    PosButtonFrame.Size = UDim2.new(0.95, 0, 0, 45)
-    PosButtonFrame.BackgroundTransparency = 1
-    PosButtonFrame.LayoutOrder = #Tab.Elements + 1
-    PosButtonFrame.Parent = Tab.Content
-    
-    local PosButtonLayout = Instance.new("UIListLayout")
-    PosButtonLayout.FillDirection = Enum.FillDirection.Horizontal
-    PosButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    PosButtonLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    PosButtonLayout.Padding = UDim.new(0, 10)
-    PosButtonLayout.Parent = PosButtonFrame
-    
-    -- Tombol Record Posisi
-    local RecordBtn = Instance.new("TextButton")
-    RecordBtn.Name = "RecordBtn"
-    RecordBtn.Size = UDim2.new(0, 140, 0, 40)
-    RecordBtn.Text = "📝 RECORD POSISI"
-    RecordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    RecordBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
-    RecordBtn.BackgroundTransparency = 0
-    RecordBtn.TextSize = 12
-    RecordBtn.Font = Enum.Font.GothamBold
-    RecordBtn.AutoButtonColor = false
-    RecordBtn.Parent = PosButtonFrame
-    
-    local RecordCorner = Instance.new("UICorner")
-    RecordCorner.CornerRadius = UDim.new(0, 6)
-    RecordCorner.Parent = RecordBtn
-    
-    RecordBtn.MouseButton1Click:Connect(function()
-        local playerPos = getPlayerPosition()
-        if playerPos then
-            updatePositionInputs(playerPos)
-            Bdev:Notify({
-                Title = "✅ Recorded",
-                Content = "Posisi player disimpan!",
-                Duration = 2
-            })
-        else
-            Bdev:Notify({
-                Title = "❌ Error",
-                Content = "Tidak bisa dapatkan posisi!",
-                Duration = 2
-            })
-        end
-    end)
-    
-    -- Tombol Reset ke Default
-    local ResetBtn = Instance.new("TextButton")
-    ResetBtn.Name = "ResetBtn"
-    ResetBtn.Size = UDim2.new(0, 140, 0, 40)
-    ResetBtn.Text = "🔄 RESET DEFAULT"
-    ResetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ResetBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
-    ResetBtn.BackgroundTransparency = 0
-    ResetBtn.TextSize = 12
-    ResetBtn.Font = Enum.Font.GothamBold
-    ResetBtn.AutoButtonColor = false
-    ResetBtn.Parent = PosButtonFrame
-    
-    local ResetCorner = Instance.new("UICorner")
-    ResetCorner.CornerRadius = UDim.new(0, 6)
-    ResetCorner.Parent = ResetBtn
-    
-    ResetBtn.MouseButton1Click:Connect(function()
-        updatePositionInputs(defaultPos)
-        Bdev:Notify({
-            Title = "🔄 Reset",
-            Content = "Kembali ke posisi default",
-            Duration = 2
-        })
-    end)
-    
-    -- Spacer
-    Tab:CreateLabel({
-        Name = "Spacer2",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- ===== TOMBOL AKSI CEPAT =====
+    -- ===== TOMBOL AKSI =====
     local ActionFrame = Instance.new("Frame")
     ActionFrame.Name = "ActionFrame"
-    ActionFrame.Size = UDim2.new(0.95, 0, 0, 45)
+    ActionFrame.Size = UDim2.new(0.95, 0, 0, 40)
     ActionFrame.BackgroundTransparency = 1
     ActionFrame.LayoutOrder = #Tab.Elements + 1
     ActionFrame.Parent = Tab.Content
@@ -428,61 +224,82 @@ function AutoFarm.Init(Dependencies)
     ActionLayout.FillDirection = Enum.FillDirection.Horizontal
     ActionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     ActionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    ActionLayout.Padding = UDim.new(0, 10)
+    ActionLayout.Padding = UDim.new(0, 5)
     ActionLayout.Parent = ActionFrame
     
-    -- Tombol Plant Now
-    local PlantNowBtn = Instance.new("TextButton")
-    PlantNowBtn.Name = "PlantNowBtn"
-    PlantNowBtn.Size = UDim2.new(0, 120, 0, 40)
-    PlantNowBtn.Text = "🌿 PLANT NOW"
-    PlantNowBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    PlantNowBtn.BackgroundColor3 = Color3.fromRGB(255, 185, 0)
-    PlantNowBtn.BackgroundTransparency = 0
-    PlantNowBtn.TextSize = 12
-    PlantNowBtn.Font = Enum.Font.GothamBold
-    PlantNowBtn.AutoButtonColor = false
-    PlantNowBtn.Parent = ActionFrame
+    -- Tombol Record
+    local RecordBtn = Instance.new("TextButton")
+    RecordBtn.Size = UDim2.new(0, 70, 0, 36)
+    RecordBtn.Text = "📝"
+    RecordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    RecordBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+    RecordBtn.BackgroundTransparency = 0
+    RecordBtn.TextSize = 16
+    RecordBtn.Font = Enum.Font.GothamBold
+    RecordBtn.AutoButtonColor = false
+    RecordBtn.Parent = ActionFrame
+    
+    local RecordCorner = Instance.new("UICorner")
+    RecordCorner.CornerRadius = UDim.new(0, 6)
+    RecordCorner.Parent = RecordBtn
+    
+    RecordBtn.MouseButton1Click:Connect(function()
+        local playerPos = getPlayerPosition()
+        if playerPos then updatePositionInputs(playerPos) end
+    end)
+    
+    -- Tombol Reset
+    local ResetBtn = Instance.new("TextButton")
+    ResetBtn.Size = UDim2.new(0, 70, 0, 36)
+    ResetBtn.Text = "🔄"
+    ResetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ResetBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+    ResetBtn.BackgroundTransparency = 0
+    ResetBtn.TextSize = 16
+    ResetBtn.Font = Enum.Font.GothamBold
+    ResetBtn.AutoButtonColor = false
+    ResetBtn.Parent = ActionFrame
+    
+    local ResetCorner = Instance.new("UICorner")
+    ResetCorner.CornerRadius = UDim.new(0, 6)
+    ResetCorner.Parent = ResetBtn
+    
+    ResetBtn.MouseButton1Click:Connect(function()
+        updatePositionInputs(defaultPos)
+    end)
+    
+    -- Tombol Plant
+    local PlantBtn = Instance.new("TextButton")
+    PlantBtn.Size = UDim2.new(0, 70, 0, 36)
+    PlantBtn.Text = "🌿"
+    PlantBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PlantBtn.BackgroundColor3 = Color3.fromRGB(255, 185, 0)
+    PlantBtn.BackgroundTransparency = 0
+    PlantBtn.TextSize = 16
+    PlantBtn.Font = Enum.Font.GothamBold
+    PlantBtn.AutoButtonColor = false
+    PlantBtn.Parent = ActionFrame
     
     local PlantCorner = Instance.new("UICorner")
     PlantCorner.CornerRadius = UDim.new(0, 6)
-    PlantCorner.Parent = PlantNowBtn
+    PlantCorner.Parent = PlantBtn
     
-    PlantNowBtn.MouseButton1Click:Connect(function()
+    PlantBtn.MouseButton1Click:Connect(function()
         local plantRemote = getPlantRemote()
-        if not plantRemote then
-            Bdev:Notify({
-                Title = "❌ Error",
-                Content = "Remote tidak ditemukan!",
-                Duration = 2
-            })
-            return
-        end
-        
-        local plantPos = Vector3.new(customX, customY, customZ)
-        
-        local success = pcall(function()
-            plantRemote:FireServer(plantPos)
-        end)
-        
-        if success then
-            Bdev:Notify({
-                Title = "✅ Success",
-                Content = "Menanam berhasil!",
-                Duration = 1
-            })
+        if plantRemote then
+            local plantPos = Vector3.new(customX, customY, customZ)
+            pcall(function() plantRemote:FireServer(plantPos) end)
         end
     end)
     
     -- Tombol Stop
     local StopBtn = Instance.new("TextButton")
-    StopBtn.Name = "StopBtn"
-    StopBtn.Size = UDim2.new(0, 100, 0, 40)
-    StopBtn.Text = "⏹️ STOP"
+    StopBtn.Size = UDim2.new(0, 70, 0, 36)
+    StopBtn.Text = "⏹️"
     StopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    StopBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+    StopBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
     StopBtn.BackgroundTransparency = 0
-    StopBtn.TextSize = 12
+    StopBtn.TextSize = 16
     StopBtn.Font = Enum.Font.GothamBold
     StopBtn.AutoButtonColor = false
     StopBtn.Parent = ActionFrame
@@ -499,18 +316,14 @@ function AutoFarm.Init(Dependencies)
     
     -- ===== HOVER EFFECTS =====
     local function setupHover(btn, normalColor, hoverColor)
-        btn.MouseEnter:Connect(function()
-            tween(btn, {BackgroundColor3 = hoverColor}, 0.15)
-        end)
-        btn.MouseLeave:Connect(function()
-            tween(btn, {BackgroundColor3 = normalColor}, 0.15)
-        end)
+        btn.MouseEnter:Connect(function() tween(btn, {BackgroundColor3 = hoverColor}, 0.15) end)
+        btn.MouseLeave:Connect(function() tween(btn, {BackgroundColor3 = normalColor}, 0.15) end)
     end
     
     setupHover(RecordBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
     setupHover(ResetBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
-    setupHover(PlantNowBtn, Color3.fromRGB(255, 185, 0), Color3.fromRGB(255, 215, 100))
-    setupHover(StopBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
+    setupHover(PlantBtn, Color3.fromRGB(255, 185, 0), Color3.fromRGB(255, 215, 100))
+    setupHover(StopBtn, Color3.fromRGB(200, 50, 50), Color3.fromRGB(220, 80, 80))
     
     -- ===== CLEANUP =====
     local function cleanup()
@@ -521,29 +334,7 @@ function AutoFarm.Init(Dependencies)
         Variables.autoPlantEnabled = false
     end
     
-    -- ===== SHARE FUNCTIONS =====
-    Shared.Modules = Shared.Modules or {}
-    Shared.Modules.AutoFarm = {
-        GetPosition = function() return Vector3.new(customX, customY, customZ) end,
-        SetPosition = function(x, y, z)
-            updatePositionInputs(Vector3.new(x, y, z))
-        end,
-        GetStatus = function() return Variables.autoPlantEnabled end,
-        StopAuto = function()
-            if autoPlantToggleRef and autoPlantToggleRef.SetValue then
-                autoPlantToggleRef:SetValue(false)
-            end
-        end,
-        PlantOnce = function()
-            local remote = getPlantRemote()
-            if remote then
-                local pos = Vector3.new(customX, customY, customZ)
-                pcall(function() remote:FireServer(pos) end)
-            end
-        end
-    }
-    
-    print("✅ AutoFarm module loaded - Simplified")
+    print("✅ AutoFarm module loaded - Minimalis")
     
     return cleanup
 end
