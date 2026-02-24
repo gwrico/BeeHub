@@ -899,7 +899,324 @@ function SimpleGUI:CreateWindow(options)
                         updateSliderPosition(value)
                     end
                 }
-            end
+            end,
+            
+            -- ===== CREATE DROPDOWN METHOD =====
+            CreateDropdown = function(self, options)
+                local opts = options or {}
+                local scale = windowData.Scale
+                
+                local DropdownFrame = Instance.new("Frame")
+                DropdownFrame.Name = opts.Name or "Dropdown_" .. #self.Elements + 1
+                DropdownFrame.Size = UDim2.new(0.95, 0, 0, 36 * scale)
+                DropdownFrame.BackgroundTransparency = 1
+                DropdownFrame.LayoutOrder = #self.Elements + 1
+                DropdownFrame.Parent = TabContent
+                
+                -- Label
+                local DropdownLabel = Instance.new("TextLabel")
+                DropdownLabel.Name = "DropdownLabel"
+                DropdownLabel.Size = UDim2.new(1, -30, 0, 20 * scale)
+                DropdownLabel.Text = opts.Text or opts.Name or "Dropdown"
+                DropdownLabel.TextColor3 = theme.Text
+                DropdownLabel.BackgroundTransparency = 1
+                DropdownLabel.TextSize = 13 * scale
+                DropdownLabel.Font = Enum.Font.Gotham
+                DropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+                DropdownLabel.Parent = DropdownFrame
+                
+                -- Main dropdown button
+                local DropdownButton = Instance.new("TextButton")
+                DropdownButton.Name = "DropdownButton"
+                DropdownButton.Size = UDim2.new(1, 0, 0, 30 * scale)
+                DropdownButton.Position = UDim2.new(0, 0, 0, 22 * scale)
+                DropdownButton.Text = opts.Default or (opts.Options and opts.Options[1]) or "Pilih opsi"
+                DropdownButton.TextColor3 = theme.Text
+                DropdownButton.BackgroundColor3 = theme.InputBg
+                DropdownButton.BackgroundTransparency = 0
+                DropdownButton.TextSize = 13 * scale
+                DropdownButton.Font = Enum.Font.Gotham
+                DropdownButton.AutoButtonColor = false
+                DropdownButton.Parent = DropdownFrame
+                
+                local ButtonCorner = Instance.new("UICorner")
+                ButtonCorner.CornerRadius = UDim.new(0, 6 * scale)
+                ButtonCorner.Parent = DropdownButton
+                
+                -- Arrow icon
+                local ArrowLabel = Instance.new("TextLabel")
+                ArrowLabel.Name = "ArrowLabel"
+                ArrowLabel.Size = UDim2.new(0, 20 * scale, 1, 0)
+                ArrowLabel.Position = UDim2.new(1, -24 * scale, 0, 0)
+                ArrowLabel.Text = "▼"
+                ArrowLabel.TextColor3 = theme.Accent
+                ArrowLabel.BackgroundTransparency = 1
+                ArrowLabel.TextSize = 12 * scale
+                ArrowLabel.Font = Enum.Font.Gotham
+                ArrowLabel.Parent = DropdownButton
+                
+                -- Dropdown container (untuk item-item)
+                local DropdownContainer = Instance.new("Frame")
+                DropdownContainer.Name = "DropdownContainer"
+                DropdownContainer.Size = UDim2.new(1, 0, 0, 0)
+                DropdownContainer.Position = UDim2.new(0, 0, 0, 30 * scale)
+                DropdownContainer.BackgroundColor3 = theme.InputBgFocus
+                DropdownContainer.BackgroundTransparency = 0
+                DropdownContainer.BorderSizePixel = 0
+                DropdownContainer.ClipsDescendants = true
+                DropdownContainer.Visible = false
+                DropdownContainer.Parent = DropdownFrame
+                
+                local ContainerCorner = Instance.new("UICorner")
+                ContainerCorner.CornerRadius = UDim.new(0, 6 * scale)
+                ContainerCorner.Parent = DropdownContainer
+                
+                -- Dropdown list (ScrollingFrame untuk item banyak)
+                local DropdownList = Instance.new("ScrollingFrame")
+                DropdownList.Name = "DropdownList"
+                DropdownList.Size = UDim2.new(1, -2, 1, -2)
+                DropdownList.Position = UDim2.new(0, 1, 0, 1)
+                DropdownList.BackgroundTransparency = 1
+                DropdownList.BorderSizePixel = 0
+                DropdownList.ScrollBarThickness = 3 * scale
+                DropdownList.ScrollBarImageColor3 = theme.Accent
+                DropdownList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+                DropdownList.ScrollingDirection = Enum.ScrollingDirection.Y
+                DropdownList.ElasticBehavior = Enum.ElasticBehavior.Always
+                DropdownList.Parent = DropdownContainer
+                
+                -- List layout untuk item
+                local ItemLayout = Instance.new("UIListLayout")
+                ItemLayout.Padding = UDim.new(0, 2 * scale)
+                ItemLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+                ItemLayout.SortOrder = Enum.SortOrder.LayoutOrder
+                ItemLayout.Parent = DropdownList
+                
+                local ListPadding = Instance.new("UIPadding")
+                ListPadding.PaddingTop = UDim.new(0, 2 * scale)
+                ListPadding.PaddingBottom = UDim.new(0, 2 * scale)
+                ListPadding.Parent = DropdownList
+                
+                ItemLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                    DropdownList.CanvasSize = UDim2.new(0, 0, 0, ItemLayout.AbsoluteContentSize.Y + 4 * scale)
+                end)
+                
+                -- Variable untuk state dropdown
+                local isOpen = false
+                local selectedValue = opts.Default or (opts.Options and opts.Options[1]) or ""
+                local dropdownItems = {}
+                
+                -- Update ukuran container
+                local function updateContainerSize()
+                    local itemCount = opts.Options and #opts.Options or 0
+                    local height = math.min(itemCount * 32 * scale + 4 * scale, 150 * scale)
+                    DropdownContainer.Size = UDim2.new(1, 0, 0, height)
+                    
+                    -- Update ukuran frame utama
+                    local totalHeight = 22 * scale + 30 * scale
+                    if isOpen then
+                        totalHeight = totalHeight + height + 4 * scale
+                    end
+                    DropdownFrame.Size = UDim2.new(0.95, 0, 0, totalHeight)
+                end
+                
+                -- Buat item-item dropdown
+                local function createDropdownItems()
+                    for _, item in pairs(dropdownItems) do
+                        if item then item:Destroy() end
+                    end
+                    dropdownItems = {}
+                    
+                    if not opts.Options then return end
+                    
+                    for i, option in ipairs(opts.Options) do
+                        local ItemButton = Instance.new("TextButton")
+                        ItemButton.Name = "Item_" .. i
+                        ItemButton.Size = UDim2.new(1, -4 * scale, 0, 28 * scale)
+                        ItemButton.Text = tostring(option)
+                        ItemButton.TextColor3 = theme.TextSecondary
+                        ItemButton.BackgroundColor3 = theme.InputBg
+                        ItemButton.BackgroundTransparency = 0
+                        ItemButton.TextSize = 12 * scale
+                        ItemButton.Font = Enum.Font.Gotham
+                        ItemButton.AutoButtonColor = false
+                        ItemButton.LayoutOrder = i
+                        ItemButton.Parent = DropdownList
+                        
+                        local ItemCorner = Instance.new("UICorner")
+                        ItemCorner.CornerRadius = UDim.new(0, 4 * scale)
+                        ItemCorner.Parent = ItemButton
+                        
+                        -- Hover effect
+                        ItemButton.MouseEnter:Connect(function()
+                            if not isMobile then
+                                tween(ItemButton, {BackgroundColor3 = theme.ButtonHover}, 0.15)
+                            end
+                        end)
+                        
+                        ItemButton.MouseLeave:Connect(function()
+                            if not isMobile then
+                                if tostring(option) == selectedValue then
+                                    tween(ItemButton, {BackgroundColor3 = theme.Accent}, 0.15)
+                                else
+                                    tween(ItemButton, {BackgroundColor3 = theme.InputBg}, 0.15)
+                                end
+                            end
+                        end)
+                        
+                        -- Select item
+                        ItemButton.MouseButton1Click:Connect(function()
+                            selectedValue = tostring(option)
+                            DropdownButton.Text = selectedValue
+                            
+                            -- Update semua item
+                            for _, btn in pairs(dropdownItems) do
+                                if btn then
+                                    if btn.Text == selectedValue then
+                                        btn.BackgroundColor3 = theme.Accent
+                                        btn.TextColor3 = Color3.new(0, 0, 0)
+                                    else
+                                        btn.BackgroundColor3 = theme.InputBg
+                                        btn.TextColor3 = theme.TextSecondary
+                                    end
+                                end
+                            end
+                            
+                            -- Tutup dropdown
+                            isOpen = false
+                            ArrowLabel.Text = "▼"
+                            DropdownContainer.Visible = false
+                            tween(DropdownContainer, {Size = UDim2.new(1, 0, 0, 0)}, 0.15)
+                            updateContainerSize()
+                            
+                            if opts.Callback then
+                                pcall(opts.Callback, selectedValue)
+                            end
+                        end)
+                        
+                        -- Highlight item yang terpilih
+                        if tostring(option) == selectedValue then
+                            ItemButton.BackgroundColor3 = theme.Accent
+                            ItemButton.TextColor3 = Color3.new(0, 0, 0)
+                        end
+                        
+                        table.insert(dropdownItems, ItemButton)
+                    end
+                end
+                
+                -- Buat item awal
+                createDropdownItems()
+                updateContainerSize()
+                
+                -- Toggle dropdown
+                DropdownButton.MouseButton1Click:Connect(function()
+                    isOpen = not isOpen
+                    
+                    if isOpen then
+                        ArrowLabel.Text = "▲"
+                        DropdownContainer.Visible = true
+                        DropdownContainer.Size = UDim2.new(1, 0, 0, 0)
+                        tween(DropdownContainer, {
+                            Size = UDim2.new(1, 0, 0, math.min(#opts.Options * 32 * scale + 4 * scale, 150 * scale))
+                        }, 0.2)
+                        tween(DropdownButton, {BackgroundColor3 = theme.InputBgFocus}, 0.15)
+                    else
+                        ArrowLabel.Text = "▼"
+                        tween(DropdownContainer, {Size = UDim2.new(1, 0, 0, 0)}, 0.15)
+                        tween(DropdownButton, {BackgroundColor3 = theme.InputBg}, 0.15)
+                        task.wait(0.15)
+                        DropdownContainer.Visible = false
+                    end
+                    
+                    updateContainerSize()
+                end)
+                
+                -- Tutup dropdown jika klik di luar
+                UserInputService.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 and isOpen then
+                        local mousePos = UserInputService:GetMouseLocation()
+                        local dropdownPos = DropdownFrame.AbsolutePosition
+                        local dropdownSize = DropdownFrame.AbsoluteSize
+                        
+                        if mousePos.X < dropdownPos.X or mousePos.X > dropdownPos.X + dropdownSize.X or
+                           mousePos.Y < dropdownPos.Y or mousePos.Y > dropdownPos.Y + dropdownSize.Y then
+                            isOpen = false
+                            ArrowLabel.Text = "▼"
+                            tween(DropdownContainer, {Size = UDim2.new(1, 0, 0, 0)}, 0.15)
+                            tween(DropdownButton, {BackgroundColor3 = theme.InputBg}, 0.15)
+                            task.wait(0.15)
+                            DropdownContainer.Visible = false
+                            updateContainerSize()
+                        end
+                    end
+                end)
+                
+                -- Method untuk update options
+                local function updateOptions(newOptions)
+                    opts.Options = newOptions
+                    createDropdownItems()
+                    updateContainerSize()
+                    
+                    -- Reset selected jika perlu
+                    if not table.find(newOptions, selectedValue) then
+                        selectedValue = newOptions and newOptions[1] or ""
+                        DropdownButton.Text = selectedValue
+                    end
+                end
+                
+                table.insert(self.Elements, DropdownFrame)
+                
+                return {
+                    Frame = DropdownFrame,
+                    GetValue = function() return selectedValue end,
+                    SetValue = function(value)
+                        if table.find(opts.Options, value) then
+                            selectedValue = value
+                            DropdownButton.Text = value
+                            
+                            -- Update highlight item
+                            for _, btn in pairs(dropdownItems) do
+                                if btn then
+                                    if btn.Text == value then
+                                        btn.BackgroundColor3 = theme.Accent
+                                        btn.TextColor3 = Color3.new(0, 0, 0)
+                                    else
+                                        btn.BackgroundColor3 = theme.InputBg
+                                        btn.TextColor3 = theme.TextSecondary
+                                    end
+                                end
+                            end
+                            
+                            if opts.Callback then
+                                pcall(opts.Callback, value)
+                            end
+                        end
+                    end,
+                    UpdateOptions = function(self, newOptions)
+                        updateOptions(newOptions)
+                    end,
+                    AddOption = function(self, option)
+                        if not table.find(opts.Options, option) then
+                            table.insert(opts.Options, option)
+                            createDropdownItems()
+                            updateContainerSize()
+                        end
+                    end,
+                    RemoveOption = function(self, option)
+                        local index = table.find(opts.Options, option)
+                        if index then
+                            table.remove(opts.Options, index)
+                            createDropdownItems()
+                            updateContainerSize()
+                            
+                            if selectedValue == option then
+                                selectedValue = opts.Options[1] or ""
+                                DropdownButton.Text = selectedValue
+                            end
+                        end
+                    end
+                }
+            end,
         }
         
         self.Tabs[tabName] = tabObj
@@ -1078,6 +1395,55 @@ function SimpleGUI:CreateWindow(options)
     
     --print("✅ Created BeeHub Full Edition window!")
     return windowObj
+end
+
+-- Tambahkan method cleanup
+function SimpleGUI:Destroy()
+    for _, window in pairs(self.Windows) do
+        if window.Destroy then
+            window:Destroy()
+        end
+    end
+    
+    for _, icon in pairs(self.MinimizedIcons) do
+        if icon.Icon then
+            icon.Icon:Destroy()
+        end
+    end
+    
+    if self.ScreenGui then
+        self.ScreenGui:Destroy()
+    end
+    
+    self.Windows = {}
+    self.MinimizedIcons = {}
+end
+
+-- Tambahkan method penggantian tema
+function SimpleGUI:SetTheme(themeName)
+    if self.Themes[themeName] then
+        self.CurrentTheme = themeName
+        local theme = self:GetTheme()
+        
+        -- Update semua window dengan tema baru
+        for _, window in pairs(self.Windows) do
+            if window.UpdateTheme then
+                window:UpdateTheme(theme)
+            end
+        end
+        
+        -- Update icon yang diminimalkan
+        for _, icon in pairs(self.MinimizedIcons) do
+            if icon.UpdateTheme then
+                icon:UpdateTheme(theme)
+            end
+        end
+    end
+end
+
+-- Tambahkan method untuk mendapatkan versi
+function SimpleGUI:GetVersion()
+    return "7.1 - BeeHub Full Edition"
 end
 
 --print("🎉 SimpleGUI v7.1 - BeeHub Full Edition loaded!")
