@@ -593,4 +593,5 @@ function AutoFarm.Init(Dependencies)
     print("✅ AutoFarm Plant module loaded dengan BATCH SYSTEM")
 end
 
+
 return AutoFarm
