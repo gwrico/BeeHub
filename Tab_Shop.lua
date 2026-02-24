@@ -1,5 +1,5 @@
 -- ==============================================
--- 🛒 SHOP MODULE - BELI BIBIT BIASA
+-- 🛒 SHOP MODULE - BELI BIBIT (SIMPLEGUI v7.1)
 -- ==============================================
 
 local ShopAutoBuy = {}
@@ -10,12 +10,11 @@ function ShopAutoBuy.Init(Dependencies)
     local Bdev = Dependencies.Bdev
     local GUI = Dependencies.GUI or Shared.GUI
     
-    -- ===== KONFIGURASI REMOTE =====
+    -- Get services
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local Players = game:GetService("Players")
     local RunService = game:GetService("RunService")
     
-    -- Remote RequestShop
+    -- ===== REMOTE SHOP =====
     local RequestShop = ReplicatedStorage:FindFirstChild("Remotes")
     if RequestShop then
         RequestShop = RequestShop:FindFirstChild("TutorialRemotes")
@@ -35,7 +34,6 @@ function ShopAutoBuy.Init(Dependencies)
     
     -- ===== STATE VARIABLES =====
     local selectedSeed = seedsList[1].Name
-    local selectedDisplay = seedsList[1].Display
     local autoBuyEnabled = false
     local autoBuyConnection = nil
     local buyDelay = 2
@@ -60,7 +58,6 @@ function ShopAutoBuy.Init(Dependencies)
         
         amount = amount or 1
         
-        -- Ini adalah format dari script Anda
         local arguments = {
             [1] = "BUY",
             [2] = seedName,
@@ -73,7 +70,7 @@ function ShopAutoBuy.Init(Dependencies)
         
         if success then
             Bdev:Notify({
-                Title = "✅ Pembelian Berhasil",
+                Title = "✅ Berhasil",
                 Content = string.format("%s x%d", seedName, amount),
                 Duration = 2
             })
@@ -88,7 +85,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     end
     
-    -- ===== FUNGSI CEK SHOP =====
+    -- ===== FUNGSI CEK SHOP LIST =====
     local function checkShopList()
         if not checkRemote() then return end
         
@@ -118,23 +115,49 @@ function ShopAutoBuy.Init(Dependencies)
         end
     end
     
-    -- ===== UI ELEMENTS =====
+    -- ===== AUTO BUY LOOP =====
+    local function startAutoBuy()
+        if autoBuyConnection then
+            autoBuyConnection:Disconnect()
+        end
+        
+        autoBuyEnabled = true
+        
+        Bdev:Notify({
+            Title = "Auto Buy ON",
+            Content = string.format("Membeli setiap %d detik", buyDelay),
+            Duration = 3
+        })
+        
+        local lastBuyTime = 0
+        autoBuyConnection = RunService.Heartbeat:Connect(function()
+            if not autoBuyEnabled then return end
+            
+            if tick() - lastBuyTime >= buyDelay then
+                buySeed(selectedSeed, buyQuantity)
+                lastBuyTime = tick()
+            end
+        end)
+    end
     
-    -- Header
-    Tab:CreateLabel({
-        Name = "Header",
-        Text = "🌱 SHOP - BIBIT BIASA",
-        Alignment = Enum.TextXAlignment.Center
-    })
+    local function stopAutoBuy()
+        autoBuyEnabled = false
+        if autoBuyConnection then
+            autoBuyConnection:Disconnect()
+            autoBuyConnection = nil
+        end
+        
+        Bdev:Notify({
+            Title = "Auto Buy OFF",
+            Content = "Dihentikan",
+            Duration = 2
+        })
+    end
     
-    -- Pilih Bibit
-    Tab:CreateLabel({
-        Name = "SelectLabel",
-        Text = "Pilih Bibit:",
-        Alignment = Enum.TextXAlignment.Left
-    })
+    -- ===== SECTION: PILIH BIBIT =====
+    Tab:CreateSection("🌱 PILIH BIBIT")
     
-    -- Dropdown untuk memilih bibit
+    -- Dropdown pilih bibit
     local seedOptions = {}
     for i, seed in ipairs(seedsList) do
         table.insert(seedOptions, seed.Display)
@@ -142,13 +165,12 @@ function ShopAutoBuy.Init(Dependencies)
     
     Tab:CreateDropdown({
         Name = "SeedSelector",
-        Text = "🌱 Pilih Jenis Bibit",
+        Text = "Pilih Jenis Bibit",
         List = seedOptions,
         Callback = function(selectedDisplay)
             for i, seed in ipairs(seedsList) do
                 if seed.Display == selectedDisplay then
                     selectedSeed = seed.Name
-                    selectedDisplay = seed.Display
                     Bdev:Notify({
                         Title = "Dipilih",
                         Content = selectedDisplay,
@@ -160,44 +182,35 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- Separator
-    Tab:CreateLabel({
-        Name = "Spacer1",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
+    -- ===== SECTION: PENGATURAN =====
+    Tab:CreateSection("⚙️ PENGATURAN")
     
-    -- Pengaturan Jumlah
-    Tab:CreateSlider({
+    -- Slider Jumlah
+    local qtySlider = Tab:CreateSlider({
         Name = "QtySlider",
-        Text = "🔢 Jumlah: " .. buyQuantity,
-        Min = 1,
-        Max = 10,
-        Default = 1,
+        Text = "Jumlah per pembelian",
+        Range = {1, 10},
+        Increment = 1,
+        CurrentValue = 1,
         Callback = function(value)
-            buyQuantity = math.floor(value)
+            buyQuantity = value
         end
     })
     
-    -- Pengaturan Delay
-    Tab:CreateSlider({
+    -- Slider Delay
+    local delaySlider = Tab:CreateSlider({
         Name = "DelaySlider",
-        Text = "⏱️ Delay: " .. buyDelay .. " detik",
-        Min = 0.5,
-        Max = 5,
-        Default = 2,
+        Text = "Delay (detik)",
+        Range = {0.5, 5},
         Increment = 0.5,
+        CurrentValue = 2,
         Callback = function(value)
             buyDelay = value
         end
     })
     
-    -- Separator
-    Tab:CreateLabel({
-        Name = "Spacer2",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
+    -- ===== SECTION: TOMBOL MANUAL =====
+    Tab:CreateSection("🖱️ MANUAL")
     
     -- Tombol Beli Manual
     Tab:CreateButton({
@@ -208,7 +221,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- Tombol Test (Beli 1)
+    -- Tombol Test Beli 1
     Tab:CreateButton({
         Name = "TestBuy",
         Text = "🧪 TEST BELI (1x)",
@@ -217,58 +230,23 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- Separator
-    Tab:CreateLabel({
-        Name = "Spacer3",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
+    -- ===== SECTION: AUTO BUY =====
+    Tab:CreateSection("🤖 AUTO BUY")
     
-    -- ===== AUTO BUY =====
+    -- Toggle Auto Buy
     local autoBuyToggle = Tab:CreateToggle({
         Name = "AutoBuyToggle",
-        Text = "🤖 AUTO BUY",
+        Text = "AKTIFKAN AUTO BUY",
         CurrentValue = false,
         Callback = function(value)
-            autoBuyEnabled = value
-            
             if value then
                 if not checkRemote() then
                     autoBuyToggle:SetValue(false)
                     return
                 end
-                
-                Bdev:Notify({
-                    Title = "Auto Buy ON",
-                    Content = string.format("Membeli %s setiap %ds", selectedDisplay, buyDelay),
-                    Duration = 3
-                })
-                
-                if autoBuyConnection then
-                    autoBuyConnection:Disconnect()
-                end
-                
-                local lastBuyTime = 0
-                autoBuyConnection = RunService.Heartbeat:Connect(function()
-                    if not autoBuyEnabled then return end
-                    
-                    if tick() - lastBuyTime >= buyDelay then
-                        buySeed(selectedSeed, buyQuantity)
-                        lastBuyTime = tick()
-                    end
-                end)
-                
+                startAutoBuy()
             else
-                Bdev:Notify({
-                    Title = "Auto Buy OFF",
-                    Content = "Dihentikan",
-                    Duration = 2
-                })
-                
-                if autoBuyConnection then
-                    autoBuyConnection:Disconnect()
-                    autoBuyConnection = nil
-                end
+                stopAutoBuy()
             end
         end
     })
@@ -284,14 +262,10 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- Separator
-    Tab:CreateLabel({
-        Name = "Spacer4",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
+    -- ===== SECTION: FITUR TAMBAHAN =====
+    Tab:CreateSection("📋 FITUR TAMBAHAN")
     
-    -- Tombol Cek Shop
+    -- Tombol Cek Shop List
     Tab:CreateButton({
         Name = "CheckShop",
         Text = "📋 CEK DAFTAR SHOP",
@@ -300,7 +274,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- Tombol Beli Semua (Masing-masing 1)
+    -- Tombol Beli Semua Bibit
     Tab:CreateButton({
         Name = "BuyAll",
         Text = "💰 BELI SEMUA BIBIT",
@@ -319,7 +293,7 @@ function ShopAutoBuy.Init(Dependencies)
                     totalSuccess = totalSuccess + 1
                 end
                 
-                task.wait(0.5) -- Jeda antar pembelian
+                task.wait(0.5)
             end
             
             Bdev:Notify({
@@ -330,32 +304,35 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- Info
-    Tab:CreateLabel({
-        Name = "InfoHeader",
-        Text = "ℹ️ INFORMASI",
-        Alignment = Enum.TextXAlignment.Center
-    })
+    -- ===== SECTION: INFORMASI =====
+    Tab:CreateSection("ℹ️ INFORMASI")
     
     Tab:CreateLabel({
         Name = "Info1",
-        Text = "• Gunakan 'GET_LIST' untuk cek shop",
-        Alignment = Enum.TextXAlignment.Left
+        Text = "• Remote: RequestShop",
+        Color = Color3.fromRGB(150, 150, 160)
     })
     
     Tab:CreateLabel({
         Name = "Info2",
-        Text = "• Delay minimum: 0.5 detik",
-        Alignment = Enum.TextXAlignment.Left
+        Text = "• Format: BUY [nama] [jumlah]",
+        Color = Color3.fromRGB(150, 150, 160)
     })
     
     Tab:CreateLabel({
         Name = "Info3",
-        Text = "• Pastikan uang cukup",
-        Alignment = Enum.TextXAlignment.Left
+        Text = "• Delay minimum: 0.5 detik",
+        Color = Color3.fromRGB(150, 150, 160)
     })
     
-    -- ===== EXPOSE FUNCTIONS =====
+    Tab:CreateLabel({
+        Name = "Info4",
+        Text = "• Pastikan uang cukup",
+        Color = Color3.fromRGB(150, 150, 160)
+    })
+    
+    -- ===== SHARE FUNCTIONS =====
+    Shared.Modules = Shared.Modules or {}
     Shared.Modules.ShopAutoBuy = {
         BuySeed = function(seedName, amount)
             return buySeed(seedName, amount or 1)
@@ -364,7 +341,6 @@ function ShopAutoBuy.Init(Dependencies)
         GetStatus = function()
             return {
                 SelectedSeed = selectedSeed,
-                SelectedDisplay = selectedDisplay,
                 AutoBuyEnabled = autoBuyEnabled,
                 Delay = buyDelay,
                 Quantity = buyQuantity
@@ -372,7 +348,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     }
     
-    print("✅ Shop module loaded - Bibit biasa")
+    print("✅ Shop module loaded - SimpleGUI v7.1 compatible")
 end
 
 return ShopAutoBuy
