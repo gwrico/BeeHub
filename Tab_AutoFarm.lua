@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - COMPATIBLE WITH SIMPLEGUI v6.3
+-- 💰 AUTO FARM TAB MODULE - PLANT CROP ONLY
 -- ==============================================
 
 local AutoFarm = {}
@@ -8,398 +8,428 @@ function AutoFarm.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
     local Bdev = Dependencies.Bdev
+    local GUI = Dependencies.GUI
     
     local Variables = Shared.Variables or {}
-    local EggData = Shared.EggData or {}
-    local Functions = Shared.Functions or {}
-    
-    --print("💰 Initializing AutoFarm tab for SimpleGUI v6.3...")
     
     -- Get services
     local RunService = game:GetService("RunService")
     local Players = game:GetService("Players")
-    local ProximityPromptService = game:GetService("ProximityPromptService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
     
-    -- Auto-farm variables
-    local collectConnection = nil
+    -- Auto-plant variables
+    local plantConnection = nil
     
-    -- ===== AUTO COLLECT EGGS =====
+    -- Dapatkan remote PlantCrop
+    local function getPlantRemote()
+        local success, remote = pcall(function()
+            return ReplicatedStorage.Remotes.TutorialRemotes.PlantCrop
+        end)
+        
+        if success and remote then
+            return remote
+        end
+        
+        -- Coba cari dengan aman
+        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+        if remotes then
+            local tutorial = remotes:FindFirstChild("TutorialRemotes")
+            if tutorial then
+                return tutorial:FindFirstChild("PlantCrop")
+            end
+        end
+        
+        return nil
+    end
+    
+    -- ===== CEK KETERSEDIAAN REMOTE =====
+    local plantRemote = getPlantRemote()
+    if plantRemote then
+        -- Tampilkan notifikasi bahwa remote ditemukan
+        Bdev:Notify({
+            Title = "PlantCrop Ready",
+            Content = "✅ Remote PlantCrop ditemukan!",
+            Duration = 3
+        })
+    else
+        -- Peringatan jika remote tidak ditemukan
+        Bdev:Notify({
+            Title = "Warning",
+            Content = "⚠️ Remote PlantCrop tidak ditemukan!",
+            Duration = 4
+        })
+    end
+    
+    -- ===== AUTO PLANT CROPS =====
     Tab:CreateToggle({
-        Name = "AutoCollect",
-        Text = "🥚 Auto Collect Eggs",
+        Name = "AutoPlant",
+        Text = "🌱 Auto Plant Crops",
         CurrentValue = false,
         Callback = function(value)
-            Variables.autoCollectEnabled = value
+            Variables.autoPlantEnabled = value
             
             if value then
-                Bdev:Notify({
-                    Title = "Auto Collect",
-                    Content = "Auto collecting enabled!",
-                    Duration = 3
-                })
-                
-                --print("✅ Auto Collect enabled")
-                
-                -- Start collection loop
-                if collectConnection then
-                    collectConnection:Disconnect()
+                -- Cek apakah remote tersedia
+                local plantRemote = getPlantRemote()
+                if not plantRemote then
+                    Bdev:Notify({
+                        Title = "Error",
+                        Content = "❌ PlantCrop remote tidak ditemukan!",
+                        Duration = 4
+                    })
+                    Variables.autoPlantEnabled = false
+                    return
                 end
                 
-                collectConnection = RunService.Heartbeat:Connect(function()
-                    if not Variables.autoCollectEnabled then 
-                        return 
-                    end
+                Bdev:Notify({
+                    Title = "Auto Plant",
+                    Content = "🌱 Auto planting ENABLED",
+                    Duration = 2
+                })
+                
+                -- Koordinat default
+                local plantPosition = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
+                
+                -- Start planting loop
+                if plantConnection then
+                    plantConnection:Disconnect()
+                end
+                
+                plantConnection = RunService.Heartbeat:Connect(function()
+                    if not Variables.autoPlantEnabled then return end
                     
-                    local player = Players.LocalPlayer
-                    local character = player.Character
-                    if not character then return end
-                    
-                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-                    if not humanoidRootPart then return end
-                    
-                    local playerPos = humanoidRootPart.Position
-                    local closestEgg = nil
-                    local closestDistance = 1000
-                    
-                    -- Find closest egg using Functions if available
-                    if Functions.findClosestEgg then
-                        local egg, distance = Functions.findClosestEgg(500)
-                        if egg and distance < closestDistance then
-                            closestEgg = egg
-                            closestDistance = distance
-                        end
-                    else
-                        -- Manual search
-                        for _, obj in pairs(game.Workspace:GetDescendants()) do
-                            if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
-                                local objName = obj.Name:lower()
-                                
-                                for eggName, _ in pairs(EggData) do
-                                    if objName:find(eggName:lower(), 1, true) then
-                                        local objPos
-                                        if obj:IsA("Model") then
-                                            local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                                            objPos = primaryPart and primaryPart.Position or obj:GetPivot().Position
-                                        else
-                                            objPos = obj.Position
-                                        end
-                                        
-                                        local distance = (playerPos - objPos).Magnitude
-                                        if distance < closestDistance and distance < 500 then
-                                            closestEgg = obj
-                                            closestDistance = distance
-                                        end
-                                        break
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    
-                    -- Teleport to egg if found
-                    if closestEgg and closestDistance < 100 then
-                        local eggPos
-                        if closestEgg:IsA("Model") then
-                            local primaryPart = closestEgg.PrimaryPart or closestEgg:FindFirstChildWhichIsA("BasePart")
-                            eggPos = primaryPart and primaryPart.Position or closestEgg:GetPivot().Position
-                        else
-                            eggPos = closestEgg.Position
-                        end
+                    local remote = getPlantRemote()
+                    if remote then
+                        pcall(function()
+                            remote:FireServer(plantPosition)
+                        end)
                         
-                        -- Teleport with Functions or manual
-                        if Functions.teleportToPosition then
-                            Functions.teleportToPosition(eggPos + Vector3.new(0, 3, 0))
-                        else
-                            humanoidRootPart.CFrame = CFrame.new(eggPos + Vector3.new(0, 3, 0))
-                        end
-                        
-                        -- Wait a bit
-                        task.wait(0.3)
-                        
-                        -- Try to find and trigger proximity prompt
-                        local prompt = closestEgg:FindFirstChildOfClass("ProximityPrompt") or
-                                      closestEgg.Parent:FindFirstChildOfClass("ProximityPrompt")
-                        
-                        if prompt then
-                            pcall(function()
-                                ProximityPromptService:PromptTriggered(prompt, player)
-                            end)
-                            
-                            -- Wait between collections
-                            task.wait(1)
-                        end
-                    elseif closestEgg and closestDistance >= 100 then
-                        -- Egg is too far, move towards it
-                        local eggPos
-                        if closestEgg:IsA("Model") then
-                            local primaryPart = closestEgg.PrimaryPart or closestEgg:FindFirstChildWhichIsA("BasePart")
-                            eggPos = primaryPart and primaryPart.Position or closestEgg:GetPivot().Position
-                        else
-                            eggPos = closestEgg.Position
-                        end
-                        
-                        local direction = (eggPos - playerPos).Unit
-                        humanoidRootPart.CFrame = CFrame.new(playerPos + (direction * 50))
+                        -- Gunakan plantDelay dari slider
+                        task.wait(plantDelay or 1.0)
                     end
                 end)
                 
             else
                 Bdev:Notify({
-                    Title = "Auto Collect",
-                    Content = "Auto collecting disabled!",
-                    Duration = 3
+                    Title = "Auto Plant",
+                    Content = "🌱 Auto planting DISABLED",
+                    Duration = 2
                 })
                 
-                --print("❌ Auto Collect disabled")
-                
-                if collectConnection then
-                    collectConnection:Disconnect()
-                    collectConnection = nil
+                if plantConnection then
+                    plantConnection:Disconnect()
+                    plantConnection = nil
                 end
             end
         end
     })
     
-    -- ===== COLLECT NEARBY EGGS =====
+    -- ===== MANUAL PLANT =====
     Tab:CreateButton({
-        Name = "CollectNearby",
-        Text = "🌀 Collect Nearby Eggs",
+        Name = "ManualPlant",
+        Text = "🌿 Plant Now (1x)",
         Callback = function()
-            --print("🌀 Collecting nearby eggs...")
-            
-            local player = Players.LocalPlayer
-            local character = player.Character
-            if not character then 
+            local plantRemote = getPlantRemote()
+            if not plantRemote then
                 Bdev:Notify({
                     Title = "Error",
-                    Content = "No character found!",
-                    Duration = 3
-                })
-                return 
-            end
-            
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            if not humanoidRootPart then return end
-            
-            local playerPos = humanoidRootPart.Position
-            local collected = 0
-            local foundEggs = {}
-            
-            -- Find all nearby eggs
-            for _, obj in pairs(game.Workspace:GetDescendants()) do
-                if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("Model") then
-                    -- Get position
-                    local objPos
-                    if obj:IsA("Model") then
-                        local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                        objPos = primaryPart and primaryPart.Position or obj:GetPivot().Position
-                    else
-                        objPos = obj.Position
-                    end
-                    
-                    local distance = (playerPos - objPos).Magnitude
-                    
-                    if distance < 200 then
-                        for eggName, _ in pairs(EggData) do
-                            if obj.Name:lower():find(eggName:lower(), 1, true) then
-                                table.insert(foundEggs, {
-                                    Object = obj,
-                                    Position = objPos,
-                                    Name = obj.Name
-                                })
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-            
-            if #foundEggs == 0 then
-                Bdev:Notify({
-                    Title = "No Eggs",
-                    Content = "No eggs found nearby!",
+                    Content = "❌ Remote tidak ditemukan!",
                     Duration = 3
                 })
                 return
             end
             
-            -- Sort by distance
-            table.sort(foundEggs, function(a, b)
-                local distA = (playerPos - a.Position).Magnitude
-                local distB = (playerPos - b.Position).Magnitude
-                return distA < distB
+            local plantPosition = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
+            
+            local success = pcall(function()
+                plantRemote:FireServer(plantPosition)
             end)
             
-            -- Collect eggs
-            for _, eggInfo in ipairs(foundEggs) do
-                if collected >= 10 then break end  -- Limit collection
+            if success then
+                Bdev:Notify({
+                    Title = "Success",
+                    Content = "✅ Tanam berhasil!",
+                    Duration = 2
+                })
+            else
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Gagal menanam",
+                    Duration = 2
+                })
+            end
+        end
+    })
+    
+    -- ===== PLANT DI POSISI PLAYER =====
+    Tab:CreateButton({
+        Name = "PlantAtPlayer",
+        Text = "📍 Plant at My Position",
+        Callback = function()
+            local plantRemote = getPlantRemote()
+            if not plantRemote then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Remote tidak ditemukan!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local player = Players.LocalPlayer
+            local character = player.Character
+            if not character then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Tidak ada karakter!",
+                    Duration = 2
+                })
+                return
+            end
+            
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if not humanoidRootPart then 
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ HumanoidRootPart tidak ditemukan",
+                    Duration = 2
+                })
+                return 
+            end
+            
+            -- Gunakan posisi player
+            local plantPosition = humanoidRootPart.Position
+            
+            local success = pcall(function()
+                plantRemote:FireServer(plantPosition)
+            end)
+            
+            if success then
+                Bdev:Notify({
+                    Title = "Success",
+                    Content = string.format("📍 Tanam di posisi Anda"),
+                    Duration = 2
+                })
+            end
+        end
+    })
+    
+    -- ===== PLANT 5x BERTURUT-TURUT =====
+    Tab:CreateButton({
+        Name = "PlantMultiple",
+        Text = "🔁 Plant 5x (Burst)",
+        Callback = function()
+            local plantRemote = getPlantRemote()
+            if not plantRemote then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Remote tidak ditemukan!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local plantPosition = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
+            local count = 0
+            
+            Bdev:Notify({
+                Title = "Planting",
+                Content = "⏳ Menanam 5x...",
+                Duration = 3
+            })
+            
+            -- Plant 5x dengan jeda 0.3 detik
+            for i = 1, 5 do
+                local success = pcall(function()
+                    plantRemote:FireServer(plantPosition)
+                end)
                 
-                -- Teleport to egg
-                if Functions.teleportToPosition then
-                    Functions.teleportToPosition(eggInfo.Position + Vector3.new(0, 3, 0))
-                else
-                    humanoidRootPart.CFrame = CFrame.new(eggInfo.Position + Vector3.new(0, 3, 0))
+                if success then
+                    count = count + 1
                 end
                 
-                task.wait(0.2)
-                
-                -- Try to collect
-                local prompt = eggInfo.Object:FindFirstChildOfClass("ProximityPrompt") or
-                              eggInfo.Object.Parent:FindFirstChildOfClass("ProximityPrompt")
-                
-                if prompt then
-                    pcall(function()
-                        ProximityPromptService:PromptTriggered(prompt, player)
-                    end)
-                    collected = collected + 1
-                    --print("✅ Collected:", eggInfo.Name)
-                    task.wait(0.5)
-                end
+                task.wait(0.3)
             end
             
             Bdev:Notify({
-                Title = "Collection Complete",
-                Content = "Collected " .. collected .. " eggs!",
-                Duration = 5
+                Title = "Complete",
+                Content = string.format("✅ %d/5 tanaman berhasil", count),
+                Duration = 3
             })
-            
-            --print("🎉 Total collected:", collected, "eggs")
         end
     })
     
-    -- ===== AUTO HATCH EGGS =====
-    local autoHatchConnection = nil
-    
-    Tab:CreateToggle({
-        Name = "AutoHatch",
-        Text = "🐣 Auto Hatch Eggs",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.autoHatchEnabled = value
-            
-            if value then
-                Bdev:Notify({
-                    Title = "Auto Hatch",
-                    Content = "Auto hatch enabled!",
-                    Duration = 3
-                })
-                
-                --print("✅ Auto Hatch enabled")
-                
-                if autoHatchConnection then
-                    autoHatchConnection:Disconnect()
-                end
-                
-                autoHatchConnection = RunService.Heartbeat:Connect(function()
-                    if not Variables.autoHatchEnabled then return end
-                    
-                    local player = Players.LocalPlayer
-                    
-                    -- Try to find hatch-related prompts
-                    for _, prompt in pairs(ProximityPromptService:GetPrompts()) do
-                        if prompt and prompt:IsA("ProximityPrompt") then
-                            local promptName = prompt.Name:lower()
-                            local parentName = prompt.Parent and prompt.Parent.Name:lower() or ""
-                            
-                            -- Check if it's a hatch-related prompt
-                            if promptName:find("hatch") or promptName:find("open") or 
-                               parentName:find("hatch") or parentName:find("egg") then
-                                
-                                pcall(function()
-                                    ProximityPromptService:PromptTriggered(prompt, player)
-                                end)
-                                
-                                task.wait(1)  -- Wait between hatches
-                                break
-                            end
-                        end
-                    end
-                end)
-                
-            else
-                Bdev:Notify({
-                    Title = "Auto Hatch",
-                    Content = "Auto hatch disabled!",
-                    Duration = 3
-                })
-                
-                --print("❌ Auto Hatch disabled")
-                
-                if autoHatchConnection then
-                    autoHatchConnection:Disconnect()
-                    autoHatchConnection = nil
-                end
-            end
-        end
-    })
-    
-    -- ===== FARMING SETTINGS =====
+    -- ===== CUSTOM POSITION =====
     Tab:CreateLabel({
-        Name = "SettingsLabel",
-        Text = "⚙️ Farming Settings:",
+        Name = "PositionLabel",
+        Text = "📌 CUSTOM PLANT POSITION",
         Alignment = Enum.TextXAlignment.Center
     })
     
-    local collectRange = 200
-    local collectSpeed = 1.0
+    -- Default position
+    local customX = 37.042
+    local customY = 39.297
+    local customZ = -265.786
     
-    local rangeSlider = Tab:CreateSlider({
-        Name = "CollectRange",
-        Text = "Range: " .. collectRange .. " studs",
-        Range = {50, 1000},
-        Increment = 10,
-        CurrentValue = 200,
+    -- Slider X
+    Tab:CreateSlider({
+        Name = "PosX",
+        Text = "X: " .. string.format("%.1f", customX),
+        Range = {-500, 500},
+        Increment = 0.1,
+        CurrentValue = customX,
         Callback = function(value)
-            collectRange = value
-            --print("📊 Collection range set to:", value)
+            customX = value
         end
     })
     
-    local speedSlider = Tab:CreateSlider({
-        Name = "CollectSpeed",
-        Text = "Speed: " .. collectSpeed .. "x",
-        Range = {0.5, 3.0},
+    -- Slider Y
+    Tab:CreateSlider({
+        Name = "PosY",
+        Text = "Y: " .. string.format("%.1f", customY),
+        Range = {0, 500},
+        Increment = 0.1,
+        CurrentValue = customY,
+        Callback = function(value)
+            customY = value
+        end
+    })
+    
+    -- Slider Z
+    Tab:CreateSlider({
+        Name = "PosZ",
+        Text = "Z: " .. string.format("%.1f", customZ),
+        Range = {-500, 500},
+        Increment = 0.1,
+        CurrentValue = customZ,
+        Callback = function(value)
+            customZ = value
+        end
+    })
+    
+    -- Button untuk custom position
+    Tab:CreateButton({
+        Name = "PlantCustom",
+        Text = "🎯 Plant at Custom Position",
+        Callback = function()
+            local plantRemote = getPlantRemote()
+            if not plantRemote then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Remote tidak ditemukan!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local customPos = Vector3.new(customX, customY, customZ)
+            
+            local success = pcall(function()
+                plantRemote:FireServer(customPos)
+            end)
+            
+            if success then
+                Bdev:Notify({
+                    Title = "Success",
+                    Content = string.format("🎯 Tanam di (%.1f, %.1f, %.1f)", customX, customY, customZ),
+                    Duration = 3
+                })
+            end
+        end
+    })
+    
+    -- ===== PLANT DELAY =====
+    local plantDelay = 1.0
+    
+    Tab:CreateSlider({
+        Name = "PlantDelay",
+        Text = "⏱️ Auto Plant Delay: " .. string.format("%.1fs", plantDelay),
+        Range = {0.2, 3.0},
         Increment = 0.1,
         CurrentValue = 1.0,
         Callback = function(value)
-            collectSpeed = value
-            --print("📊 Collection speed set to:", value)
+            plantDelay = value
         end
     })
     
-    -- ===== DISABLE ALL FARMING =====
+    -- ===== TEST REMOTE =====
     Tab:CreateButton({
-        Name = "DisableFarming",
-        Text = "🔴 Disable All Farming",
+        Name = "TestRemote",
+        Text = "🔍 Test Remote Connection",
         Callback = function()
-            --print("\n🔴 DISABLING ALL FARMING...")
+            local remote = getPlantRemote()
             
-            -- Disable all toggles
-            Variables.autoCollectEnabled = false
-            Variables.autoHatchEnabled = false
-            
-            -- Disconnect connections
-            if collectConnection then
-                collectConnection:Disconnect()
-                collectConnection = nil
+            if remote then
+                Bdev:Notify({
+                    Title = "Remote OK",
+                    Content = "✅ PlantCrop tersedia!",
+                    Duration = 3
+                })
+                
+                -- Tampilkan info di console
+                print("\n=== PLANT CROP REMOTE INFO ===")
+                print("Status: ✅ TERSEDIA")
+                print("Path: " .. remote:GetFullName())
+                print("Class: " .. remote.ClassName)
+                print("Parent: " .. (remote.Parent and remote.Parent.Name or "None"))
+                print("===============================\n")
+            else
+                Bdev:Notify({
+                    Title = "Remote Error",
+                    Content = "❌ PlantCrop TIDAK ditemukan!",
+                    Duration = 4
+                })
+                
+                -- Debug info
+                print("\n=== DEBUG INFO ===")
+                local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+                if remotes then
+                    print("Folder Remotes ditemukan. Isinya:")
+                    for _, child in pairs(remotes:GetChildren()) do
+                        print("  - " .. child.Name)
+                        
+                        -- Cek TutorialRemotes
+                        if child.Name == "TutorialRemotes" then
+                            for _, sub in pairs(child:GetChildren()) do
+                                print("    • " .. sub.Name)
+                            end
+                        end
+                    end
+                else
+                    print("Folder Remotes TIDAK ditemukan di ReplicatedStorage!")
+                    
+                    -- List isi ReplicatedStorage
+                    print("\nIsi ReplicatedStorage:")
+                    for _, child in pairs(ReplicatedStorage:GetChildren()) do
+                        print("  - " .. child.Name)
+                    end
+                end
+                print("==================\n")
             end
+        end
+    })
+    
+    -- ===== STOP AUTO PLANT =====
+    Tab:CreateButton({
+        Name = "StopPlanting",
+        Text = "⏹️ STOP Auto Plant",
+        Callback = function()
+            Variables.autoPlantEnabled = false
             
-            if autoHatchConnection then
-                autoHatchConnection:Disconnect()
-                autoHatchConnection = nil
+            if plantConnection then
+                plantConnection:Disconnect()
+                plantConnection = nil
             end
             
             Bdev:Notify({
-                Title = "Farming",
-                Content = "All farming features disabled!",
-                Duration = 4
+                Title = "Stopped",
+                Content = "⏹️ Auto planting dihentikan",
+                Duration = 2
             })
-            
-            --print("✅ All farming disabled")
         end
     })
     
-    --print("✅ AutoFarm tab initialized for SimpleGUI v6.3")
+    print("✅ AutoFarm Plant module loaded")
 end
 
 return AutoFarm
