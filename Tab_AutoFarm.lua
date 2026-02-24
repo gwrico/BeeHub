@@ -109,6 +109,41 @@ function AutoFarm.Init(Dependencies)
         })
     end
     
+    -- ===== BATCH SETTINGS =====
+    Tab:CreateLabel({
+        Name = "BatchSettingsLabel",
+        Text = "⚙️ BATCH SETTINGS",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Jumlah tanaman per batch
+    local batchSize = 5
+    
+    Tab:CreateSlider({
+        Name = "BatchSize",
+        Text = "🌾 Jumlah per batch: " .. batchSize,
+        Range = {1, 50},
+        Increment = 1,
+        CurrentValue = 5,
+        Callback = function(value)
+            batchSize = value
+        end
+    })
+    
+    -- Delay antar tanaman dalam batch
+    local batchDelay = 0.3
+    
+    Tab:CreateSlider({
+        Name = "BatchDelay",
+        Text = "⏱️ Delay antar tanaman: " .. string.format("%.1fs", batchDelay),
+        Range = {0.1, 2.0},
+        Increment = 0.1,
+        CurrentValue = 0.3,
+        Callback = function(value)
+            batchDelay = value
+        end
+    })
+    
     -- ===== AUTO PLANT CROPS =====
     Tab:CreateToggle({
         Name = "AutoPlant",
@@ -270,10 +305,10 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== PLANT 5x BERTURUT-TURUT =====
+    -- ===== PLANT BATCH (sesuai jumlah & delay yang diatur) =====
     Tab:CreateButton({
-        Name = "PlantMultiple",
-        Text = "🔁 Plant 5x (Burst)",
+        Name = "PlantBatch",
+        Text = "🔁 Plant Batch",
         Callback = function()
             local plantRemote = getPlantRemote()
             if not plantRemote then
@@ -290,11 +325,11 @@ function AutoFarm.Init(Dependencies)
             
             Bdev:Notify({
                 Title = "Planting",
-                Content = "⏳ Menanam 5x...",
+                Content = string.format("⏳ Menanam %dx dengan delay %.1fs...", batchSize, batchDelay),
                 Duration = 3
             })
             
-            for i = 1, 5 do
+            for i = 1, batchSize do
                 local success = pcall(function()
                     plantRemote:FireServer(plantPos)
                 end)
@@ -303,133 +338,18 @@ function AutoFarm.Init(Dependencies)
                     count = count + 1
                 end
                 
-                task.wait(0.3)
+                task.wait(batchDelay)
             end
             
             Bdev:Notify({
                 Title = "Complete",
-                Content = string.format("✅ %d/5 tanaman berhasil", count),
+                Content = string.format("✅ %d/%d tanaman berhasil", count, batchSize),
                 Duration = 3
             })
         end
     })
     
-    -- ===== CUSTOM POSITION dengan AUTO RECORD =====
-    Tab:CreateLabel({
-        Name = "PositionLabel",
-        Text = "📌 CUSTOM PLANT POSITION",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Tombol record cepat
-    Tab:CreateButton({
-        Name = "QuickRecord",
-        Text = "🎯 RECORD MY CURRENT POSITION",
-        Callback = function()
-            local playerPos = getPlayerPosition()
-            if playerPos then
-                updatePositionSliders(playerPos)
-            else
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Tidak bisa dapatkan posisi!",
-                    Duration = 2
-                })
-            end
-        end
-    })
-    
-    -- Slider X dengan nilai awal dari default
-    xSlider = Tab:CreateSlider({
-        Name = "PosX",
-        Text = "X: " .. string.format("%.2f", customX),
-        Range = {-1000, 1000},
-        Increment = 0.1,
-        CurrentValue = customX,
-        Callback = function(value)
-            customX = value
-        end
-    })
-    
-    -- Slider Y
-    ySlider = Tab:CreateSlider({
-        Name = "PosY",
-        Text = "Y: " .. string.format("%.2f", customY),
-        Range = {0, 1000},
-        Increment = 0.1,
-        CurrentValue = customY,
-        Callback = function(value)
-            customY = value
-        end
-    })
-    
-    -- Slider Z
-    zSlider = Tab:CreateSlider({
-        Name = "PosZ",
-        Text = "Z: " .. string.format("%.2f", customZ),
-        Range = {-1000, 1000},
-        Increment = 0.1,
-        CurrentValue = customZ,
-        Callback = function(value)
-            customZ = value
-        end
-    })
-    
-    -- Info posisi saat ini (real-time)
-    Tab:CreateLabel({
-        Name = "CurrentPosInfo",
-        Text = "📍 Posisi Anda saat ini: (gerak untuk update)",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Tampilkan posisi real-time (optional)
-    local posDisplayConnection
-    local posLabel = Tab:CreateLabel({
-        Name = "LivePosition",
-        Text = "X: 0, Y: 0, Z: 0",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Update posisi real-time
-    posDisplayConnection = RunService.Heartbeat:Connect(function()
-        local pos = getPlayerPosition()
-        if pos and posLabel then
-            posLabel:SetText(string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", pos.X, pos.Y, pos.Z))
-        end
-    end)
-    
-    -- Button untuk custom position
-    Tab:CreateButton({
-        Name = "PlantCustom",
-        Text = "🌱 Plant at Custom Position",
-        Callback = function()
-            local plantRemote = getPlantRemote()
-            if not plantRemote then
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Remote tidak ditemukan!",
-                    Duration = 3
-                })
-                return
-            end
-            
-            local customPos = Vector3.new(customX, customY, customZ)
-            
-            local success = pcall(function()
-                plantRemote:FireServer(customPos)
-            end)
-            
-            if success then
-                Bdev:Notify({
-                    Title = "Success",
-                    Content = string.format("✅ Tanam di (%.1f, %.1f, %.1f)", customX, customY, customZ),
-                    Duration = 3
-                })
-            end
-        end
-    })
-    
-    -- ===== PLANT DELAY =====
+    -- ===== PLANT DELAY (untuk AutoPlant) =====
     local plantDelay = 1.0
     
     Tab:CreateSlider({
