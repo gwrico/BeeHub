@@ -90,36 +90,6 @@ function ShopAutoBuy.Init(Dependencies)
         end
     end
     
-    -- ===== FUNGSI CEK SHOP LIST =====
-    local function checkShopList()
-        if not checkRemote() then return end
-        
-        local arguments = {
-            [1] = "GET_LIST"
-        }
-        
-        local success, result = pcall(function()
-            return RequestShop:InvokeServer(unpack(arguments))
-        end)
-        
-        if success and result then
-            Bdev:Notify({
-                Title = "📋 Shop List",
-                Content = "Cek console untuk detail",
-                Duration = 3
-            })
-            print("===== SHOP ITEMS =====")
-            print(result)
-            print("======================")
-        else
-            Bdev:Notify({
-                Title = "Error",
-                Content = "Gagal mendapatkan shop list",
-                Duration = 3
-            })
-        end
-    end
-    
     -- ===== AUTO BUY LOOP =====
     local function startAutoBuy()
         if autoBuyConnection then
@@ -187,7 +157,7 @@ function ShopAutoBuy.Init(Dependencies)
     
     -- ===== MEMBUAT UI DENGAN URUTAN VERTIKAL =====
     
-    -- 1. PILIH BIBIT SECTION (menggunakan label biasa sebagai header)
+    -- 1. PILIH BIBIT SECTION
     local header1 = Tab:CreateLabel({
         Name = "Header_PilihBibit",
         Text = "───── 🌱 PILIH BIBIT ─────",
@@ -336,112 +306,12 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- Spacer
-    Tab:CreateLabel({
-        Name = "Spacer4",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- 5. FITUR TAMBAHAN SECTION
-    local header5 = Tab:CreateLabel({
-        Name = "Header_Fitur",
-        Text = "───── 📋 FITUR TAMBAHAN ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Tombol Cek Shop List
-    Tab:CreateButton({
-        Name = "CheckShop",
-        Text = "📋 CEK DAFTAR SHOP",
-        Callback = function()
-            checkShopList()
-        end
-    })
-    
-    -- Tombol Beli Semua Bibit
-    Tab:CreateButton({
-        Name = "BuyAll",
-        Text = "💰 BELI SEMUA BIBIT",
-        Callback = function()
-            local totalSuccess = 0
-            
-            for i, seed in ipairs(seedsList) do
-                Bdev:Notify({
-                    Title = "Membeli",
-                    Content = seed.Display,
-                    Duration = 1
-                })
-                
-                local success = buySeed(seed.Name, 1)
-                if success then
-                    totalSuccess = totalSuccess + 1
-                end
-                
-                task.wait(0.5)
-            end
-            
-            Bdev:Notify({
-                Title = "Selesai",
-                Content = string.format("Berhasil: %d/%d", totalSuccess, #seedsList),
-                Duration = 3
-            })
-        end
-    })
-    
-    -- Spacer
-    Tab:CreateLabel({
-        Name = "Spacer5",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- 6. INFORMASI SECTION
-    local header6 = Tab:CreateLabel({
-        Name = "Header_Info",
-        Text = "───── ℹ️ INFORMASI ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    Tab:CreateLabel({
-        Name = "Info1",
-        Text = "• Remote: RequestShop",
-        Color = Color3.fromRGB(200, 200, 200),
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    Tab:CreateLabel({
-        Name = "Info2",
-        Text = "• Format: BUY [nama] [jumlah]",
-        Color = Color3.fromRGB(200, 200, 200),
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    Tab:CreateLabel({
-        Name = "Info3",
-        Text = "• Delay minimum: 0.5 detik",
-        Color = Color3.fromRGB(200, 200, 200),
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    Tab:CreateLabel({
-        Name = "Info4",
-        Text = "• Pastikan uang cukup",
-        Color = Color3.fromRGB(200, 200, 200),
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
     -- ===== SHARE FUNCTIONS =====
     Shared.Modules = Shared.Modules or {}
     Shared.Modules.ShopAutoBuy = {
         BuySeed = function(seedName, amount)
             return buySeed(seedName, amount or 1)
         end,
-        GetShopList = checkShopList,
         GetStatus = function()
             return {
                 SelectedSeed = selectedSeed,
