@@ -185,20 +185,26 @@ function ShopAutoBuy.Init(Dependencies)
         })
     end
     
-    -- ===== MEMBUAT UI =====
+    -- ===== MEMBUAT UI DENGAN URUTAN VERTIKAL =====
     
-    -- SECTION 1: PILIH BIBIT
-    Tab:CreateSection("🌱 PILIH BIBIT")
-    
-    -- Buat label untuk menampilkan bibit yang dipilih (dibuat pertama)
-    selectedInfoLabel = Tab:CreateLabel({
-        Name = "SelectedInfo",
-        Text = "Bibit terpilih: " .. seedsList[1].Display,
-        Color = Color3.fromRGB(255, 185, 0) -- Kuning BeeHub
+    -- 1. PILIH BIBIT SECTION (menggunakan label biasa sebagai header)
+    local header1 = Tab:CreateLabel({
+        Name = "Header_PilihBibit",
+        Text = "───── 🌱 PILIH BIBIT ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Buat tombol-tombol untuk setiap bibit dalam grid 2 kolom? 
-    -- Tapi karena SimpleGUI mungkin tidak support grid, kita buat berurutan
+    -- Label untuk menampilkan bibit yang dipilih
+    selectedInfoLabel = Tab:CreateLabel({
+        Name = "SelectedInfo",
+        Text = "➤ Bibit terpilih: " .. seedsList[1].Display,
+        Color = Color3.fromRGB(255, 255, 255),
+        Alignment = Enum.TextXAlignment.Left
+    })
+    
+    -- Buat tombol-tombol untuk setiap bibit
     for i, seed in ipairs(seedsList) do
         local isSelected = (i == 1)
         local btn = Tab:CreateButton({
@@ -211,8 +217,21 @@ function ShopAutoBuy.Init(Dependencies)
         table.insert(seedButtons, btn)
     end
     
-    -- SECTION 2: PENGATURAN
-    Tab:CreateSection("⚙️ PENGATURAN")
+    -- Spacer
+    Tab:CreateLabel({
+        Name = "Spacer1",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- 2. PENGATURAN SECTION
+    local header2 = Tab:CreateLabel({
+        Name = "Header_Pengaturan",
+        Text = "───── ⚙️ PENGATURAN ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
     
     -- Slider Jumlah
     local qtySlider = Tab:CreateSlider({
@@ -238,8 +257,21 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- SECTION 3: TOMBOL MANUAL
-    Tab:CreateSection("🖱️ MANUAL")
+    -- Spacer
+    Tab:CreateLabel({
+        Name = "Spacer2",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- 3. MANUAL SECTION
+    local header3 = Tab:CreateLabel({
+        Name = "Header_Manual",
+        Text = "───── 🖱️ MANUAL ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
     
     -- Tombol Beli Manual
     Tab:CreateButton({
@@ -259,8 +291,21 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- SECTION 4: AUTO BUY
-    Tab:CreateSection("🤖 AUTO BUY")
+    -- Spacer
+    Tab:CreateLabel({
+        Name = "Spacer3",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- 4. AUTO BUY SECTION
+    local header4 = Tab:CreateLabel({
+        Name = "Header_AutoBuy",
+        Text = "───── 🤖 AUTO BUY ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
     
     -- Toggle Auto Buy
     local autoBuyToggle = Tab:CreateToggle({
@@ -291,8 +336,21 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- SECTION 5: FITUR TAMBAHAN
-    Tab:CreateSection("📋 FITUR TAMBAHAN")
+    -- Spacer
+    Tab:CreateLabel({
+        Name = "Spacer4",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- 5. FITUR TAMBAHAN SECTION
+    local header5 = Tab:CreateLabel({
+        Name = "Header_Fitur",
+        Text = "───── 📋 FITUR TAMBAHAN ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
     
     -- Tombol Cek Shop List
     Tab:CreateButton({
@@ -333,31 +391,48 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- SECTION 6: INFORMASI
-    Tab:CreateSection("ℹ️ INFORMASI")
+    -- Spacer
+    Tab:CreateLabel({
+        Name = "Spacer5",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- 6. INFORMASI SECTION
+    local header6 = Tab:CreateLabel({
+        Name = "Header_Info",
+        Text = "───── ℹ️ INFORMASI ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
     
     Tab:CreateLabel({
         Name = "Info1",
         Text = "• Remote: RequestShop",
-        Color = Color3.fromRGB(150, 150, 160)
+        Color = Color3.fromRGB(200, 200, 200),
+        Alignment = Enum.TextXAlignment.Left
     })
     
     Tab:CreateLabel({
         Name = "Info2",
         Text = "• Format: BUY [nama] [jumlah]",
-        Color = Color3.fromRGB(150, 150, 160)
+        Color = Color3.fromRGB(200, 200, 200),
+        Alignment = Enum.TextXAlignment.Left
     })
     
     Tab:CreateLabel({
         Name = "Info3",
         Text = "• Delay minimum: 0.5 detik",
-        Color = Color3.fromRGB(150, 150, 160)
+        Color = Color3.fromRGB(200, 200, 200),
+        Alignment = Enum.TextXAlignment.Left
     })
     
     Tab:CreateLabel({
         Name = "Info4",
         Text = "• Pastikan uang cukup",
-        Color = Color3.fromRGB(150, 150, 160)
+        Color = Color3.fromRGB(200, 200, 200),
+        Alignment = Enum.TextXAlignment.Left
     })
     
     -- ===== SHARE FUNCTIONS =====
