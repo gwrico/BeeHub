@@ -127,14 +127,14 @@ function Teleport.Init(Dependencies)
         end
     end
     
-    -- ===== FUNGSI UPDATE DROPDOWN =====
+    -- ===== FUNGSI UPDATE DROPDOWN (FIXED) =====
     local function updateDropdownOptions(searchText)
         local players = getPlayerList(searchText)
         
         if #players == 0 then
             if playerDropdownRef then
                 playerDropdownRef.UpdateOptions({"-- Tidak ada player --"})
-                -- Jangan set value otomatis, biarkan user memilih
+                playerDropdownRef.SetValue("-- Tidak ada player --")
             end
             if infoLabelRef then
                 infoLabelRef.Text = "➤ Target: Tidak ada player online"
@@ -154,10 +154,27 @@ function Teleport.Init(Dependencies)
                         end
                     end
                     
-                    if not found then
-                        selectedPlayer = nil
+                    if found then
+                        -- Set dropdown ke player yang sebelumnya dipilih
+                        playerDropdownRef.SetValue("👤 " .. selectedPlayer.Name)
+                    else
+                        -- Jika tidak ditemukan, pilih player pertama
+                        selectedPlayer = getPlayerFromDisplay(players[1])
+                        playerDropdownRef.SetValue(players[1])
                         updateInfoLabel()
+                        
+                        -- Notifikasi player berubah
+                        Bdev:Notify({
+                            Title = "🔄 Player Berubah",
+                            Content = "Sekarang: " .. selectedPlayer.Name,
+                            Duration = 2
+                        })
                     end
+                else
+                    -- Jika belum ada yang dipilih, pilih player pertama
+                    selectedPlayer = getPlayerFromDisplay(players[1])
+                    playerDropdownRef.SetValue(players[1])
+                    updateInfoLabel()
                 end
             end
         end
@@ -244,7 +261,7 @@ function Teleport.Init(Dependencies)
     RefreshCorner.CornerRadius = UDim.new(0, 6)
     RefreshCorner.Parent = RefreshBtn
     
-    -- 4. DROPDOWN PLAYER (PASTIKAN INI DIBUAT)
+    -- 4. DROPDOWN PLAYER
     local initialPlayers = getPlayerList()
     
     -- Tambahkan label untuk dropdown
@@ -258,7 +275,7 @@ function Teleport.Init(Dependencies)
     -- Buat dropdown
     playerDropdownRef = Tab:CreateDropdown({
         Name = "PlayerDropdown",
-        Text = "Pilih Player:",  -- Ini akan menjadi label di dalam dropdown
+        Text = "Pilih Player:",
         Options = #initialPlayers > 0 and initialPlayers or {"-- Tidak ada player --"},
         Default = #initialPlayers > 0 and initialPlayers[1] or "-- Tidak ada player --",
         Callback = function(value)
@@ -283,6 +300,10 @@ function Teleport.Init(Dependencies)
     -- Set default selected player
     if #initialPlayers > 0 then
         selectedPlayer = getPlayerFromDisplay(initialPlayers[1])
+        -- Set dropdown value
+        if playerDropdownRef and playerDropdownRef.SetValue then
+            playerDropdownRef.SetValue(initialPlayers[1])
+        end
         updateInfoLabel()
     end
     
