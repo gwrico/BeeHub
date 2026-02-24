@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - DENGAN PILIHAN BIBIT
+-- 💰 AUTO FARM TAB MODULE - DENGAN TEXT INPUT
 -- ==============================================
 
 local AutoFarm = {}
@@ -42,7 +42,7 @@ function AutoFarm.Init(Dependencies)
     -- Default position (dari script Anda)
     local defaultPos = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
     
-    -- Custom position (akan diupdate dari posisi player)
+    -- Custom position
     local customX = defaultPos.X
     local customY = defaultPos.Y
     local customZ = defaultPos.Z
@@ -50,9 +50,9 @@ function AutoFarm.Init(Dependencies)
     -- Selected seed
     local selectedSeed = "Bibit Padi"  -- Default
     
-    -- References untuk slider (agar bisa diupdate nilainya)
-    local xSlider, ySlider, zSlider
-    local delaySliderRef = nil
+    -- References
+    local xInput, yInput, zInput
+    local delayInputRef = nil
     local plantCount = 0
     
     -- ===== DAFTAR BIBIT =====
@@ -123,23 +123,23 @@ function AutoFarm.Init(Dependencies)
         end
     end
     
-    -- Fungsi untuk update slider dengan nilai baru
-    local function updatePositionSliders(newPos)
+    -- Fungsi untuk update input dengan nilai baru
+    local function updatePositionInputs(newPos)
         if not newPos then return end
         
         customX = newPos.X
         customY = newPos.Y
         customZ = newPos.Z
         
-        -- Update slider jika reference tersedia
-        if xSlider and xSlider.SetValue then
-            xSlider:SetValue(customX)
+        -- Update input jika reference tersedia
+        if xInput then
+            xInput.Text = string.format("%.1f", customX)
         end
-        if ySlider and ySlider.SetValue then
-            ySlider:SetValue(customY)
+        if yInput then
+            yInput.Text = string.format("%.1f", customY)
         end
-        if zSlider and zSlider.SetValue then
-            zSlider:SetValue(customZ)
+        if zInput then
+            zInput.Text = string.format("%.1f", customZ)
         end
         
         -- Tampilkan notifikasi
@@ -217,11 +217,6 @@ function AutoFarm.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Left
     })
     
-    -- Update seed info saat bibit berubah
-    if seedDropdownRef then
-        -- Update di callback sudah ada
-    end
-    
     -- ===== POSISI SECTION =====
     local posHeader = Tab:CreateLabel({
         Name = "Header_Posisi",
@@ -239,41 +234,94 @@ function AutoFarm.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Slider untuk X
-    xSlider = Tab:CreateSlider({
-        Name = "PosX",
-        Text = "📍 X Position",
-        Range = {-500, 500},
-        Increment = 0.1,
-        CurrentValue = customX,
-        Callback = function(value)
-            customX = value
-        end
-    })
+    -- Frame untuk input koordinat
+    local CoordFrame = Instance.new("Frame")
+    CoordFrame.Name = "CoordFrame"
+    CoordFrame.Size = UDim2.new(0.95, 0, 0, 80)
+    CoordFrame.BackgroundTransparency = 1
+    CoordFrame.LayoutOrder = #Tab.Elements + 1
+    CoordFrame.Parent = Tab.Content
     
-    -- Slider untuk Y
-    ySlider = Tab:CreateSlider({
-        Name = "PosY",
-        Text = "📍 Y Position",
-        Range = {-500, 500},
-        Increment = 0.1,
-        CurrentValue = customY,
-        Callback = function(value)
-            customY = value
-        end
-    })
+    local CoordLayout = Instance.new("UIListLayout")
+    CoordLayout.FillDirection = Enum.FillDirection.Horizontal
+    CoordLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    CoordLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    CoordLayout.Padding = UDim.new(0, 10)
+    CoordLayout.Parent = CoordFrame
     
-    -- Slider untuk Z
-    zSlider = Tab:CreateSlider({
-        Name = "PosZ",
-        Text = "📍 Z Position",
-        Range = {-500, 500},
-        Increment = 0.1,
-        CurrentValue = customZ,
-        Callback = function(value)
-            customZ = value
-        end
-    })
+    -- Fungsi buat textbox koordinat
+    local function createCoordBox(parent, label, default, posIndex)
+        local frame = Instance.new("Frame")
+        frame.Name = label .. "Frame"
+        frame.Size = UDim2.new(0, 100, 0, 50)
+        frame.BackgroundTransparency = 1
+        frame.Parent = parent
+        
+        local labelObj = Instance.new("TextLabel")
+        labelObj.Name = "Label"
+        labelObj.Size = UDim2.new(1, 0, 0, 20)
+        labelObj.Text = label
+        labelObj.TextColor3 = Color3.fromRGB(255, 185, 0)
+        labelObj.BackgroundTransparency = 1
+        labelObj.TextSize = 14
+        labelObj.Font = Enum.Font.GothamBold
+        labelObj.Parent = frame
+        
+        local inputFrame = Instance.new("Frame")
+        inputFrame.Name = "InputFrame"
+        inputFrame.Size = UDim2.new(1, 0, 0, 30)
+        inputFrame.Position = UDim2.new(0, 0, 0, 20)
+        inputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        inputFrame.BackgroundTransparency = 0
+        inputFrame.Parent = frame
+        
+        local inputCorner = Instance.new("UICorner")
+        inputCorner.CornerRadius = UDim.new(0, 6)
+        inputCorner.Parent = inputFrame
+        
+        local textBox = Instance.new("TextBox")
+        textBox.Name = "Value"
+        textBox.Size = UDim2.new(1, -10, 1, 0)
+        textBox.Position = UDim2.new(0, 5, 0, 0)
+        textBox.Text = string.format("%.1f", default)
+        textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        textBox.BackgroundTransparency = 1
+        textBox.TextSize = 14
+        textBox.Font = Enum.Font.Gotham
+        textBox.ClearTextOnFocus = false
+        textBox.Parent = inputFrame
+        
+        -- Event untuk validasi
+        textBox.FocusLost:Connect(function()
+            local value = tonumber(textBox.Text)
+            if value then
+                if posIndex == "X" then
+                    customX = value
+                elseif posIndex == "Y" then
+                    customY = value
+                elseif posIndex == "Z" then
+                    customZ = value
+                end
+                textBox.Text = string.format("%.1f", value)
+            else
+                -- Kembalikan ke nilai sebelumnya
+                if posIndex == "X" then
+                    textBox.Text = string.format("%.1f", customX)
+                elseif posIndex == "Y" then
+                    textBox.Text = string.format("%.1f", customY)
+                elseif posIndex == "Z" then
+                    textBox.Text = string.format("%.1f", customZ)
+                end
+            end
+        end)
+        
+        return textBox
+    end
+    
+    -- Buat 3 textbox untuk X, Y, Z
+    xInput = createCoordBox(CoordFrame, "X", customX, "X")
+    yInput = createCoordBox(CoordFrame, "Y", customY, "Y")
+    zInput = createCoordBox(CoordFrame, "Z", customZ, "Z")
     
     -- ===== TOMBOL POSISI =====
     local PosButtonFrame = Instance.new("Frame")
@@ -310,7 +358,7 @@ function AutoFarm.Init(Dependencies)
     RecordBtn.MouseButton1Click:Connect(function()
         local playerPos = getPlayerPosition()
         if playerPos then
-            updatePositionSliders(playerPos)
+            updatePositionInputs(playerPos)
             Bdev:Notify({
                 Title = "✅ Recorded",
                 Content = "Posisi player disimpan!",
@@ -343,7 +391,7 @@ function AutoFarm.Init(Dependencies)
     ResetCorner.Parent = ResetBtn
     
     ResetBtn.MouseButton1Click:Connect(function()
-        updatePositionSliders(defaultPos)
+        updatePositionInputs(defaultPos)
         Bdev:Notify({
             Title = "🔄 Reset",
             Content = "Kembali ke posisi default",
@@ -367,22 +415,72 @@ function AutoFarm.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Center
     })
     
-    delaySliderRef = Tab:CreateSlider({
-        Name = "DelaySlider",
-        Text = "Delay: 1.0 detik",
-        Range = {0.1, 3},
-        Increment = 0.1,
-        CurrentValue = 1.0,
-        Callback = function(value)
-            -- Update text slider
-            if delaySliderRef and delaySliderRef.Frame then
-                local label = delaySliderRef.Frame:FindFirstChild("SliderLabel")
-                if label then
-                    label.Text = "Delay: " .. string.format("%.1f", value) .. " detik"
-                end
-            end
+    -- Frame untuk input delay
+    local DelayFrame = Instance.new("Frame")
+    DelayFrame.Name = "DelayFrame"
+    DelayFrame.Size = UDim2.new(0.95, 0, 0, 50)
+    DelayFrame.BackgroundTransparency = 1
+    DelayFrame.LayoutOrder = #Tab.Elements + 1
+    DelayFrame.Parent = Tab.Content
+    
+    local DelayInputFrame = Instance.new("Frame")
+    DelayInputFrame.Name = "DelayInputFrame"
+    DelayInputFrame.Size = UDim2.new(0.5, 0, 0, 36)
+    DelayInputFrame.Position = UDim2.new(0.25, 0, 0, 0)
+    DelayInputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    DelayInputFrame.BackgroundTransparency = 0
+    DelayInputFrame.Parent = DelayFrame
+    
+    local DelayCorner = Instance.new("UICorner")
+    DelayCorner.CornerRadius = UDim.new(0, 6)
+    DelayCorner.Parent = DelayInputFrame
+    
+    local DelayLabel = Instance.new("TextLabel")
+    DelayLabel.Name = "DelayLabel"
+    DelayLabel.Size = UDim2.new(0, 50, 1, 0)
+    DelayLabel.Text = "⏱️"
+    DelayLabel.TextColor3 = Color3.fromRGB(255, 185, 0)
+    DelayLabel.BackgroundTransparency = 1
+    DelayLabel.TextSize = 16
+    DelayLabel.Font = Enum.Font.GothamBold
+    DelayLabel.Parent = DelayInputFrame
+    
+    local DelayBox = Instance.new("TextBox")
+    DelayBox.Name = "DelayBox"
+    DelayBox.Size = UDim2.new(1, -60, 1, 0)
+    DelayBox.Position = UDim2.new(0, 50, 0, 0)
+    DelayBox.Text = "1.0"
+    DelayBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DelayBox.BackgroundTransparency = 1
+    DelayBox.TextSize = 14
+    DelayBox.Font = Enum.Font.Gotham
+    DelayBox.ClearTextOnFocus = false
+    DelayBox.Parent = DelayInputFrame
+    
+    local DelayUnit = Instance.new("TextLabel")
+    DelayUnit.Name = "DelayUnit"
+    DelayUnit.Size = UDim2.new(0, 30, 1, 0)
+    DelayUnit.Position = UDim2.new(1, -30, 0, 0)
+    DelayUnit.Text = "dtk"
+    DelayUnit.TextColor3 = Color3.fromRGB(150, 150, 160)
+    DelayUnit.BackgroundTransparency = 1
+    DelayUnit.TextSize = 12
+    DelayUnit.Font = Enum.Font.Gotham
+    DelayUnit.Parent = DelayInputFrame
+    
+    DelayBox.FocusLost:Connect(function()
+        local value = tonumber(DelayBox.Text)
+        if value and value >= 0.1 and value <= 5 then
+            DelayBox.Text = string.format("%.1f", value)
+        else
+            DelayBox.Text = "1.0"
+            Bdev:Notify({
+                Title = "❌ Invalid",
+                Content = "Delay harus 0.1 - 5 detik",
+                Duration = 2
+            })
         end
-    })
+    end)
     
     -- ===== AUTO PLANT SECTION =====
     local autoHeader = Tab:CreateLabel({
@@ -434,14 +532,10 @@ function AutoFarm.Init(Dependencies)
                     
                     local remote = getPlantRemote()
                     if remote then
-                        local delay = delaySliderRef and delaySliderRef.GetValue and delaySliderRef:GetValue() or 1.0
+                        local delay = tonumber(DelayBox.Text) or 1.0
                         local plantPos = Vector3.new(customX, customY, customZ)
                         
-                        -- Kirim dengan parameter yang benar (sesuaikan dengan kebutuhan remote)
                         local success = pcall(function()
-                            -- Format umum: remote:FireServer(seedName, position)
-                            -- atau remote:FireServer(position, seedName)
-                            -- Sesuaikan dengan format remote game Anda
                             remote:FireServer(selectedSeed, plantPos)
                         end)
                         
@@ -514,8 +608,7 @@ function AutoFarm.Init(Dependencies)
         local plantPos = Vector3.new(customX, customY, customZ)
         
         local success = pcall(function()
-            -- Sesuaikan format dengan remote game Anda
-            remote:FireServer(selectedSeed, plantPos)
+            plantRemote:FireServer(selectedSeed, plantPos)
         end)
         
         if success then
@@ -550,14 +643,6 @@ function AutoFarm.Init(Dependencies)
         end
     end)
     
-    -- ===== KEYBIND INFO =====
-    Tab:CreateLabel({
-        Name = "KeybindInfo",
-        Text = "⌨️ Tekan R untuk record posisi player",
-        Color = Color3.fromRGB(150, 150, 160),
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
     -- ===== HOVER EFFECTS =====
     local function setupHover(btn, normalColor, hoverColor)
         btn.MouseEnter:Connect(function()
@@ -573,23 +658,6 @@ function AutoFarm.Init(Dependencies)
     setupHover(PlantNowBtn, Color3.fromRGB(255, 185, 0), Color3.fromRGB(255, 215, 100))
     setupHover(StopBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
     
-    -- ===== KEYBIND R UNTUK RECORD =====
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        
-        if input.KeyCode == Enum.KeyCode.R then
-            local playerPos = getPlayerPosition()
-            if playerPos then
-                updatePositionSliders(playerPos)
-                Bdev:Notify({
-                    Title = "⌨️ Quick Record",
-                    Content = "Posisi direkam (tekan R)",
-                    Duration = 1
-                })
-            end
-        end
-    end)
-    
     -- ===== CLEANUP =====
     local function cleanup()
         if plantConnection then
@@ -604,7 +672,7 @@ function AutoFarm.Init(Dependencies)
     Shared.Modules.AutoFarm = {
         GetPosition = function() return Vector3.new(customX, customY, customZ) end,
         SetPosition = function(x, y, z)
-            updatePositionSliders(Vector3.new(x, y, z))
+            updatePositionInputs(Vector3.new(x, y, z))
         end,
         GetStatus = function() return Variables.autoPlantEnabled end,
         GetSelectedSeed = function() return selectedSeed end,
@@ -627,7 +695,7 @@ function AutoFarm.Init(Dependencies)
         end
     }
     
-    print("✅ AutoFarm module loaded - dengan Pilihan Bibit")
+    print("✅ AutoFarm module loaded - dengan Text Input")
     
     return cleanup
 end
