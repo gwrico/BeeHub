@@ -1,5 +1,5 @@
 -- ==============================================
--- 🛍️ SHOP AUTO-BUY - MUTATION SEEDS
+-- 🛒 SHOP MODULE - BELI BIBIT BIASA
 -- ==============================================
 
 local ShopAutoBuy = {}
@@ -10,134 +10,112 @@ function ShopAutoBuy.Init(Dependencies)
     local Bdev = Dependencies.Bdev
     local GUI = Dependencies.GUI or Shared.GUI
     
-    --print("🛍️ Initializing Shop Auto-Buy module...")
+    -- ===== KONFIGURASI REMOTE =====
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
     
-    -- ===== CONFIGURASI REMOTE =====
-    local REMOTE_PATH = "ReplicatedStorage.RemoteEvent.ServerRemoteEvent"
-    local FUNCTION_NAME = "Buy_ArrayBool_Item"
+    -- Remote RequestShop
+    local RequestShop = ReplicatedStorage:FindFirstChild("Remotes")
+    if RequestShop then
+        RequestShop = RequestShop:FindFirstChild("TutorialRemotes")
+        if RequestShop then
+            RequestShop = RequestShop:FindFirstChild("RequestShop")
+        end
+    end
     
-    -- ===== DAFTAR BIBIT MUTASI =====
-    local mutationSeeds = {
-        {
-            chineseName = "种子-冰霜突变肥料",  -- Ice Mutation
-            displayName = "Ice Mutation",
-            emoji = "🧊"
-        },
-        {
-            chineseName = "种子-火焰突变肥料",  -- Fire Mutation
-            displayName = "Fire Mutation",
-            emoji = "🔥"
-        },
-        {
-            chineseName = "种子-毒液突变肥料",  -- Poison Mutation
-            displayName = "Poison Mutation",
-            emoji = "☠️"
-        },
-        {
-            chineseName = "种子-黑暗突变肥料",  -- Dark Mutation
-            displayName = "Dark Mutation",
-            emoji = "🌑"
-        },
-        {
-            chineseName = "种子-爆炸突变肥料",  -- Bomb Mutation
-            displayName = "Bomb Mutation",
-            emoji = "💣"
-        }
+    -- ===== DAFTAR BIBIT =====
+    local seedsList = {
+        {Name = "Bibit Padi", Display = "🌾 Padi"},
+        {Name = "Bibit Jagung", Display = "🌽 Jagung"},
+        {Name = "Bibit Tomat", Display = "🍅 Tomat"},
+        {Name = "Bibit Terong", Display = "🍆 Terong"},
+        {Name = "Bibit Strawberry", Display = "🍓 Strawberry"}
     }
     
     -- ===== STATE VARIABLES =====
-    local selectedSeedIndex = 1
+    local selectedSeed = seedsList[1].Name
+    local selectedDisplay = seedsList[1].Display
     local autoBuyEnabled = false
     local autoBuyConnection = nil
     local buyDelay = 2
     local buyQuantity = 1
     
-    -- ===== FUNGSI UTAMA =====
-    local function buySeed(chineseName, quantity)
-        local remote = game:GetService("ReplicatedStorage"):FindFirstChild("RemoteEvent")
-        if not remote then 
+    -- ===== FUNGSI CEK REMOTE =====
+    local function checkRemote()
+        if not RequestShop then
             Bdev:Notify({
                 Title = "Error",
-                Content = "RemoteEvent not found!",
-                Duration = 3
+                Content = "❌ Remote RequestShop tidak ditemukan!",
+                Duration = 4
             })
-            return false 
+            return false
         end
+        return true
+    end
+    
+    -- ===== FUNGSI BELI BIBIT =====
+    local function buySeed(seedName, amount)
+        if not checkRemote() then return false end
         
-        local serverRemote = remote:FindFirstChild("ServerRemoteEvent")
-        if not serverRemote then 
-            Bdev:Notify({
-                Title = "Error",
-                Content = "ServerRemoteEvent not found!",
-                Duration = 3
-            })
-            return false 
-        end
+        amount = amount or 1
         
-        --print("🛒 Buying: " .. chineseName .. " x" .. quantity)
+        -- Ini adalah format dari script Anda
+        local arguments = {
+            [1] = "BUY",
+            [2] = seedName,
+            [3] = amount
+        }
         
         local success, result = pcall(function()
-            serverRemote:FireServer(FUNCTION_NAME, chineseName, quantity)
-            return true
+            return RequestShop:InvokeServer(unpack(arguments))
         end)
         
         if success then
-            --print("✅ Purchase successful")
-        else
-            --print("❌ Purchase failed:", result)
             Bdev:Notify({
-                Title = "Purchase Failed",
-                Content = tostring(result),
+                Title = "✅ Pembelian Berhasil",
+                Content = string.format("%s x%d", seedName, amount),
+                Duration = 2
+            })
+            return true
+        else
+            Bdev:Notify({
+                Title = "❌ Gagal",
+                Content = "Mungkin uang tidak cukup?",
+                Duration = 3
+            })
+            return false
+        end
+    end
+    
+    -- ===== FUNGSI CEK SHOP =====
+    local function checkShopList()
+        if not checkRemote() then return end
+        
+        local arguments = {
+            [1] = "GET_LIST"
+        }
+        
+        local success, result = pcall(function()
+            return RequestShop:InvokeServer(unpack(arguments))
+        end)
+        
+        if success and result then
+            Bdev:Notify({
+                Title = "📋 Shop List",
+                Content = "Cek console untuk detail",
+                Duration = 3
+            })
+            print("===== SHOP ITEMS =====")
+            print(result)
+            print("======================")
+        else
+            Bdev:Notify({
+                Title = "Error",
+                Content = "Gagal mendapatkan shop list",
                 Duration = 3
             })
         end
-        
-        return success
-    end
-    
-    -- ===== FUNGSI AUTO-BUY LOOP =====
-    local function startAutoBuy()
-        if autoBuyConnection then
-            autoBuyConnection:Disconnect()
-            autoBuyConnection = nil
-        end
-        
-        autoBuyEnabled = true
-        local selectedSeed = mutationSeeds[selectedSeedIndex]
-        
-        Bdev:Notify({
-            Title = "Auto-Buy ON",
-            Content = "Buying " .. selectedSeed.displayName .. " every " .. buyDelay .. "s",
-            Duration = 4
-        })
-        
-        --print("🤖 Auto-Buy STARTED: " .. selectedSeed.displayName)
-        
-        local lastBuyTime = 0
-        autoBuyConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            if not autoBuyEnabled then return end
-            
-            if tick() - lastBuyTime >= buyDelay then
-                buySeed(selectedSeed.chineseName, buyQuantity)
-                lastBuyTime = tick()
-            end
-        end)
-    end
-    
-    local function stopAutoBuy()
-        autoBuyEnabled = false
-        if autoBuyConnection then
-            autoBuyConnection:Disconnect()
-            autoBuyConnection = nil
-        end
-        
-        Bdev:Notify({
-            Title = "Auto-Buy OFF",
-            Content = "Auto-buy stopped",
-            Duration = 2
-        })
-        
-        --print("⏹️ Auto-Buy STOPPED")
     end
     
     -- ===== UI ELEMENTS =====
@@ -145,200 +123,256 @@ function ShopAutoBuy.Init(Dependencies)
     -- Header
     Tab:CreateLabel({
         Name = "Header",
-        Text = "🌱 MUTATION SEEDS AUTO-BUY",
+        Text = "🌱 SHOP - BIBIT BIASA",
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Pilih Seed
+    -- Pilih Bibit
     Tab:CreateLabel({
         Name = "SelectLabel",
-        Text = "Select Seed for Auto-Buy:",
+        Text = "Pilih Bibit:",
         Alignment = Enum.TextXAlignment.Left
     })
     
-    -- Buat tombol pilihan seed
-    local selectionButtons = {}
-    for i, seed in ipairs(mutationSeeds) do
-        local btn = Tab:CreateButton({
-            Name = "Select_" .. i,
-            Text = (selectedSeedIndex == i and "✅ " or "   ") .. seed.emoji .. " " .. seed.displayName,
-            Callback = function()
-                selectedSeedIndex = i
-                
-                -- Update semua tombol untuk menampilkan selection yang benar
-                for j, btn in ipairs(selectionButtons) do
-                    if j == i then
-                        btn.Text = "✅ " .. mutationSeeds[j].emoji .. " " .. mutationSeeds[j].displayName
-                    else
-                        btn.Text = "   " .. mutationSeeds[j].emoji .. " " .. mutationSeeds[j].displayName
-                    end
-                end
-                
-                Bdev:Notify({
-                    Title = "Selection",
-                    Content = "Selected: " .. seed.displayName,
-                    Duration = 2
-                })
-                
-                --print("📌 Selected: " .. seed.displayName)
-            end
-        })
-        
-        table.insert(selectionButtons, btn)
+    -- Dropdown untuk memilih bibit
+    local seedOptions = {}
+    for i, seed in ipairs(seedsList) do
+        table.insert(seedOptions, seed.Display)
     end
     
-    -- Spacer
+    Tab:CreateDropdown({
+        Name = "SeedSelector",
+        Text = "🌱 Pilih Jenis Bibit",
+        List = seedOptions,
+        Callback = function(selectedDisplay)
+            for i, seed in ipairs(seedsList) do
+                if seed.Display == selectedDisplay then
+                    selectedSeed = seed.Name
+                    selectedDisplay = seed.Display
+                    Bdev:Notify({
+                        Title = "Dipilih",
+                        Content = selectedDisplay,
+                        Duration = 1
+                    })
+                    break
+                end
+            end
+        end
+    })
+    
+    -- Separator
     Tab:CreateLabel({
         Name = "Spacer1",
         Text = "",
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Delay Setting
-    Tab:CreateSlider({
-        Name = "DelaySlider",
-        Text = "Delay: " .. buyDelay .. " seconds",
-        Range = {0.5, 5},
-        Increment = 0.5,
-        CurrentValue = buyDelay,
-        Callback = function(value)
-            buyDelay = value
-            --print("⏱️ Delay set to: " .. buyDelay .. "s")
-        end
-    })
-    
-    -- Quantity Setting
+    -- Pengaturan Jumlah
     Tab:CreateSlider({
         Name = "QtySlider",
-        Text = "Quantity per buy: " .. buyQuantity,
-        Range = {1, 10},
-        Increment = 1,
-        CurrentValue = buyQuantity,
+        Text = "🔢 Jumlah: " .. buyQuantity,
+        Min = 1,
+        Max = 10,
+        Default = 1,
         Callback = function(value)
             buyQuantity = math.floor(value)
-            --print("📦 Quantity set to: " .. buyQuantity)
         end
     })
     
-    -- Spacer
+    -- Pengaturan Delay
+    Tab:CreateSlider({
+        Name = "DelaySlider",
+        Text = "⏱️ Delay: " .. buyDelay .. " detik",
+        Min = 0.5,
+        Max = 5,
+        Default = 2,
+        Increment = 0.5,
+        Callback = function(value)
+            buyDelay = value
+        end
+    })
+    
+    -- Separator
     Tab:CreateLabel({
         Name = "Spacer2",
         Text = "",
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Auto-Buy Toggle
-    local toggleObj = Tab:CreateToggle({
-        Name = "AutoBuyToggle",
-        Text = "🤖 ENABLE AUTO-BUY",
-        CurrentValue = false,
-        Callback = function(value)
-            if value then
-                startAutoBuy()
-            else
-                stopAutoBuy()
-            end
-        end
-    })
-    
-    -- Emergency Stop Button
+    -- Tombol Beli Manual
     Tab:CreateButton({
-        Name = "EmergencyStop",
-        Text = "🛑 EMERGENCY STOP",
+        Name = "ManualBuy",
+        Text = "🛒 BELI MANUAL",
         Callback = function()
-            if toggleObj and toggleObj.SetValue then
-                toggleObj:SetValue(false)
-            else
-                stopAutoBuy()
-            end
-            --print("🛑 EMERGENCY STOP activated")
+            buySeed(selectedSeed, buyQuantity)
         end
     })
     
-    -- Test Buy Button
+    -- Tombol Test (Beli 1)
     Tab:CreateButton({
         Name = "TestBuy",
-        Text = "🧪 TEST BUY (Current Selection)",
+        Text = "🧪 TEST BELI (1x)",
         Callback = function()
-            local selectedSeed = mutationSeeds[selectedSeedIndex]
-            Bdev:Notify({
-                Title = "Test Purchase",
-                Content = "Trying to buy " .. selectedSeed.displayName,
-                Duration = 3
-            })
+            buySeed(selectedSeed, 1)
+        end
+    })
+    
+    -- Separator
+    Tab:CreateLabel({
+        Name = "Spacer3",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- ===== AUTO BUY =====
+    local autoBuyToggle = Tab:CreateToggle({
+        Name = "AutoBuyToggle",
+        Text = "🤖 AUTO BUY",
+        CurrentValue = false,
+        Callback = function(value)
+            autoBuyEnabled = value
             
-            local success = buySeed(selectedSeed.chineseName, 1)
-            
-            if success then
+            if value then
+                if not checkRemote() then
+                    autoBuyToggle:SetValue(false)
+                    return
+                end
+                
                 Bdev:Notify({
-                    Title = "Success!",
-                    Content = "Bought " .. selectedSeed.displayName,
+                    Title = "Auto Buy ON",
+                    Content = string.format("Membeli %s setiap %ds", selectedDisplay, buyDelay),
                     Duration = 3
                 })
+                
+                if autoBuyConnection then
+                    autoBuyConnection:Disconnect()
+                end
+                
+                local lastBuyTime = 0
+                autoBuyConnection = RunService.Heartbeat:Connect(function()
+                    if not autoBuyEnabled then return end
+                    
+                    if tick() - lastBuyTime >= buyDelay then
+                        buySeed(selectedSeed, buyQuantity)
+                        lastBuyTime = tick()
+                    end
+                end)
+                
+            else
+                Bdev:Notify({
+                    Title = "Auto Buy OFF",
+                    Content = "Dihentikan",
+                    Duration = 2
+                })
+                
+                if autoBuyConnection then
+                    autoBuyConnection:Disconnect()
+                    autoBuyConnection = nil
+                end
             end
         end
     })
     
-    -- Info section
-    Tab:CreateLabel({
-        Name = "InfoLabel1",
-        Text = "⚠️ IMPORTANT INFORMATION",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    Tab:CreateLabel({
-        Name = "InfoLabel2",
-        Text = "• 10% mutation chance",
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    Tab:CreateLabel({
-        Name = "InfoLabel3",
-        Text = "• +0.5kg plant size if failed",
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    Tab:CreateLabel({
-        Name = "InfoLabel4",
-        Text = "• Use at your own risk!",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    Tab:CreateLabel({
-        Name = "InfoLabel5",
-        Text = "• Minimum delay: 0.5s",
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    Tab:CreateLabel({
-        Name = "InfoLabel6",
-        Text = "• Recommended quantity: 1",
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    -- Store module reference in Shared
-    Shared.Modules.ShopAutoBuy = {
-        StartAutoBuy = startAutoBuy,
-        StopAutoBuy = stopAutoBuy,
-        BuySeed = function(seedIndex, quantity)
-            if seedIndex and mutationSeeds[seedIndex] then
-                return buySeed(mutationSeeds[seedIndex].chineseName, quantity or 1)
+    -- Tombol Stop
+    Tab:CreateButton({
+        Name = "StopButton",
+        Text = "⏹️ STOP AUTO BUY",
+        Callback = function()
+            if autoBuyToggle and autoBuyToggle.SetValue then
+                autoBuyToggle:SetValue(false)
             end
-            return false
+        end
+    })
+    
+    -- Separator
+    Tab:CreateLabel({
+        Name = "Spacer4",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Tombol Cek Shop
+    Tab:CreateButton({
+        Name = "CheckShop",
+        Text = "📋 CEK DAFTAR SHOP",
+        Callback = function()
+            checkShopList()
+        end
+    })
+    
+    -- Tombol Beli Semua (Masing-masing 1)
+    Tab:CreateButton({
+        Name = "BuyAll",
+        Text = "💰 BELI SEMUA BIBIT",
+        Callback = function()
+            local totalSuccess = 0
+            
+            for i, seed in ipairs(seedsList) do
+                Bdev:Notify({
+                    Title = "Membeli",
+                    Content = seed.Display,
+                    Duration = 1
+                })
+                
+                local success = buySeed(seed.Name, 1)
+                if success then
+                    totalSuccess = totalSuccess + 1
+                end
+                
+                task.wait(0.5) -- Jeda antar pembelian
+            end
+            
+            Bdev:Notify({
+                Title = "Selesai",
+                Content = string.format("Berhasil: %d/%d", totalSuccess, #seedsList),
+                Duration = 3
+            })
+        end
+    })
+    
+    -- Info
+    Tab:CreateLabel({
+        Name = "InfoHeader",
+        Text = "ℹ️ INFORMASI",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    Tab:CreateLabel({
+        Name = "Info1",
+        Text = "• Gunakan 'GET_LIST' untuk cek shop",
+        Alignment = Enum.TextXAlignment.Left
+    })
+    
+    Tab:CreateLabel({
+        Name = "Info2",
+        Text = "• Delay minimum: 0.5 detik",
+        Alignment = Enum.TextXAlignment.Left
+    })
+    
+    Tab:CreateLabel({
+        Name = "Info3",
+        Text = "• Pastikan uang cukup",
+        Alignment = Enum.TextXAlignment.Left
+    })
+    
+    -- ===== EXPOSE FUNCTIONS =====
+    Shared.Modules.ShopAutoBuy = {
+        BuySeed = function(seedName, amount)
+            return buySeed(seedName, amount or 1)
         end,
+        GetShopList = checkShopList,
         GetStatus = function()
             return {
-                Enabled = autoBuyEnabled,
-                SelectedSeed = selectedSeedIndex,
-                SelectedSeedName = mutationSeeds[selectedSeedIndex].displayName,
+                SelectedSeed = selectedSeed,
+                SelectedDisplay = selectedDisplay,
+                AutoBuyEnabled = autoBuyEnabled,
                 Delay = buyDelay,
                 Quantity = buyQuantity
             }
         end
     }
     
-    --print("✅ Shop Auto-Buy module ready!")
-    --print("🎯 Available mutation seeds: " .. #mutationSeeds)
+    print("✅ Shop module loaded - Bibit biasa")
 end
 
 return ShopAutoBuy
