@@ -101,13 +101,13 @@ function AutoFarm.Init(Dependencies)
         
         -- Update slider jika reference tersedia
         if xSlider then
-            xSlider:SetValue(customX)
+            xSlider.SetValue(customX)
         end
         if ySlider then
-            ySlider:SetValue(customY)
+            ySlider.SetValue(customY)
         end
         if zSlider then
-            zSlider:SetValue(customZ)
+            zSlider.SetValue(customZ)
         end
         
         -- Tampilkan notifikasi
@@ -200,26 +200,137 @@ function AutoFarm.Init(Dependencies)
     })
     
     -- Dropdown untuk memilih bibit
-    local seedDropdown = Tab:CreateDropdown({
-        Name = "SeedSelector",
-        Text = "Pilih Bibit: " .. selectedSeed,
-        Items = {
-            "Bibit Padi",
-            "Bibit Jagung", 
-            "Bibit Tomat",
-            "Bibit Terong",
-            "Bibit Strawberry"
-        },
-        CurrentItem = selectedSeed,
-        Callback = function(value)
-            selectedSeed = value
+    -- Karena SimpleGUI tidak memiliki CreateDropdown bawaan, kita buat manual dengan button
+    local SeedFrame = Instance.new("Frame")
+    SeedFrame.Name = "SeedSelector"
+    SeedFrame.Size = UDim2.new(0.95, 0, 0, 40)
+    SeedFrame.BackgroundTransparency = 1
+    SeedFrame.LayoutOrder = #Tab.Elements + 1
+    SeedFrame.Parent = Tab.Content
+    
+    local SeedButton = Instance.new("TextButton")
+    SeedButton.Name = "SeedButton"
+    SeedButton.Size = UDim2.new(1, 0, 1, 0)
+    SeedButton.Text = "🔽 " .. selectedSeed
+    SeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SeedButton.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+    SeedButton.TextSize = 13
+    SeedButton.Font = Enum.Font.Gotham
+    SeedButton.AutoButtonColor = false
+    SeedButton.Parent = SeedFrame
+    
+    local SeedCorner = Instance.new("UICorner")
+    SeedCorner.CornerRadius = UDim.new(0, 6)
+    SeedCorner.Parent = SeedButton
+    
+    -- Dropdown menu (akan muncul saat button diklik)
+    local DropdownFrame = Instance.new("Frame")
+    DropdownFrame.Name = "DropdownMenu"
+    DropdownFrame.Size = UDim2.new(1, 0, 0, 0)
+    DropdownFrame.Position = UDim2.new(0, 0, 1, 5)
+    DropdownFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    DropdownFrame.BackgroundTransparency = 0
+    DropdownFrame.Visible = false
+    DropdownFrame.Parent = SeedFrame
+    
+    local DropdownCorner = Instance.new("UICorner")
+    DropdownCorner.CornerRadius = UDim.new(0, 6)
+    DropdownCorner.Parent = DropdownFrame
+    
+    local DropdownLayout = Instance.new("UIListLayout")
+    DropdownLayout.Padding = UDim.new(0, 2)
+    DropdownLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    DropdownLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    DropdownLayout.Parent = DropdownFrame
+    
+    local DropdownPadding = Instance.new("UIPadding")
+    DropdownPadding.PaddingTop = UDim.new(0, 5)
+    DropdownPadding.PaddingBottom = UDim.new(0, 5)
+    DropdownPadding.PaddingLeft = UDim.new(0, 5)
+    DropdownPadding.PaddingRight = UDim.new(0, 5)
+    DropdownPadding.Parent = DropdownFrame
+    
+    -- Daftar bibit
+    local seedList = {
+        "Bibit Padi",
+        "Bibit Jagung",
+        "Bibit Tomat", 
+        "Bibit Terong",
+        "Bibit Strawberry"
+    }
+    
+    -- Buat button untuk setiap bibit
+    local seedButtons = {}
+    for _, seedName in ipairs(seedList) do
+        local seedOption = Instance.new("TextButton")
+        seedOption.Name = seedName .. "_Option"
+        seedOption.Size = UDim2.new(1, -10, 0, 30)
+        seedOption.Text = seedName
+        seedOption.TextColor3 = Color3.fromRGB(255, 255, 255)
+        seedOption.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+        seedOption.TextSize = 13
+        seedOption.Font = Enum.Font.Gotham
+        seedOption.AutoButtonColor = false
+        seedOption.Parent = DropdownFrame
+        
+        local optionCorner = Instance.new("UICorner")
+        optionCorner.CornerRadius = UDim.new(0, 4)
+        optionCorner.Parent = seedOption
+        
+        seedOption.MouseButton1Click:Connect(function()
+            selectedSeed = seedName
+            SeedButton.Text = "🔽 " .. selectedSeed
+            DropdownFrame.Visible = false
+            
             Bdev:Notify({
                 Title = "Seed Selected",
-                Content = string.format("✅ Bibit: %s", value),
+                Content = string.format("✅ Bibit: %s", seedName),
                 Duration = 1
             })
+        end)
+        
+        seedOption.MouseEnter:Connect(function()
+            if not UserInputService.TouchEnabled then
+                seedOption.BackgroundColor3 = Color3.fromRGB(55, 55, 70)
+            end
+        end)
+        
+        seedOption.MouseLeave:Connect(function()
+            if not UserInputService.TouchEnabled then
+                seedOption.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+            end
+        end)
+        
+        table.insert(seedButtons, seedOption)
+    end
+    
+    -- Update dropdown size
+    DropdownLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        DropdownFrame.Size = UDim2.new(1, 0, 0, DropdownLayout.AbsoluteContentSize.Y + 10)
+    end)
+    
+    -- Toggle dropdown saat button diklik
+    SeedButton.MouseButton1Click:Connect(function()
+        DropdownFrame.Visible = not DropdownFrame.Visible
+    end)
+    
+    -- Sembunyikan dropdown saat klik di luar
+    UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local mousePos = UserInputService:GetMouseLocation()
+            local dropdownAbs = DropdownFrame.AbsolutePosition
+            local dropdownSize = DropdownFrame.AbsoluteSize
+            
+            if DropdownFrame.Visible then
+                if mousePos.X < dropdownAbs.X or mousePos.X > dropdownAbs.X + dropdownSize.X or
+                   mousePos.Y < dropdownAbs.Y or mousePos.Y > dropdownAbs.Y + dropdownSize.Y then
+                    DropdownFrame.Visible = false
+                end
+            end
         end
-    })
+    end)
+    
+    table.insert(Tab.Elements, SeedFrame)
     
     -- Tombol untuk membeli bibit
     Tab:CreateButton({
@@ -397,6 +508,46 @@ function AutoFarm.Init(Dependencies)
                 Content = "✅ Posisi tersimpan di slider!",
                 Duration = 2
             })
+        end
+    })
+    
+    -- ===== SLIDER UNTUK POSISI =====
+    Tab:CreateLabel({
+        Name = "PositionLabel",
+        Text = "📌 PLANT POSITION",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Slider X
+    xSlider = Tab:CreateSlider({
+        Name = "PosX",
+        Range = {-1000, 1000},
+        Increment = 0.1,
+        CurrentValue = customX,
+        Callback = function(value)
+            customX = value
+        end
+    })
+    
+    -- Slider Y
+    ySlider = Tab:CreateSlider({
+        Name = "PosY",
+        Range = {0, 1000},
+        Increment = 0.1,
+        CurrentValue = customY,
+        Callback = function(value)
+            customY = value
+        end
+    })
+    
+    -- Slider Z
+    zSlider = Tab:CreateSlider({
+        Name = "PosZ",
+        Range = {-1000, 1000},
+        Increment = 0.1,
+        CurrentValue = customZ,
+        Callback = function(value)
+            customZ = value
         end
     })
     
