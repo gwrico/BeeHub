@@ -16,7 +16,6 @@ function AutoFarm.Init(Dependencies)
     local RunService = game:GetService("RunService")
     local Players = game:GetService("Players")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local UserInputService = game:GetService("UserInputService")
     local TweenService = game:GetService("TweenService")
     
     -- ===== FUNGSI TWEEN LOKAL =====
@@ -36,7 +35,6 @@ function AutoFarm.Init(Dependencies)
     -- Auto-plant variables
     local plantConnection = nil
     local autoPlantToggleRef = nil
-    local statusLabelRef = nil
     
     -- Default position
     local defaultPos = Vector3.new(67.13851165771484, 39.296875, -263.7070617675781)
@@ -49,6 +47,7 @@ function AutoFarm.Init(Dependencies)
     -- References
     local xInput, yInput, zInput
     local plantCount = 0
+    local delay = 1.0 -- Default delay 1 detik
     
     -- Dapatkan remote PlantCrop
     local function getPlantRemote()
@@ -82,19 +81,6 @@ function AutoFarm.Init(Dependencies)
         if not humanoidRootPart then return nil end
         
         return humanoidRootPart.Position
-    end
-    
-    -- Fungsi untuk update status label
-    local function updateStatusLabel()
-        if statusLabelRef then
-            if Variables.autoPlantEnabled then
-                statusLabelRef.Text = "🟢 Status: ACTIVE (Auto Plant ON)"
-                statusLabelRef.TextColor3 = Color3.fromRGB(0, 255, 0)
-            else
-                statusLabelRef.Text = "🔴 Status: INACTIVE (Auto Plant OFF)"
-                statusLabelRef.TextColor3 = Color3.fromRGB(255, 70, 70)
-            end
-        end
     end
     
     -- Fungsi untuk update input dengan nilai baru
@@ -149,11 +135,95 @@ function AutoFarm.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- ===== STATUS LABEL =====
-    statusLabelRef = Tab:CreateLabel({
-        Name = "StatusLabel",
-        Text = "🔴 Status: INACTIVE (Auto Plant OFF)",
-        Color = Color3.fromRGB(255, 70, 70),
+    -- ===== AUTO PLANT SECTION (DIPINDAH KE ATAS) =====
+    local autoHeader = Tab:CreateLabel({
+        Name = "Header_Auto",
+        Text = "───── 🤖 AUTO PLANT ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Auto Plant Toggle (dengan status digabung)
+    autoPlantToggleRef = Tab:CreateToggle({
+        Name = "AutoPlant",
+        Text = "🌱 AUTO PLANT CROPS",
+        CurrentValue = false,
+        Callback = function(value)
+            Variables.autoPlantEnabled = value
+            
+            if value then
+                local plantRemote = getPlantRemote()
+                if not plantRemote then
+                    Bdev:Notify({
+                        Title = "❌ Error",
+                        Content = "PlantCrop remote tidak ditemukan!",
+                        Duration = 4
+                    })
+                    if autoPlantToggleRef and autoPlantToggleRef.SetValue then
+                        autoPlantToggleRef:SetValue(false)
+                    end
+                    Variables.autoPlantEnabled = false
+                    return
+                end
+                
+                plantCount = 0
+                Bdev:Notify({
+                    Title = "🤖 Auto Plant ON",
+                    Content = "Mulai menanam... (Delay 1 detik)",
+                    Duration = 2
+                })
+                
+                if plantConnection then
+                    plantConnection:Disconnect()
+                end
+                
+                plantConnection = RunService.Heartbeat:Connect(function()
+                    if not Variables.autoPlantEnabled then return end
+                    
+                    local remote = getPlantRemote()
+                    if remote then
+                        local plantPos = Vector3.new(customX, customY, customZ)
+                        
+                        local success = pcall(function()
+                            remote:FireServer(plantPos)
+                        end)
+                        
+                        if success then
+                            plantCount = plantCount + 1
+                        end
+                        
+                        task.wait(delay) -- Delay 1 detik
+                    end
+                end)
+                
+            else
+                Bdev:Notify({
+                    Title = "🤖 Auto Plant OFF",
+                    Content = string.format("Total tanam: %d kali", plantCount),
+                    Duration = 3
+                })
+                
+                if plantConnection then
+                    plantConnection:Disconnect()
+                    plantConnection = nil
+                end
+            end
+        end
+    })
+    
+    -- Info delay (sebagai informasi saja)
+    Tab:CreateLabel({
+        Name = "DelayInfo",
+        Text = "⏱️ Delay: 1 detik (fixed)",
+        Color = Color3.fromRGB(150, 150, 160),
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Spacer
+    Tab:CreateLabel({
+        Name = "Spacer1",
+        Text = "",
         Alignment = Enum.TextXAlignment.Center
     })
     
@@ -341,166 +411,9 @@ function AutoFarm.Init(Dependencies)
     
     -- Spacer
     Tab:CreateLabel({
-        Name = "Spacer1",
+        Name = "Spacer2",
         Text = "",
         Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- ===== PENGATURAN DELAY =====
-    local delayHeader = Tab:CreateLabel({
-        Name = "Header_Delay",
-        Text = "───── ⏱️ PENGATURAN DELAY ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Frame untuk input delay
-    local DelayFrame = Instance.new("Frame")
-    DelayFrame.Name = "DelayFrame"
-    DelayFrame.Size = UDim2.new(0.95, 0, 0, 50)
-    DelayFrame.BackgroundTransparency = 1
-    DelayFrame.LayoutOrder = #Tab.Elements + 1
-    DelayFrame.Parent = Tab.Content
-    
-    local DelayInputFrame = Instance.new("Frame")
-    DelayInputFrame.Name = "DelayInputFrame"
-    DelayInputFrame.Size = UDim2.new(0.5, 0, 0, 36)
-    DelayInputFrame.Position = UDim2.new(0.25, 0, 0, 0)
-    DelayInputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    DelayInputFrame.BackgroundTransparency = 0
-    DelayInputFrame.Parent = DelayFrame
-    
-    local DelayCorner = Instance.new("UICorner")
-    DelayCorner.CornerRadius = UDim.new(0, 6)
-    DelayCorner.Parent = DelayInputFrame
-    
-    local DelayLabel = Instance.new("TextLabel")
-    DelayLabel.Name = "DelayLabel"
-    DelayLabel.Size = UDim2.new(0, 50, 1, 0)
-    DelayLabel.Text = "⏱️"
-    DelayLabel.TextColor3 = Color3.fromRGB(255, 185, 0)
-    DelayLabel.BackgroundTransparency = 1
-    DelayLabel.TextSize = 16
-    DelayLabel.Font = Enum.Font.GothamBold
-    DelayLabel.Parent = DelayInputFrame
-    
-    local DelayBox = Instance.new("TextBox")
-    DelayBox.Name = "DelayBox"
-    DelayBox.Size = UDim2.new(1, -80, 1, 0)
-    DelayBox.Position = UDim2.new(0, 50, 0, 0)
-    DelayBox.Text = "1.0"
-    DelayBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    DelayBox.BackgroundTransparency = 1
-    DelayBox.TextSize = 14
-    DelayBox.Font = Enum.Font.Gotham
-    DelayBox.ClearTextOnFocus = false
-    DelayBox.Parent = DelayInputFrame
-    
-    local DelayUnit = Instance.new("TextLabel")
-    DelayUnit.Name = "DelayUnit"
-    DelayUnit.Size = UDim2.new(0, 30, 1, 0)
-    DelayUnit.Position = UDim2.new(1, -30, 0, 0)
-    DelayUnit.Text = "dtk"
-    DelayUnit.TextColor3 = Color3.fromRGB(150, 150, 160)
-    DelayUnit.BackgroundTransparency = 1
-    DelayUnit.TextSize = 12
-    DelayUnit.Font = Enum.Font.Gotham
-    DelayUnit.Parent = DelayInputFrame
-    
-    DelayBox.FocusLost:Connect(function()
-        local value = tonumber(DelayBox.Text)
-        if value and value >= 0.1 and value <= 5 then
-            DelayBox.Text = string.format("%.1f", value)
-        else
-            DelayBox.Text = "1.0"
-            Bdev:Notify({
-                Title = "❌ Invalid",
-                Content = "Delay harus 0.1 - 5 detik",
-                Duration = 2
-            })
-        end
-    end)
-    
-    -- ===== AUTO PLANT SECTION =====
-    local autoHeader = Tab:CreateLabel({
-        Name = "Header_Auto",
-        Text = "───── 🤖 AUTO PLANT ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Auto Plant Toggle
-    autoPlantToggleRef = Tab:CreateToggle({
-        Name = "AutoPlant",
-        Text = "🌱 AUTO PLANT CROPS",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.autoPlantEnabled = value
-            updateStatusLabel()
-            
-            if value then
-                local plantRemote = getPlantRemote()
-                if not plantRemote then
-                    Bdev:Notify({
-                        Title = "❌ Error",
-                        Content = "PlantCrop remote tidak ditemukan!",
-                        Duration = 4
-                    })
-                    if autoPlantToggleRef and autoPlantToggleRef.SetValue then
-                        autoPlantToggleRef:SetValue(false)
-                    end
-                    Variables.autoPlantEnabled = false
-                    updateStatusLabel()
-                    return
-                end
-                
-                plantCount = 0
-                Bdev:Notify({
-                    Title = "🤖 Auto Plant ON",
-                    Content = "Mulai menanam...",
-                    Duration = 2
-                })
-                
-                if plantConnection then
-                    plantConnection:Disconnect()
-                end
-                
-                plantConnection = RunService.Heartbeat:Connect(function()
-                    if not Variables.autoPlantEnabled then return end
-                    
-                    local remote = getPlantRemote()
-                    if remote then
-                        local delay = tonumber(DelayBox.Text) or 1.0
-                        local plantPos = Vector3.new(customX, customY, customZ)
-                        
-                        -- FIRESERVER SESUAI FORMAT: hanya 1 argument (Vector3)
-                        local success = pcall(function()
-                            remote:FireServer(plantPos)
-                        end)
-                        
-                        if success then
-                            plantCount = plantCount + 1
-                        end
-                        
-                        task.wait(delay)
-                    end
-                end)
-                
-            else
-                Bdev:Notify({
-                    Title = "🤖 Auto Plant OFF",
-                    Content = string.format("Total tanam: %d kali", plantCount),
-                    Duration = 3
-                })
-                
-                if plantConnection then
-                    plantConnection:Disconnect()
-                    plantConnection = nil
-                end
-            end
-        end
     })
     
     -- ===== TOMBOL AKSI CEPAT =====
@@ -630,7 +543,7 @@ function AutoFarm.Init(Dependencies)
         end
     }
     
-    print("✅ AutoFarm module loaded - Sesuai format PlantCrop")
+    print("✅ AutoFarm module loaded - Simplified")
     
     return cleanup
 end
