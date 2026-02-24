@@ -31,6 +31,7 @@ function Teleport.Init(Dependencies)
     local selectedPlayer = nil
     local playerDropdownRef = nil
     local infoLabelRef = nil
+    local allPlayersList = {}  -- Store full player list
     
     -- ===== FUNGSI TELEPORT =====
     local function teleportToPlayer(targetPlayer)
@@ -85,76 +86,32 @@ function Teleport.Init(Dependencies)
         return false
     end
     
-    -- ===== FUNGSI TELEPORT KE SPAWN =====
-    local function teleportToSpawn()
-        local player = game.Players.LocalPlayer
-        local character = player.Character
-        if not character then 
-            Bdev:Notify({
-                Title = "❌ Error",
-                Content = "Character not found!",
-                Duration = 3
-            })
-            return 
-        end
-        
-        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-        if not humanoidRootPart then 
-            Bdev:Notify({
-                Title = "❌ Error",
-                Content = "HumanoidRootPart not found!",
-                Duration = 3
-            })
-            return 
-        end
-        
-        -- Find spawn location
-        local spawn = Shared.Services.Workspace:FindFirstChild("Spawn") or 
-                     Shared.Services.Workspace:FindFirstChild("Start") or
-                     Shared.Services.Workspace:FindFirstChild("Lobby") or
-                     Shared.Services.Workspace:FindFirstChild("SpawnLocation")
-        
-        if spawn then
-            if spawn:IsA("BasePart") then
-                humanoidRootPart.CFrame = CFrame.new(spawn.Position)
-            elseif spawn:IsA("Model") then
-                for _, part in pairs(spawn:GetDescendants()) do
-                    if part:IsA("BasePart") and (part.Name:find("Spawn") or part.Name:find("Start")) then
-                        humanoidRootPart.CFrame = CFrame.new(part.Position)
-                        break
-                    end
-                end
-            end
-            Bdev:Notify({
-                Title = "✅ Teleport",
-                Content = "Ke Spawn",
-                Duration = 2
-            })
-        else
-            -- Default spawn
-            humanoidRootPart.CFrame = CFrame.new(Vector3.new(0, 50, 0))
-            Bdev:Notify({
-                Title = "✅ Teleport",
-                Content = "Ke Default Spawn",
-                Duration = 2
-            })
-        end
-    end
-    
     -- ===== FUNGSI UPDATE PLAYER LIST =====
-    local function getPlayerList()
+    local function getPlayerList(searchText)
         local players = {}
+        allPlayersList = {}  -- Reset full list
+        
         for _, player in pairs(Shared.Services.Players:GetPlayers()) do
             if player ~= game.Players.LocalPlayer then
-                table.insert(players, "👤 " .. player.Name)
+                local displayName = "👤 " .. player.Name
+                table.insert(allPlayersList, displayName)
+                
+                -- Filter berdasarkan search text
+                if not searchText or searchText == "" then
+                    table.insert(players, displayName)
+                elseif player.Name:lower():find(searchText:lower()) then
+                    table.insert(players, displayName)
+                end
             end
         end
+        
         table.sort(players)
         return players
     end
     
     -- ===== FUNGSI GET PLAYER BY DISPLAY =====
     local function getPlayerFromDisplay(display)
+        if not display or display == "-- Tidak ada player --" then return nil end
         local name = display:gsub("👤 ", "")
         return Shared.Services.Players:FindFirstChild(name)
     end
@@ -163,9 +120,52 @@ function Teleport.Init(Dependencies)
     local function updateInfoLabel()
         if infoLabelRef then
             if selectedPlayer then
-                infoLabelRef.Text = "➤ Target: " .. selectedPlayer.Name
+                infoLabelRef.Text = "➤ Target: 👤 " .. selectedPlayer.Name
             else
                 infoLabelRef.Text = "➤ Target: Belum dipilih"
+            end
+        end
+    end
+    
+    -- ===== FUNGSI UPDATE DROPDOWN =====
+    local function updateDropdownOptions(searchText)
+        local players = getPlayerList(searchText)
+        
+        if #players == 0 then
+            if playerDropdownRef then
+                playerDropdownRef.UpdateOptions({"-- Tidak ada player --"})
+                playerDropdownRef.SetValue("-- Tidak ada player --")
+            end
+            if infoLabelRef then
+                infoLabelRef.Text = "➤ Target: Tidak ada player online"
+            end
+            selectedPlayer = nil
+        else
+            if playerDropdownRef then
+                playerDropdownRef.UpdateOptions(players)
+                
+                -- Cek apakah selected player masih ada di list
+                if selectedPlayer then
+                    local found = false
+                    for _, p in pairs(players) do
+                        if p == "👤 " .. selectedPlayer.Name then
+                            found = true
+                            break
+                        end
+                    end
+                    
+                    if found then
+                        playerDropdownRef.SetValue("👤 " .. selectedPlayer.Name)
+                    else
+                        selectedPlayer = getPlayerFromDisplay(players[1])
+                        playerDropdownRef.SetValue(players[1])
+                        updateInfoLabel()
+                    end
+                else
+                    selectedPlayer = getPlayerFromDisplay(players[1])
+                    playerDropdownRef.SetValue(players[1])
+                    updateInfoLabel()
+                end
             end
         end
     end
@@ -181,30 +181,7 @@ function Teleport.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- 2. TOMBOL SPAWN
-    local spawnBtn = Tab:CreateButton({
-        Name = "TPSpawn",
-        Text = "🏠 TELEPORT KE SPAWN",
-        Callback = teleportToSpawn
-    })
-    
-    -- 3. SPACER
-    Tab:CreateLabel({
-        Name = "Spacer1",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- 4. HEADER PLAYER
-    local headerPlayer = Tab:CreateLabel({
-        Name = "Header_Player",
-        Text = "───── 👥 TELEPORT KE PLAYER ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- 5. INFO LABEL
+    -- 2. INFO LABEL
     infoLabelRef = Tab:CreateLabel({
         Name = "InfoLabel",
         Text = "➤ Target: Belum dipilih",
@@ -212,34 +189,75 @@ function Teleport.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Left
     })
     
-    -- 6. DROPDOWN PLAYER
-    local function refreshPlayerDropdown()
-        local players = getPlayerList()
-        
-        if #players == 0 then
-            if playerDropdownRef then
-                playerDropdownRef.UpdateOptions({"-- Tidak ada player --"})
-            end
-            if infoLabelRef then
-                infoLabelRef.Text = "➤ Target: Tidak ada player online"
-            end
-        else
-            if playerDropdownRef then
-                playerDropdownRef.UpdateOptions(players)
-                if selectedPlayer then
-                    -- Cek apakah player masih online
-                    if Shared.Services.Players:FindFirstChild(selectedPlayer.Name) then
-                        playerDropdownRef.SetValue("👤 " .. selectedPlayer.Name)
-                    else
-                        selectedPlayer = nil
-                        updateInfoLabel()
-                    end
-                end
-            end
-        end
-    end
+    -- 3. SEARCH SECTION
+    local SearchFrame = Instance.new("Frame")
+    SearchFrame.Name = "SearchFrame"
+    SearchFrame.Size = UDim2.new(0.95, 0, 0, 40)
+    SearchFrame.BackgroundTransparency = 1
+    SearchFrame.LayoutOrder = #Tab.Elements + 1
+    SearchFrame.Parent = Tab.Content
     
-    -- Buat dropdown
+    local SearchLayout = Instance.new("UIListLayout")
+    SearchLayout.FillDirection = Enum.FillDirection.Horizontal
+    SearchLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    SearchLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    SearchLayout.Padding = UDim.new(0, 5)
+    SearchLayout.Parent = SearchFrame
+    
+    -- Search Box
+    local SearchBoxFrame = Instance.new("Frame")
+    SearchBoxFrame.Name = "SearchBoxFrame"
+    SearchBoxFrame.Size = UDim2.new(0, 180, 0, 36)
+    SearchBoxFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    SearchBoxFrame.BackgroundTransparency = 0
+    SearchBoxFrame.Parent = SearchFrame
+    
+    local SearchBoxCorner = Instance.new("UICorner")
+    SearchBoxCorner.CornerRadius = UDim.new(0, 6)
+    SearchBoxCorner.Parent = SearchBoxFrame
+    
+    local SearchIcon = Instance.new("TextLabel")
+    SearchIcon.Name = "SearchIcon"
+    SearchIcon.Size = UDim2.new(0, 30, 1, 0)
+    SearchIcon.Text = "🔍"
+    SearchIcon.TextColor3 = Color3.fromRGB(255, 185, 0)
+    SearchIcon.BackgroundTransparency = 1
+    SearchIcon.TextSize = 16
+    SearchIcon.Font = Enum.Font.Gotham
+    SearchIcon.Parent = SearchBoxFrame
+    
+    local SearchBox = Instance.new("TextBox")
+    SearchBox.Name = "SearchBox"
+    SearchBox.Size = UDim2.new(1, -35, 1, 0)
+    SearchBox.Position = UDim2.new(0, 30, 0, 0)
+    SearchBox.Text = ""
+    SearchBox.PlaceholderText = "Cari player..."
+    SearchBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 160)
+    SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SearchBox.BackgroundTransparency = 1
+    SearchBox.TextSize = 14
+    SearchBox.Font = Enum.Font.Gotham
+    SearchBox.ClearTextOnFocus = false
+    SearchBox.Parent = SearchBoxFrame
+    
+    -- Refresh Button
+    local RefreshBtn = Instance.new("TextButton")
+    RefreshBtn.Name = "RefreshBtn"
+    RefreshBtn.Size = UDim2.new(0, 50, 0, 36)
+    RefreshBtn.Text = "🔄"
+    RefreshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    RefreshBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+    RefreshBtn.BackgroundTransparency = 0
+    RefreshBtn.TextSize = 18
+    RefreshBtn.Font = Enum.Font.GothamBold
+    RefreshBtn.AutoButtonColor = false
+    RefreshBtn.Parent = SearchFrame
+    
+    local RefreshCorner = Instance.new("UICorner")
+    RefreshCorner.CornerRadius = UDim.new(0, 6)
+    RefreshCorner.Parent = RefreshBtn
+    
+    -- 4. DROPDOWN PLAYER
     local initialPlayers = getPlayerList()
     playerDropdownRef = Tab:CreateDropdown({
         Name = "PlayerDropdown",
@@ -262,66 +280,44 @@ function Teleport.Init(Dependencies)
         updateInfoLabel()
     end
     
-    -- 7. FRAME AKSI CEPAT
-    local ActionFrame = Instance.new("Frame")
-    ActionFrame.Name = "ActionFrame"
-    ActionFrame.Size = UDim2.new(0.95, 0, 0, 40)
-    ActionFrame.BackgroundTransparency = 1
-    ActionFrame.LayoutOrder = #Tab.Elements + 1
-    ActionFrame.Parent = Tab.Content
-    
-    local ActionLayout = Instance.new("UIListLayout")
-    ActionLayout.FillDirection = Enum.FillDirection.Horizontal
-    ActionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    ActionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    ActionLayout.Padding = UDim.new(0, 10)
-    ActionLayout.Parent = ActionFrame
-    
-    -- Tombol Teleport
+    -- 5. TOMBOL TELEPORT
     local TeleportBtn = Instance.new("TextButton")
     TeleportBtn.Name = "TeleportBtn"
-    TeleportBtn.Size = UDim2.new(0, 150, 0, 40)
+    TeleportBtn.Size = UDim2.new(0.95, 0, 0, 45)
     TeleportBtn.Text = "📍 TELEPORT"
     TeleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     TeleportBtn.BackgroundColor3 = Color3.fromRGB(255, 185, 0)
     TeleportBtn.BackgroundTransparency = 0
-    TeleportBtn.TextSize = 14
+    TeleportBtn.TextSize = 16
     TeleportBtn.Font = Enum.Font.GothamBold
     TeleportBtn.AutoButtonColor = false
-    TeleportBtn.Parent = ActionFrame
+    TeleportBtn.LayoutOrder = #Tab.Elements + 1
+    TeleportBtn.Parent = Tab.Content
     
     local TeleportCorner = Instance.new("UICorner")
     TeleportCorner.CornerRadius = UDim.new(0, 8)
     TeleportCorner.Parent = TeleportBtn
     
-    TeleportBtn.MouseButton1Click:Connect(function()
-        teleportToPlayer(selectedPlayer)
+    -- ===== EVENT HANDLERS =====
+    
+    -- Search functionality
+    SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        updateDropdownOptions(SearchBox.Text)
     end)
     
-    -- Tombol Refresh
-    local RefreshBtn = Instance.new("TextButton")
-    RefreshBtn.Name = "RefreshBtn"
-    RefreshBtn.Size = UDim2.new(0, 80, 0, 40)
-    RefreshBtn.Text = "🔄"
-    RefreshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    RefreshBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
-    RefreshBtn.BackgroundTransparency = 0
-    RefreshBtn.TextSize = 18
-    RefreshBtn.Font = Enum.Font.GothamBold
-    RefreshBtn.AutoButtonColor = false
-    RefreshBtn.Parent = ActionFrame
-    
-    local RefreshCorner = Instance.new("UICorner")
-    RefreshCorner.CornerRadius = UDim.new(0, 8)
-    RefreshCorner.Parent = RefreshBtn
-    
+    -- Refresh button
     RefreshBtn.MouseButton1Click:Connect(function()
-        refreshPlayerDropdown()
+        updateDropdownOptions(SearchBox.Text)
         Bdev:Notify({
             Title = "🔄 Refresh",
             Content = "Daftar player diperbarui",
             Duration = 2
         })
+    end)
+    
+    -- Teleport button
+    TeleportBtn.MouseButton1Click:Connect(function()
+        teleportToPlayer(selectedPlayer)
     end)
     
     -- ===== HOVER EFFECTS =====
@@ -337,18 +333,25 @@ function Teleport.Init(Dependencies)
     setupHover(TeleportBtn, Color3.fromRGB(255, 185, 0), Color3.fromRGB(255, 215, 100))
     setupHover(RefreshBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
     
-    -- Hover untuk spawn button (sudah ada dari method CreateButton)
+    -- Hover untuk search box
+    SearchBoxFrame.MouseEnter:Connect(function()
+        tween(SearchBoxFrame, {BackgroundColor3 = Color3.fromRGB(40, 40, 55)}, 0.15)
+    end)
+    
+    SearchBoxFrame.MouseLeave:Connect(function()
+        tween(SearchBoxFrame, {BackgroundColor3 = Color3.fromRGB(30, 30, 40)}, 0.15)
+    end)
     
     -- ===== AUTO REFRESH =====
     local Players = Shared.Services.Players
     
     Players.PlayerAdded:Connect(function()
         task.wait(1)
-        refreshPlayerDropdown()
+        updateDropdownOptions(SearchBox.Text)
     end)
     
     Players.PlayerRemoving:Connect(function()
-        refreshPlayerDropdown()
+        updateDropdownOptions(SearchBox.Text)
     end)
     
     -- ===== CLEANUP =====
@@ -360,12 +363,15 @@ function Teleport.Init(Dependencies)
     Shared.Modules = Shared.Modules or {}
     Shared.Modules.Teleport = {
         TeleportToPlayer = teleportToPlayer,
-        TeleportToSpawn = teleportToSpawn,
         GetSelectedPlayer = function() return selectedPlayer end,
-        RefreshList = refreshPlayerDropdown
+        RefreshList = function() updateDropdownOptions(SearchBox.Text) end,
+        Search = function(text)
+            SearchBox.Text = text
+            updateDropdownOptions(text)
+        end
     }
     
-    print("✅ Teleport module loaded - Modern Edition")
+    print("✅ Teleport module loaded - dengan Search")
     
     return cleanup
 end
