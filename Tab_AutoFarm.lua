@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - PLANT CROP ONLY
+-- 💰 AUTO FARM TAB MODULE - DENGAN AUTO RECORD POSISI
 -- ==============================================
 
 local AutoFarm = {}
@@ -16,9 +16,21 @@ function AutoFarm.Init(Dependencies)
     local RunService = game:GetService("RunService")
     local Players = game:GetService("Players")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local UserInputService = game:GetService("UserInputService")
     
     -- Auto-plant variables
     local plantConnection = nil
+    
+    -- Default position (dari script Anda)
+    local defaultPos = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
+    
+    -- Custom position (akan diupdate dari posisi player)
+    local customX = defaultPos.X
+    local customY = defaultPos.Y
+    local customZ = defaultPos.Z
+    
+    -- References untuk slider (agar bisa diupdate nilainya)
+    local xSlider, ySlider, zSlider
     
     -- Dapatkan remote PlantCrop
     local function getPlantRemote()
@@ -42,17 +54,54 @@ function AutoFarm.Init(Dependencies)
         return nil
     end
     
+    -- Fungsi untuk mendapatkan posisi player
+    local function getPlayerPosition()
+        local player = Players.LocalPlayer
+        local character = player.Character
+        if not character then return nil end
+        
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if not humanoidRootPart then return nil end
+        
+        return humanoidRootPart.Position
+    end
+    
+    -- Fungsi untuk update slider dengan nilai baru
+    local function updatePositionSliders(newPos)
+        if not newPos then return end
+        
+        customX = newPos.X
+        customY = newPos.Y
+        customZ = newPos.Z
+        
+        -- Update slider jika reference tersedia
+        if xSlider then
+            xSlider:SetValue(customX)
+        end
+        if ySlider then
+            ySlider:SetValue(customY)
+        end
+        if zSlider then
+            zSlider:SetValue(customZ)
+        end
+        
+        -- Tampilkan notifikasi
+        Bdev:Notify({
+            Title = "Position Recorded",
+            Content = string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", customX, customY, customZ),
+            Duration = 3
+        })
+    end
+    
     -- ===== CEK KETERSEDIAAN REMOTE =====
     local plantRemote = getPlantRemote()
     if plantRemote then
-        -- Tampilkan notifikasi bahwa remote ditemukan
         Bdev:Notify({
             Title = "PlantCrop Ready",
             Content = "✅ Remote PlantCrop ditemukan!",
             Duration = 3
         })
     else
-        -- Peringatan jika remote tidak ditemukan
         Bdev:Notify({
             Title = "Warning",
             Content = "⚠️ Remote PlantCrop tidak ditemukan!",
@@ -69,7 +118,6 @@ function AutoFarm.Init(Dependencies)
             Variables.autoPlantEnabled = value
             
             if value then
-                -- Cek apakah remote tersedia
                 local plantRemote = getPlantRemote()
                 if not plantRemote then
                     Bdev:Notify({
@@ -87,10 +135,6 @@ function AutoFarm.Init(Dependencies)
                     Duration = 2
                 })
                 
-                -- Koordinat default
-                local plantPosition = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
-                
-                -- Start planting loop
                 if plantConnection then
                     plantConnection:Disconnect()
                 end
@@ -100,11 +144,13 @@ function AutoFarm.Init(Dependencies)
                     
                     local remote = getPlantRemote()
                     if remote then
+                        -- Gunakan custom position yang sudah direkam
+                        local plantPos = Vector3.new(customX, customY, customZ)
+                        
                         pcall(function()
-                            remote:FireServer(plantPosition)
+                            remote:FireServer(plantPos)
                         end)
                         
-                        -- Gunakan plantDelay dari slider
                         task.wait(plantDelay or 1.0)
                     end
                 end)
@@ -139,10 +185,11 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
-            local plantPosition = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
+            -- Gunakan custom position
+            local plantPos = Vector3.new(customX, customY, customZ)
             
             local success = pcall(function()
-                plantRemote:FireServer(plantPosition)
+                plantRemote:FireServer(plantPos)
             end)
             
             if success then
@@ -151,20 +198,14 @@ function AutoFarm.Init(Dependencies)
                     Content = "✅ Tanam berhasil!",
                     Duration = 2
                 })
-            else
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Gagal menanam",
-                    Duration = 2
-                })
             end
         end
     })
     
-    -- ===== PLANT DI POSISI PLAYER =====
+    -- ===== PLANT DI POSISI PLAYER (SEKALIGUS RECORD) =====
     Tab:CreateButton({
-        Name = "PlantAtPlayer",
-        Text = "📍 Plant at My Position",
+        Name = "PlantAndRecord",
+        Text = "📍 Plant & Record My Position",
         Callback = function()
             local plantRemote = getPlantRemote()
             if not plantRemote then
@@ -176,41 +217,56 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
-            local player = Players.LocalPlayer
-            local character = player.Character
-            if not character then
+            local playerPos = getPlayerPosition()
+            if not playerPos then
                 Bdev:Notify({
                     Title = "Error",
-                    Content = "❌ Tidak ada karakter!",
+                    Content = "❌ Tidak bisa dapatkan posisi!",
                     Duration = 2
                 })
                 return
             end
             
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            if not humanoidRootPart then 
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ HumanoidRootPart tidak ditemukan",
-                    Duration = 2
-                })
-                return 
-            end
+            -- Record posisi ke slider
+            updatePositionSliders(playerPos)
             
-            -- Gunakan posisi player
-            local plantPosition = humanoidRootPart.Position
-            
+            -- Tanam di posisi tersebut
             local success = pcall(function()
-                plantRemote:FireServer(plantPosition)
+                plantRemote:FireServer(playerPos)
             end)
             
             if success then
                 Bdev:Notify({
                     Title = "Success",
-                    Content = string.format("📍 Tanam di posisi Anda"),
-                    Duration = 2
+                    Content = "✅ Posisi direkam & tanaman ditanam!",
+                    Duration = 3
                 })
             end
+        end
+    })
+    
+    -- ===== RECORD POSISI SAJA (TANPA MENANAM) =====
+    Tab:CreateButton({
+        Name = "RecordOnly",
+        Text = "📝 Record My Position Only",
+        Callback = function()
+            local playerPos = getPlayerPosition()
+            if not playerPos then
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Tidak bisa dapatkan posisi!",
+                    Duration = 2
+                })
+                return
+            end
+            
+            updatePositionSliders(playerPos)
+            
+            Bdev:Notify({
+                Title = "Position Recorded",
+                Content = "✅ Posisi tersimpan di slider!",
+                Duration = 2
+            })
         end
     })
     
@@ -229,7 +285,7 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
-            local plantPosition = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
+            local plantPos = Vector3.new(customX, customY, customZ)
             local count = 0
             
             Bdev:Notify({
@@ -238,10 +294,9 @@ function AutoFarm.Init(Dependencies)
                 Duration = 3
             })
             
-            -- Plant 5x dengan jeda 0.3 detik
             for i = 1, 5 do
                 local success = pcall(function()
-                    plantRemote:FireServer(plantPosition)
+                    plantRemote:FireServer(plantPos)
                 end)
                 
                 if success then
@@ -259,23 +314,36 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== CUSTOM POSITION =====
+    -- ===== CUSTOM POSITION dengan AUTO RECORD =====
     Tab:CreateLabel({
         Name = "PositionLabel",
         Text = "📌 CUSTOM PLANT POSITION",
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Default position
-    local customX = 37.042
-    local customY = 39.297
-    local customZ = -265.786
+    -- Tombol record cepat
+    Tab:CreateButton({
+        Name = "QuickRecord",
+        Text = "🎯 RECORD MY CURRENT POSITION",
+        Callback = function()
+            local playerPos = getPlayerPosition()
+            if playerPos then
+                updatePositionSliders(playerPos)
+            else
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "❌ Tidak bisa dapatkan posisi!",
+                    Duration = 2
+                })
+            end
+        end
+    })
     
-    -- Slider X
-    Tab:CreateSlider({
+    -- Slider X dengan nilai awal dari default
+    xSlider = Tab:CreateSlider({
         Name = "PosX",
-        Text = "X: " .. string.format("%.1f", customX),
-        Range = {-500, 500},
+        Text = "X: " .. string.format("%.2f", customX),
+        Range = {-1000, 1000},
         Increment = 0.1,
         CurrentValue = customX,
         Callback = function(value)
@@ -284,10 +352,10 @@ function AutoFarm.Init(Dependencies)
     })
     
     -- Slider Y
-    Tab:CreateSlider({
+    ySlider = Tab:CreateSlider({
         Name = "PosY",
-        Text = "Y: " .. string.format("%.1f", customY),
-        Range = {0, 500},
+        Text = "Y: " .. string.format("%.2f", customY),
+        Range = {0, 1000},
         Increment = 0.1,
         CurrentValue = customY,
         Callback = function(value)
@@ -296,10 +364,10 @@ function AutoFarm.Init(Dependencies)
     })
     
     -- Slider Z
-    Tab:CreateSlider({
+    zSlider = Tab:CreateSlider({
         Name = "PosZ",
-        Text = "Z: " .. string.format("%.1f", customZ),
-        Range = {-500, 500},
+        Text = "Z: " .. string.format("%.2f", customZ),
+        Range = {-1000, 1000},
         Increment = 0.1,
         CurrentValue = customZ,
         Callback = function(value)
@@ -307,10 +375,33 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
+    -- Info posisi saat ini (real-time)
+    Tab:CreateLabel({
+        Name = "CurrentPosInfo",
+        Text = "📍 Posisi Anda saat ini: (gerak untuk update)",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Tampilkan posisi real-time (optional)
+    local posDisplayConnection
+    local posLabel = Tab:CreateLabel({
+        Name = "LivePosition",
+        Text = "X: 0, Y: 0, Z: 0",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Update posisi real-time
+    posDisplayConnection = RunService.Heartbeat:Connect(function()
+        local pos = getPlayerPosition()
+        if pos and posLabel then
+            posLabel:SetText(string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", pos.X, pos.Y, pos.Z))
+        end
+    end)
+    
     -- Button untuk custom position
     Tab:CreateButton({
         Name = "PlantCustom",
-        Text = "🎯 Plant at Custom Position",
+        Text = "🌱 Plant at Custom Position",
         Callback = function()
             local plantRemote = getPlantRemote()
             if not plantRemote then
@@ -331,7 +422,7 @@ function AutoFarm.Init(Dependencies)
             if success then
                 Bdev:Notify({
                     Title = "Success",
-                    Content = string.format("🎯 Tanam di (%.1f, %.1f, %.1f)", customX, customY, customZ),
+                    Content = string.format("✅ Tanam di (%.1f, %.1f, %.1f)", customX, customY, customZ),
                     Duration = 3
                 })
             end
@@ -352,6 +443,30 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
+    -- ===== KEYBIND INSTANT RECORD (tekan R untuk record) =====
+    Tab:CreateLabel({
+        Name = "KeybindInfo",
+        Text = "⌨️ Tekan R untuk record posisi",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Keybind R untuk record cepat
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode.R then
+            local playerPos = getPlayerPosition()
+            if playerPos then
+                updatePositionSliders(playerPos)
+                Bdev:Notify({
+                    Title = "Quick Record",
+                    Content = "✅ Posisi direkam (tekan R)",
+                    Duration = 1
+                })
+            end
+        end
+    end)
+    
     -- ===== TEST REMOTE =====
     Tab:CreateButton({
         Name = "TestRemote",
@@ -366,12 +481,10 @@ function AutoFarm.Init(Dependencies)
                     Duration = 3
                 })
                 
-                -- Tampilkan info di console
                 print("\n=== PLANT CROP REMOTE INFO ===")
                 print("Status: ✅ TERSEDIA")
                 print("Path: " .. remote:GetFullName())
                 print("Class: " .. remote.ClassName)
-                print("Parent: " .. (remote.Parent and remote.Parent.Name or "None"))
                 print("===============================\n")
             else
                 Bdev:Notify({
@@ -379,32 +492,6 @@ function AutoFarm.Init(Dependencies)
                     Content = "❌ PlantCrop TIDAK ditemukan!",
                     Duration = 4
                 })
-                
-                -- Debug info
-                print("\n=== DEBUG INFO ===")
-                local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-                if remotes then
-                    print("Folder Remotes ditemukan. Isinya:")
-                    for _, child in pairs(remotes:GetChildren()) do
-                        print("  - " .. child.Name)
-                        
-                        -- Cek TutorialRemotes
-                        if child.Name == "TutorialRemotes" then
-                            for _, sub in pairs(child:GetChildren()) do
-                                print("    • " .. sub.Name)
-                            end
-                        end
-                    end
-                else
-                    print("Folder Remotes TIDAK ditemukan di ReplicatedStorage!")
-                    
-                    -- List isi ReplicatedStorage
-                    print("\nIsi ReplicatedStorage:")
-                    for _, child in pairs(ReplicatedStorage:GetChildren()) do
-                        print("  - " .. child.Name)
-                    end
-                end
-                print("==================\n")
             end
         end
     })
@@ -429,7 +516,10 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    print("✅ AutoFarm Plant module loaded")
+    -- Cleanup saat tab ditutup (jika ada)
+    -- (Tambahkan jika SimpleGUI mendukung)
+    
+    print("✅ AutoFarm Plant module loaded dengan AUTO RECORD POSISI")
 end
 
 return AutoFarm
