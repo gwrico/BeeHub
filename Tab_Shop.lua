@@ -25,24 +25,28 @@ function ShopAutoBuy.Init(Dependencies)
     
     -- ===== DAFTAR BIBIT =====
     local seedsList = {
-        "🌾 Padi",
-        "🌽 Jagung", 
-        "🍅 Tomat",
-        "🍆 Terong",
-        "🍓 Strawberry"
+        {Display = "🌾 Padi", Name = "Bibit Padi"},
+        {Display = "🌽 Jagung", Name = "Bibit Jagung"},
+        {Display = "🍅 Tomat", Name = "Bibit Tomat"},
+        {Display = "🍆 Terong", Name = "Bibit Terong"},
+        {Display = "🍓 Strawberry", Name = "Bibit Strawberry"}
     }
     
-    -- Mapping display ke nama asli
-    local seedNameMap = {
-        ["🌾 Padi"] = "Bibit Padi",
-        ["🌽 Jagung"] = "Bibit Jagung",
-        ["🍅 Tomat"] = "Bibit Tomat",
-        ["🍆 Terong"] = "Bibit Terong",
-        ["🍓 Strawberry"] = "Bibit Strawberry"
-    }
+    -- Buat array terpisah untuk dropdown options (hanya display names)
+    local seedDisplayOptions = {}
+    for i, seed in ipairs(seedsList) do
+        seedDisplayOptions[i] = seed.Display
+    end
+    
+    -- Mapping untuk konversi Display -> Name
+    local displayToName = {}
+    for i, seed in ipairs(seedsList) do
+        displayToName[seed.Display] = seed.Name
+    end
     
     -- ===== STATE VARIABLES =====
-    local selectedSeed = seedNameMap[seedsList[1]]
+    local selectedDisplay = seedDisplayOptions[1]  -- Simpan display name
+    local selectedSeed = displayToName[selectedDisplay]  -- Dapatkan nama asli
     local autoBuyEnabled = false
     local autoBuyConnection = nil
     local buyDelay = 2
@@ -50,6 +54,7 @@ function ShopAutoBuy.Init(Dependencies)
     
     -- Variable untuk menyimpan references
     local dropdownRef = nil
+    local infoLabelRef = nil  -- Reference untuk info label
     local qtySliderRef = nil
     local delaySliderRef = nil
     local autoBuyToggleRef = nil
@@ -110,7 +115,7 @@ function ShopAutoBuy.Init(Dependencies)
         
         Bdev:Notify({
             Title = "Auto Buy ON",
-            Content = string.format("Membeli setiap %d detik", buyDelay),
+            Content = string.format("Membeli %s setiap %d detik", selectedDisplay, buyDelay),
             Duration = 3
         })
         
@@ -139,6 +144,13 @@ function ShopAutoBuy.Init(Dependencies)
         })
     end
     
+    -- ===== FUNGSI UPDATE INFO LABEL =====
+    local function updateInfoLabel()
+        if infoLabelRef then
+            infoLabelRef.Text = "➤ Bibit aktif: " .. selectedDisplay
+        end
+    end
+    
     -- ===== MEMBUAT UI DENGAN DROPDOWN =====
     
     -- 1. PILIH BIBIT SECTION
@@ -154,15 +166,24 @@ function ShopAutoBuy.Init(Dependencies)
     dropdownRef = Tab:CreateDropdown({
         Name = "SeedDropdown",
         Text = "Pilih Bibit:",
-        Options = seedsList,
-        Default = seedsList[1],
+        Options = seedDisplayOptions,
+        Default = seedDisplayOptions[1],
         Callback = function(value)
-            selectedSeed = seedNameMap[value]
+            -- value adalah display name yang dipilih
+            selectedDisplay = value
+            selectedSeed = displayToName[value]
+            
+            -- Update info label
+            updateInfoLabel()
+            
             Bdev:Notify({
                 Title = "Bibit Dipilih",
                 Content = value,
                 Duration = 1
             })
+            
+            -- Debug
+            print("✅ Dipilih:", value, "->", selectedSeed)
             
             -- Jika auto buy sedang aktif, restart dengan bibit baru
             if autoBuyEnabled then
@@ -170,6 +191,14 @@ function ShopAutoBuy.Init(Dependencies)
                 startAutoBuy()
             end
         end
+    })
+    
+    -- Label info untuk menampilkan bibit yang dipilih
+    infoLabelRef = Tab:CreateLabel({
+        Name = "InfoLabel",
+        Text = "➤ Bibit aktif: " .. selectedDisplay,
+        Color = Color3.fromRGB(255, 255, 255),
+        Alignment = Enum.TextXAlignment.Left
     })
     
     -- Spacer
@@ -330,6 +359,7 @@ function ShopAutoBuy.Init(Dependencies)
         end,
         GetStatus = function()
             return {
+                SelectedDisplay = selectedDisplay,
                 SelectedSeed = selectedSeed,
                 AutoBuyEnabled = autoBuyEnabled,
                 Delay = buyDelay,
@@ -339,8 +369,13 @@ function ShopAutoBuy.Init(Dependencies)
         StopAutoBuy = stopAutoBuy,
         StartAutoBuy = startAutoBuy,
         SetSeed = function(seedDisplay)
-            if dropdownRef and dropdownRef.SetValue then
-                dropdownRef:SetValue(seedDisplay)
+            if displayToName[seedDisplay] then
+                selectedDisplay = seedDisplay
+                selectedSeed = displayToName[seedDisplay]
+                if dropdownRef and dropdownRef.SetValue then
+                    dropdownRef:SetValue(seedDisplay)
+                end
+                updateInfoLabel()
             end
         end,
         SetQuantity = function(value)
@@ -359,12 +394,10 @@ function ShopAutoBuy.Init(Dependencies)
                 end
             end
         end,
-        GetDropdownRef = function()
-            return dropdownRef
-        end
+        UpdateInfoLabel = updateInfoLabel  -- Fungsi untuk manual update jika perlu
     }
     
-    print("✅ Shop module loaded - dengan Dropdown!")
+    print("✅ Shop module loaded - dengan Dropdown (fixed info label)")
     
     -- Return cleanup function
     return cleanup
