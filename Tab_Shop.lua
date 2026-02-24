@@ -25,24 +25,34 @@ function ShopAutoBuy.Init(Dependencies)
     
     -- ===== DAFTAR BIBIT =====
     local seedsList = {
-        {Name = "Bibit Padi", Display = "🌾 Padi"},
-        {Name = "Bibit Jagung", Display = "🌽 Jagung"},
-        {Name = "Bibit Tomat", Display = "🍅 Tomat"},
-        {Name = "Bibit Terong", Display = "🍆 Terong"},
-        {Name = "Bibit Strawberry", Display = "🍓 Strawberry"}
+        "🌾 Padi",
+        "🌽 Jagung", 
+        "🍅 Tomat",
+        "🍆 Terong",
+        "🍓 Strawberry"
+    }
+    
+    -- Mapping display ke nama asli
+    local seedNameMap = {
+        ["🌾 Padi"] = "Bibit Padi",
+        ["🌽 Jagung"] = "Bibit Jagung",
+        ["🍅 Tomat"] = "Bibit Tomat",
+        ["🍆 Terong"] = "Bibit Terong",
+        ["🍓 Strawberry"] = "Bibit Strawberry"
     }
     
     -- ===== STATE VARIABLES =====
-    local selectedSeed = seedsList[1].Name
+    local selectedSeed = seedNameMap[seedsList[1]]
     local autoBuyEnabled = false
     local autoBuyConnection = nil
     local buyDelay = 2
     local buyQuantity = 1
-    local selectedIndex = 1
     
     -- Variable untuk menyimpan references
-    local selectedInfoLabel = nil
-    local seedButtons = {}
+    local dropdownRef = nil
+    local qtySliderRef = nil
+    local delaySliderRef = nil
+    local autoBuyToggleRef = nil
     
     -- ===== FUNGSI CEK REMOTE =====
     local function checkRemote()
@@ -129,33 +139,7 @@ function ShopAutoBuy.Init(Dependencies)
         })
     end
     
-    -- ===== FUNGSI UPDATE SELECTION =====
-    local function updateSeedSelection(index)
-        selectedIndex = index
-        selectedSeed = seedsList[index].Name
-        
-        -- Update semua tombol
-        for i, btn in ipairs(seedButtons) do
-            if i == index then
-                btn.Text = "✅ " .. seedsList[i].Display
-            else
-                btn.Text = "   " .. seedsList[i].Display
-            end
-        end
-        
-        -- Update label info
-        if selectedInfoLabel then
-            selectedInfoLabel.Text = "Bibit terpilih: " .. seedsList[index].Display
-        end
-        
-        Bdev:Notify({
-            Title = "Dipilih",
-            Content = seedsList[index].Display,
-            Duration = 1
-        })
-    end
-    
-    -- ===== MEMBUAT UI DENGAN URUTAN VERTIKAL =====
+    -- ===== MEMBUAT UI DENGAN DROPDOWN =====
     
     -- 1. PILIH BIBIT SECTION
     local header1 = Tab:CreateLabel({
@@ -166,26 +150,27 @@ function ShopAutoBuy.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Label untuk menampilkan bibit yang dipilih
-    selectedInfoLabel = Tab:CreateLabel({
-        Name = "SelectedInfo",
-        Text = "➤ Bibit terpilih: " .. seedsList[1].Display,
-        Color = Color3.fromRGB(255, 255, 255),
-        Alignment = Enum.TextXAlignment.Left
-    })
-    
-    -- Buat tombol-tombol untuk setiap bibit
-    for i, seed in ipairs(seedsList) do
-        local isSelected = (i == 1)
-        local btn = Tab:CreateButton({
-            Name = "SeedBtn_" .. i,
-            Text = (isSelected and "✅ " or "   ") .. seed.Display,
-            Callback = function()
-                updateSeedSelection(i)
+    -- DROPDOWN untuk memilih bibit
+    dropdownRef = Tab:CreateDropdown({
+        Name = "SeedDropdown",
+        Text = "Pilih Bibit:",
+        Options = seedsList,
+        Default = seedsList[1],
+        Callback = function(value)
+            selectedSeed = seedNameMap[value]
+            Bdev:Notify({
+                Title = "Bibit Dipilih",
+                Content = value,
+                Duration = 1
+            })
+            
+            -- Jika auto buy sedang aktif, restart dengan bibit baru
+            if autoBuyEnabled then
+                stopAutoBuy()
+                startAutoBuy()
             end
-        })
-        table.insert(seedButtons, btn)
-    end
+        end
+    })
     
     -- Spacer
     Tab:CreateLabel({
@@ -204,7 +189,7 @@ function ShopAutoBuy.Init(Dependencies)
     })
     
     -- Slider Jumlah
-    local qtySlider = Tab:CreateSlider({
+    qtySliderRef = Tab:CreateSlider({
         Name = "QtySlider",
         Text = "Jumlah: " .. buyQuantity,
         Range = {1, 10},
@@ -212,11 +197,18 @@ function ShopAutoBuy.Init(Dependencies)
         CurrentValue = 1,
         Callback = function(value)
             buyQuantity = value
+            -- Update text slider
+            if qtySliderRef and qtySliderRef.Frame then
+                local label = qtySliderRef.Frame:FindFirstChild("SliderLabel")
+                if label then
+                    label.Text = "Jumlah: " .. value
+                end
+            end
         end
     })
     
     -- Slider Delay
-    local delaySlider = Tab:CreateSlider({
+    delaySliderRef = Tab:CreateSlider({
         Name = "DelaySlider",
         Text = "Delay: " .. buyDelay .. " detik",
         Range = {0.5, 5},
@@ -224,6 +216,19 @@ function ShopAutoBuy.Init(Dependencies)
         CurrentValue = 2,
         Callback = function(value)
             buyDelay = value
+            -- Update text slider
+            if delaySliderRef and delaySliderRef.Frame then
+                local label = delaySliderRef.Frame:FindFirstChild("SliderLabel")
+                if label then
+                    label.Text = "Delay: " .. value .. " detik"
+                end
+            end
+            
+            -- Update auto buy loop jika sedang aktif
+            if autoBuyEnabled then
+                stopAutoBuy()
+                startAutoBuy()
+            end
         end
     })
     
@@ -278,14 +283,16 @@ function ShopAutoBuy.Init(Dependencies)
     })
     
     -- Toggle Auto Buy
-    local autoBuyToggle = Tab:CreateToggle({
+    autoBuyToggleRef = Tab:CreateToggle({
         Name = "AutoBuyToggle",
         Text = "AKTIFKAN AUTO BUY",
         CurrentValue = false,
         Callback = function(value)
             if value then
                 if not checkRemote() then
-                    autoBuyToggle:SetValue(false)
+                    if autoBuyToggleRef and autoBuyToggleRef.SetValue then
+                        autoBuyToggleRef:SetValue(false)
+                    end
                     return
                 end
                 startAutoBuy()
@@ -300,11 +307,20 @@ function ShopAutoBuy.Init(Dependencies)
         Name = "StopButton",
         Text = "⏹️ STOP AUTO BUY",
         Callback = function()
-            if autoBuyToggle and autoBuyToggle.SetValue then
-                autoBuyToggle:SetValue(false)
+            if autoBuyToggleRef and autoBuyToggleRef.SetValue then
+                autoBuyToggleRef:SetValue(false)
             end
         end
     })
+    
+    -- ===== CLEANUP FUNCTION =====
+    local function cleanup()
+        if autoBuyConnection then
+            autoBuyConnection:Disconnect()
+            autoBuyConnection = nil
+        end
+        autoBuyEnabled = false
+    end
     
     -- ===== SHARE FUNCTIONS =====
     Shared.Modules = Shared.Modules or {}
@@ -319,10 +335,39 @@ function ShopAutoBuy.Init(Dependencies)
                 Delay = buyDelay,
                 Quantity = buyQuantity
             }
+        end,
+        StopAutoBuy = stopAutoBuy,
+        StartAutoBuy = startAutoBuy,
+        SetSeed = function(seedDisplay)
+            if dropdownRef and dropdownRef.SetValue then
+                dropdownRef:SetValue(seedDisplay)
+            end
+        end,
+        SetQuantity = function(value)
+            if value >= 1 and value <= 10 then
+                buyQuantity = value
+                if qtySliderRef and qtySliderRef.SetValue then
+                    qtySliderRef:SetValue(value)
+                end
+            end
+        end,
+        SetDelay = function(value)
+            if value >= 0.5 and value <= 5 then
+                buyDelay = value
+                if delaySliderRef and delaySliderRef.SetValue then
+                    delaySliderRef:SetValue(value)
+                end
+            end
+        end,
+        GetDropdownRef = function()
+            return dropdownRef
         end
     }
     
-    print("✅ Shop module loaded - SimpleGUI v7.1 compatible")
+    print("✅ Shop module loaded - dengan Dropdown!")
+    
+    -- Return cleanup function
+    return cleanup
 end
 
 return ShopAutoBuy
