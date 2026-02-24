@@ -13,6 +13,21 @@ function ShopAutoBuy.Init(Dependencies)
     -- Get services
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local RunService = game:GetService("RunService")
+    local TweenService = game:GetService("TweenService")  -- Tambahkan ini
+    
+    -- ===== FUNGSI TWEEN LOKAL =====
+    local function tween(object, properties, duration, easingStyle)
+        if not object then return nil end
+        
+        local tweenInfo = TweenInfo.new(
+            duration or 0.2, 
+            easingStyle or Enum.EasingStyle.Quint, 
+            Enum.EasingDirection.Out
+        )
+        local tween = TweenService:Create(object, tweenInfo, properties)
+        tween:Play()
+        return tween
+    end
     
     -- ===== REMOTE SHOP =====
     local RequestShop = ReplicatedStorage:FindFirstChild("Remotes")
@@ -433,7 +448,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     end)
     
-    -- Hover effects
+    -- Hover effects dengan TWEEN (SEKARANG BISA!)
     local function setupHover(btn, normalColor, hoverColor)
         btn.MouseEnter:Connect(function()
             tween(btn, {BackgroundColor3 = hoverColor}, 0.15)
@@ -445,6 +460,23 @@ function ShopAutoBuy.Init(Dependencies)
     
     setupHover(BuyNowBtn, Color3.fromRGB(255, 185, 0), Color3.fromRGB(255, 215, 100))
     setupHover(StopBtn, Color3.fromRGB(40, 40, 52), Color3.fromRGB(55, 55, 70))
+    
+    -- Hover untuk AutoToggleBtn (efek khusus)
+    AutoToggleBtn.MouseEnter:Connect(function()
+        if not autoBuyEnabled then
+            tween(AutoToggleBtn, {BackgroundColor3 = Color3.fromRGB(90, 90, 105)}, 0.15)
+        else
+            tween(AutoToggleBtn, {BackgroundColor3 = Color3.fromRGB(255, 215, 100)}, 0.15)
+        end
+    end)
+    
+    AutoToggleBtn.MouseLeave:Connect(function()
+        if not autoBuyEnabled then
+            tween(AutoToggleBtn, {BackgroundColor3 = Color3.fromRGB(70, 70, 85)}, 0.15)
+        else
+            tween(AutoToggleBtn, {BackgroundColor3 = Color3.fromRGB(255, 185, 0)}, 0.15)
+        end
+    end)
     
     -- ===== CLEANUP FUNCTION =====
     local function cleanup()
@@ -501,7 +533,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     }
     
-    print("✅ Shop module loaded - Modern Edition")
+    print("✅ Shop module loaded - Modern Edition with Tween")
     
     return cleanup
 end
