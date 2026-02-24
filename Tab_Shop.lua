@@ -29,7 +29,8 @@ function ShopAutoBuy.Init(Dependencies)
         {Display = "🌽 Jagung", Name = "Bibit Jagung"},
         {Display = "🍅 Tomat", Name = "Bibit Tomat"},
         {Display = "🍆 Terong", Name = "Bibit Terong"},
-        {Display = "🍓 Strawberry", Name = "Bibit Strawberry"}
+        {Display = "🍓 Strawberry", Name = "Bibit Strawberry"},
+        {Display = "None", Name = "None"}
     }
     
     -- Buat array terpisah untuk dropdown options (hanya display names)
