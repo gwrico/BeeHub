@@ -519,7 +519,7 @@ function AutoFarm.Init(Dependencies)
     -- Cleanup saat tab ditutup (jika ada)
     -- (Tambahkan jika SimpleGUI mendukung)
     
-    print("✅ AutoFarm Plant module loaded dengan AUTO RECORD POSISI")
+    print("✅ AutoFarm Plants module loaded dengan AUTO RECORD POSISI")
 end
 
 return AutoFarm
