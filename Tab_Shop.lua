@@ -40,6 +40,10 @@ function ShopAutoBuy.Init(Dependencies)
     local buyQuantity = 1
     local selectedIndex = 1
     
+    -- Variable untuk menyimpan references
+    local selectedInfoLabel = nil
+    local seedButtons = {}
+    
     -- ===== FUNGSI CEK REMOTE =====
     local function checkRemote()
         if not RequestShop then
@@ -155,49 +159,62 @@ function ShopAutoBuy.Init(Dependencies)
         })
     end
     
-    -- ===== SECTION: PILIH BIBIT =====
+    -- ===== FUNGSI UPDATE SELECTION =====
+    local function updateSeedSelection(index)
+        selectedIndex = index
+        selectedSeed = seedsList[index].Name
+        
+        -- Update semua tombol
+        for i, btn in ipairs(seedButtons) do
+            if i == index then
+                btn.Text = "✅ " .. seedsList[i].Display
+            else
+                btn.Text = "   " .. seedsList[i].Display
+            end
+        end
+        
+        -- Update label info
+        if selectedInfoLabel then
+            selectedInfoLabel.Text = "Bibit terpilih: " .. seedsList[index].Display
+        end
+        
+        Bdev:Notify({
+            Title = "Dipilih",
+            Content = seedsList[index].Display,
+            Duration = 1
+        })
+    end
+    
+    -- ===== MEMBUAT UI =====
+    
+    -- SECTION 1: PILIH BIBIT
     Tab:CreateSection("🌱 PILIH BIBIT")
     
-    -- Buat tombol-tombol untuk setiap bibit (gantikan dropdown)
-    local seedButtons = {}
+    -- Buat label untuk menampilkan bibit yang dipilih (dibuat pertama)
+    selectedInfoLabel = Tab:CreateLabel({
+        Name = "SelectedInfo",
+        Text = "Bibit terpilih: " .. seedsList[1].Display,
+        Color = Color3.fromRGB(255, 185, 0) -- Kuning BeeHub
+    })
+    
+    -- Buat tombol-tombol untuk setiap bibit dalam grid 2 kolom? 
+    -- Tapi karena SimpleGUI mungkin tidak support grid, kita buat berurutan
     for i, seed in ipairs(seedsList) do
         local isSelected = (i == 1)
         local btn = Tab:CreateButton({
             Name = "SeedBtn_" .. i,
             Text = (isSelected and "✅ " or "   ") .. seed.Display,
             Callback = function()
-                -- Update semua tombol
-                for j, btnObj in ipairs(seedButtons) do
-                    if j == i then
-                        btnObj.Text = "✅ " .. seedsList[j].Display
-                        selectedSeed = seedsList[j].Name
-                        selectedIndex = j
-                    else
-                        btnObj.Text = "   " .. seedsList[j].Display
-                    end
-                end
-                
-                Bdev:Notify({
-                    Title = "Dipilih",
-                    Content = seed.Display,
-                    Duration = 1
-                })
+                updateSeedSelection(i)
             end
         })
         table.insert(seedButtons, btn)
     end
     
-    -- ===== SECTION: PENGATURAN =====
+    -- SECTION 2: PENGATURAN
     Tab:CreateSection("⚙️ PENGATURAN")
     
-    -- Label untuk menunjukkan bibit yang dipilih
-    Tab:CreateLabel({
-        Name = "SelectedInfo",
-        Text = "Bibit terpilih: " .. seedsList[1].Display,
-        Color = Color3.fromRGB(255, 185, 0) -- Kuning BeeHub
-    })
-    
-    -- Slider Jumlah (CreateSlider harusnya ada di SimpleGUI)
+    -- Slider Jumlah
     local qtySlider = Tab:CreateSlider({
         Name = "QtySlider",
         Text = "Jumlah: " .. buyQuantity,
@@ -221,7 +238,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- ===== SECTION: TOMBOL MANUAL =====
+    -- SECTION 3: TOMBOL MANUAL
     Tab:CreateSection("🖱️ MANUAL")
     
     -- Tombol Beli Manual
@@ -242,7 +259,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- ===== SECTION: AUTO BUY =====
+    -- SECTION 4: AUTO BUY
     Tab:CreateSection("🤖 AUTO BUY")
     
     -- Toggle Auto Buy
@@ -274,7 +291,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- ===== SECTION: FITUR TAMBAHAN =====
+    -- SECTION 5: FITUR TAMBAHAN
     Tab:CreateSection("📋 FITUR TAMBAHAN")
     
     -- Tombol Cek Shop List
@@ -316,7 +333,7 @@ function ShopAutoBuy.Init(Dependencies)
         end
     })
     
-    -- ===== SECTION: INFORMASI =====
+    -- SECTION 6: INFORMASI
     Tab:CreateSection("ℹ️ INFORMASI")
     
     Tab:CreateLabel({
@@ -342,27 +359,6 @@ function ShopAutoBuy.Init(Dependencies)
         Text = "• Pastikan uang cukup",
         Color = Color3.fromRGB(150, 150, 160)
     })
-    
-    -- Update label selected info ketika bibit berubah
-    local selectedInfoLabel = nil
-    -- Cari label yang sudah dibuat
-    for _, element in ipairs(Tab.Elements or {}) do
-        if element.Name == "SelectedInfo" then
-            selectedInfoLabel = element
-            break
-        end
-    end
-    
-    -- Override callback tombol seed untuk update label
-    for i, btn in ipairs(seedButtons) do
-        local oldCallback = btn.Callback
-        btn.Callback = function()
-            if oldCallback then oldCallback() end
-            if selectedInfoLabel then
-                selectedInfoLabel.Text = "Bibit terpilih: " .. seedsList[i].Display
-            end
-        end
-    end
     
     -- ===== SHARE FUNCTIONS =====
     Shared.Modules = Shared.Modules or {}
