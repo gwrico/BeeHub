@@ -901,7 +901,7 @@ function SimpleGUI:CreateWindow(options)
                 }
             end,
             
-            -- ===== CREATE DROPDOWN METHOD =====
+            -- ===== CREATE DROPDOWN METHOD (FIXED) =====
             CreateDropdown = function(self, options)
                 local opts = options or {}
                 local scale = windowData.Scale
@@ -930,7 +930,7 @@ function SimpleGUI:CreateWindow(options)
                 DropdownButton.Name = "DropdownButton"
                 DropdownButton.Size = UDim2.new(1, 0, 0, 30 * scale)
                 DropdownButton.Position = UDim2.new(0, 0, 0, 22 * scale)
-                DropdownButton.Text = opts.Default or (opts.Options and opts.Options[1]) or "Pilih opsi"
+                DropdownButton.Text = opts.Default or (opts.Options and #opts.Options > 0 and opts.Options[1]) or "Pilih opsi"
                 DropdownButton.TextColor3 = theme.Text
                 DropdownButton.BackgroundColor3 = theme.InputBg
                 DropdownButton.BackgroundTransparency = 0
@@ -955,7 +955,7 @@ function SimpleGUI:CreateWindow(options)
                 ArrowLabel.Font = Enum.Font.Gotham
                 ArrowLabel.Parent = DropdownButton
                 
-                -- Dropdown container (untuk item-item)
+                -- Dropdown container
                 local DropdownContainer = Instance.new("Frame")
                 DropdownContainer.Name = "DropdownContainer"
                 DropdownContainer.Size = UDim2.new(1, 0, 0, 0)
@@ -971,7 +971,7 @@ function SimpleGUI:CreateWindow(options)
                 ContainerCorner.CornerRadius = UDim.new(0, 6 * scale)
                 ContainerCorner.Parent = DropdownContainer
                 
-                -- Dropdown list (ScrollingFrame untuk item banyak)
+                -- Dropdown list
                 local DropdownList = Instance.new("ScrollingFrame")
                 DropdownList.Name = "DropdownList"
                 DropdownList.Size = UDim2.new(1, -2, 1, -2)
@@ -985,7 +985,7 @@ function SimpleGUI:CreateWindow(options)
                 DropdownList.ElasticBehavior = Enum.ElasticBehavior.Always
                 DropdownList.Parent = DropdownContainer
                 
-                -- List layout untuk item
+                -- List layout
                 local ItemLayout = Instance.new("UIListLayout")
                 ItemLayout.Padding = UDim.new(0, 2 * scale)
                 ItemLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -1001,18 +1001,20 @@ function SimpleGUI:CreateWindow(options)
                     DropdownList.CanvasSize = UDim2.new(0, 0, 0, ItemLayout.AbsoluteContentSize.Y + 4 * scale)
                 end)
                 
-                -- Variable untuk state dropdown
+                -- Variables
                 local isOpen = false
-                local selectedValue = opts.Default or (opts.Options and opts.Options[1]) or ""
+                local selectedValue = opts.Default or (opts.Options and #opts.Options > 0 and opts.Options[1]) or ""
                 local dropdownItems = {}
                 
-                -- Update ukuran container
+                -- Pastikan opts.Options selalu berupa table
+                opts.Options = opts.Options or {}
+                
+                -- Update container size
                 local function updateContainerSize()
-                    local itemCount = opts.Options and #opts.Options or 0
+                    local itemCount = #opts.Options
                     local height = math.min(itemCount * 32 * scale + 4 * scale, 150 * scale)
                     DropdownContainer.Size = UDim2.new(1, 0, 0, height)
                     
-                    -- Update ukuran frame utama
                     local totalHeight = 22 * scale + 30 * scale
                     if isOpen then
                         totalHeight = totalHeight + height + 4 * scale
@@ -1020,14 +1022,36 @@ function SimpleGUI:CreateWindow(options)
                     DropdownFrame.Size = UDim2.new(0.95, 0, 0, totalHeight)
                 end
                 
-                -- Buat item-item dropdown
+                -- Create dropdown items
                 local function createDropdownItems()
+                    -- Hapus item lama
                     for _, item in pairs(dropdownItems) do
-                        if item then item:Destroy() end
+                        if item and item.Destroy then
+                            pcall(function() item:Destroy() end)
+                        end
                     end
                     dropdownItems = {}
                     
-                    if not opts.Options then return end
+                    -- Clear DropdownList
+                    for _, child in pairs(DropdownList:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            child:Destroy()
+                        end
+                    end
+                    
+                    if not opts.Options or #opts.Options == 0 then
+                        -- Tampilkan pesan kosong
+                        local EmptyLabel = Instance.new("TextLabel")
+                        EmptyLabel.Name = "EmptyLabel"
+                        EmptyLabel.Size = UDim2.new(1, -4 * scale, 0, 28 * scale)
+                        EmptyLabel.Text = "Tidak ada data"
+                        EmptyLabel.TextColor3 = theme.TextMuted
+                        EmptyLabel.BackgroundTransparency = 1
+                        EmptyLabel.TextSize = 12 * scale
+                        EmptyLabel.Font = Enum.Font.Gotham
+                        EmptyLabel.Parent = DropdownList
+                        return
+                    end
                     
                     for i, option in ipairs(opts.Options) do
                         local ItemButton = Instance.new("TextButton")
@@ -1069,9 +1093,8 @@ function SimpleGUI:CreateWindow(options)
                             selectedValue = tostring(option)
                             DropdownButton.Text = selectedValue
                             
-                            -- Update semua item
                             for _, btn in pairs(dropdownItems) do
-                                if btn then
+                                if btn and btn.Destroy then
                                     if btn.Text == selectedValue then
                                         btn.BackgroundColor3 = theme.Accent
                                         btn.TextColor3 = Color3.new(0, 0, 0)
@@ -1082,7 +1105,6 @@ function SimpleGUI:CreateWindow(options)
                                 end
                             end
                             
-                            -- Tutup dropdown
                             isOpen = false
                             ArrowLabel.Text = "▼"
                             DropdownContainer.Visible = false
@@ -1094,7 +1116,6 @@ function SimpleGUI:CreateWindow(options)
                             end
                         end)
                         
-                        -- Highlight item yang terpilih
                         if tostring(option) == selectedValue then
                             ItemButton.BackgroundColor3 = theme.Accent
                             ItemButton.TextColor3 = Color3.new(0, 0, 0)
@@ -1104,7 +1125,7 @@ function SimpleGUI:CreateWindow(options)
                     end
                 end
                 
-                -- Buat item awal
+                -- Initialize
                 createDropdownItems()
                 updateContainerSize()
                 
@@ -1131,7 +1152,7 @@ function SimpleGUI:CreateWindow(options)
                     updateContainerSize()
                 end)
                 
-                -- Tutup dropdown jika klik di luar
+                -- Click outside
                 UserInputService.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 and isOpen then
                         local mousePos = UserInputService:GetMouseLocation()
@@ -1151,16 +1172,24 @@ function SimpleGUI:CreateWindow(options)
                     end
                 end)
                 
-                -- Method untuk update options
+                -- Update options method
                 local function updateOptions(newOptions)
+                    newOptions = newOptions or {}
                     opts.Options = newOptions
                     createDropdownItems()
                     updateContainerSize()
                     
-                    -- Reset selected jika perlu
-                    if not table.find(newOptions, selectedValue) then
-                        selectedValue = newOptions and newOptions[1] or ""
-                        DropdownButton.Text = selectedValue
+                    if #newOptions > 0 then
+                        if not table.find(newOptions, selectedValue) then
+                            selectedValue = newOptions[1]
+                            DropdownButton.Text = selectedValue
+                            if opts.Callback then
+                                pcall(opts.Callback, selectedValue)
+                            end
+                        end
+                    else
+                        selectedValue = ""
+                        DropdownButton.Text = "Tidak ada data"
                     end
                 end
                 
@@ -1170,25 +1199,29 @@ function SimpleGUI:CreateWindow(options)
                     Frame = DropdownFrame,
                     GetValue = function() return selectedValue end,
                     SetValue = function(value)
-                        if table.find(opts.Options, value) then
-                            selectedValue = value
-                            DropdownButton.Text = value
-                            
-                            -- Update highlight item
-                            for _, btn in pairs(dropdownItems) do
-                                if btn then
-                                    if btn.Text == value then
-                                        btn.BackgroundColor3 = theme.Accent
-                                        btn.TextColor3 = Color3.new(0, 0, 0)
-                                    else
-                                        btn.BackgroundColor3 = theme.InputBg
-                                        btn.TextColor3 = theme.TextSecondary
+                        if opts.Options and #opts.Options > 0 then
+                            for _, option in ipairs(opts.Options) do
+                                if tostring(option) == tostring(value) then
+                                    selectedValue = tostring(value)
+                                    DropdownButton.Text = selectedValue
+                                    
+                                    for _, btn in pairs(dropdownItems) do
+                                        if btn and btn.Destroy then
+                                            if btn.Text == selectedValue then
+                                                btn.BackgroundColor3 = theme.Accent
+                                                btn.TextColor3 = Color3.new(0, 0, 0)
+                                            else
+                                                btn.BackgroundColor3 = theme.InputBg
+                                                btn.TextColor3 = theme.TextSecondary
+                                            end
+                                        end
                                     end
+                                    
+                                    if opts.Callback then
+                                        pcall(opts.Callback, value)
+                                    end
+                                    break
                                 end
-                            end
-                            
-                            if opts.Callback then
-                                pcall(opts.Callback, value)
                             end
                         end
                     end,
@@ -1196,6 +1229,7 @@ function SimpleGUI:CreateWindow(options)
                         updateOptions(newOptions)
                     end,
                     AddOption = function(self, option)
+                        opts.Options = opts.Options or {}
                         if not table.find(opts.Options, option) then
                             table.insert(opts.Options, option)
                             createDropdownItems()
@@ -1203,15 +1237,17 @@ function SimpleGUI:CreateWindow(options)
                         end
                     end,
                     RemoveOption = function(self, option)
-                        local index = table.find(opts.Options, option)
-                        if index then
-                            table.remove(opts.Options, index)
-                            createDropdownItems()
-                            updateContainerSize()
-                            
-                            if selectedValue == option then
-                                selectedValue = opts.Options[1] or ""
-                                DropdownButton.Text = selectedValue
+                        if opts.Options and #opts.Options > 0 then
+                            local index = table.find(opts.Options, option)
+                            if index then
+                                table.remove(opts.Options, index)
+                                createDropdownItems()
+                                updateContainerSize()
+                                
+                                if selectedValue == option then
+                                    selectedValue = opts.Options[1] or ""
+                                    DropdownButton.Text = selectedValue
+                                end
                             end
                         end
                     end
