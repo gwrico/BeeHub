@@ -1,307 +1,277 @@
 -- ==============================================
--- 👁️ VISUALS TAB MODULE - COMPATIBLE WITH SIMPLEGUI v6.3
+-- 🌾 AUTO HARVEST TANAMAN
 -- ==============================================
 
-local Visuals = {}
+local AutoHarvest = {}
 
-function Visuals.Init(Dependencies)
+function AutoHarvest.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
     local Bdev = Dependencies.Bdev
+    local GUI = Dependencies.GUI
     
-    local Variables = Shared.Variables
-    local Functions = Shared.Functions or {}
+    local Variables = Shared.Variables or {}
     
-    --print("👁️ Initializing Visuals tab for SimpleGUI v6.3...")
+    -- Get services
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
     
-    -- ===== X-RAY VISION =====
-    local xrayParts = {}
-    local xrayConnection = nil
+    -- ===== FUNGSI TWEEN =====
+    local function tween(object, properties, duration, easingStyle)
+        if not object then return nil end
+        local tweenInfo = TweenInfo.new(duration or 0.2, easingStyle or Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(object, tweenInfo, properties)
+        tween:Play()
+        return tween
+    end
     
-    Tab:CreateToggle({
-        Name = "XRay",
-        Text = "🔍 X-Ray Vision",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.xrayEnabled = value
-            
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
-                    Title = "X-Ray",
-                    Content = "X-Ray enabled! See through walls",
-                    Duration = 3
-                })
-                
-                --print("✅ X-Ray enabled")
-                
-                local function processPart(part)
-                    if part:IsA("BasePart") then
-                        -- Check if part belongs to a player
-                        local isPlayerPart = false
-                        for _, player in pairs(Shared.Services.Players:GetPlayers()) do
-                            if player.Character and part:IsDescendantOf(player.Character) then
-                                isPlayerPart = true
-                                break
+    -- Variables
+    local harvestConnection = nil
+    local autoHarvestToggleRef = nil
+    local player = Players.LocalPlayer
+    local harvestedCount = 0
+    local lastHarvestTime = 0
+    
+    -- Dapatkan posisi player
+    local function getPlayerPosition()
+        local character = player.Character
+        if not character then return nil end
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return nil end
+        return hrp.Position
+    end
+    
+    -- Cari tanaman siap panen di sekitar
+    local function findReadyCrops()
+        local crops = {}
+        local playerPos = getPlayerPosition()
+        if not playerPos then return crops end
+        
+        -- Cari di folder ActiveCrops
+        local activeCrops = workspace:FindFirstChild("ActiveCrops")
+        if not activeCrops then return crops end
+        
+        for _, crop in ipairs(activeCrops:GetDescendants()) do
+            -- Cari ProximityPrompt dengan ActionText "Harvest"
+            if crop:IsA("ProximityPrompt") and crop.ActionText == "Harvest" then
+                if crop.Parent and crop.Parent:IsA("BasePart") then
+                    local dist = (crop.Parent.Position - playerPos).Magnitude
+                    if dist <= crop.MaxActivationDistance then
+                        -- Catat jenis tanaman dari ObjectText
+                        local cropType = "Unknown"
+                        if crop.ObjectText then
+                            if crop.ObjectText:find("Eggplant") then
+                                cropType = "🍆 Terong"
+                            elseif crop.ObjectText:find("Corn") then
+                                cropType = "🌽 Jagung"
+                            elseif crop.ObjectText:find("Padi") or crop.ObjectText:find("Rice") then
+                                cropType = "🌾 Padi"
+                            elseif crop.ObjectText:find("Strawberry") then
+                                cropType = "🍓 Stroberi"
+                            elseif crop.ObjectText:find("Tomat") or crop.ObjectText:find("Tomato") then
+                                cropType = "🍅 Tomat"
                             end
                         end
                         
-                        if not isPlayerPart then
-                            -- Save original properties
-                            xrayParts[part] = {
-                                Transparency = part.Transparency,
-                                CastShadow = part.CastShadow
-                            }
-                            
-                            -- Make transparent
-                            part.Transparency = 0.7
-                            part.CastShadow = false
-                        end
-                    end
-                end
-                
-                -- Process existing parts
-                for _, part in pairs(Shared.Services.Workspace:GetDescendants()) do
-                    processPart(part)
-                end
-                
-                -- Connect to new parts
-                if xrayConnection then
-                    xrayConnection:Disconnect()
-                end
-                
-                xrayConnection = Shared.Services.Workspace.DescendantAdded:Connect(function(descendant)
-                    if Variables.xrayEnabled then
-                        processPart(descendant)
-                    end
-                end)
-                
-            else
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
-                    Title = "X-Ray",
-                    Content = "X-Ray disabled!",
-                    Duration = 3
-                })
-                
-                --print("❌ X-Ray disabled")
-                
-                -- Restore original properties
-                for part, props in pairs(xrayParts) do
-                    if part and part.Parent then
-                        pcall(function()
-                            part.Transparency = props.Transparency
-                            part.CastShadow = props.CastShadow
-                        end)
-                    end
-                end
-                
-                xrayParts = {}
-                
-                if xrayConnection then
-                    xrayConnection:Disconnect()
-                    xrayConnection = nil
-                end
-            end
-        end
-    })
-    
-    -- ===== PLAYER ESP =====
-    local playerHighlights = {}
-    
-    Tab:CreateToggle({
-        Name = "PlayerESP",
-        Text = "👤 Player ESP",
-        CurrentValue = false,
-        Callback = function(value)
-            Variables.playerESPEnabled = value
-            
-            if value then
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
-                    Title = "Player ESP",
-                    Content = "Player ESP enabled!",
-                    Duration = 3
-                })
-                
-                --print("✅ Player ESP enabled")
-                
-                local function highlightPlayer(player, character)
-                    if not character or player == game.Players.LocalPlayer then
-                        return
-                    end
-                    
-                    local highlight = Instance.new("Highlight")
-                    highlight.Name = "PlayerESP_" .. player.Name
-                    highlight.Adornee = character
-                    highlight.FillColor = Color3.new(0, 0.5, 1)  -- Blue
-                    highlight.FillTransparency = 0.7
-                    highlight.OutlineColor = Color3.new(1, 1, 1)
-                    highlight.OutlineTransparency = 0
-                    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    highlight.Parent = game:GetService("CoreGui")
-                    
-                    playerHighlights[player] = highlight
-                end
-                
-                -- Highlight existing players
-                for _, player in pairs(Shared.Services.Players:GetPlayers()) do
-                    if player.Character then
-                        highlightPlayer(player, player.Character)
-                    end
-                    
-                    -- Connect to character added
-                    player.CharacterAdded:Connect(function(character)
-                        if Variables.playerESPEnabled then
-                            task.wait(1)  -- Wait for character to load
-                            highlightPlayer(player, character)
-                        end
-                    end)
-                end
-                
-            else
-                Bdev:Notify({  -- ✅ FIXED: Colon syntax
-                    Title = "Player ESP",
-                    Content = "Player ESP disabled!",
-                    Duration = 3
-                })
-                
-                --print("❌ Player ESP disabled")
-                
-                -- Remove highlights
-                for _, highlight in pairs(playerHighlights) do
-                    if highlight and highlight.Parent then
-                        pcall(function()
-                            highlight:Destroy()
-                        end)
-                    end
-                end
-                playerHighlights = {}
-                
-                -- Also clean from CoreGui
-                local CoreGui = game:GetService("CoreGui")
-                for _, obj in pairs(CoreGui:GetChildren()) do
-                    if obj.Name:find("PlayerESP_") then
-                        pcall(function()
-                            obj:Destroy()
-                        end)
+                        table.insert(crops, {
+                            prompt = crop,
+                            type = cropType,
+                            dist = dist
+                        })
                     end
                 end
             end
         end
-    })
+        
+        -- Urutkan berdasarkan jarak (terdekat dulu)
+        table.sort(crops, function(a, b) return a.dist < b.dist end)
+        
+        return crops
+    end
     
-    -- ===== AUTO REFRESH ESP =====
-    Tab:CreateButton({
-        Name = "RefreshESP",
-        Text = "🔄 Refresh ESP",
-        Callback = function()
-            if Variables.playerESPEnabled then
-                -- Turn off then on to refresh
-                Variables.playerESPEnabled = false
-                task.wait(0.1)
-                Variables.playerESPEnabled = true
-                
-                Bdev:Notify({
-                    Title = "ESP",
-                    Content = "ESP refreshed!",
-                    Duration = 3
-                })
-                --print("🔄 ESP refreshed")
-            else
-                Bdev:Notify({
-                    Title = "ESP",
-                    Content = "Turn on ESP first!",
-                    Duration = 3
-                })
-            end
+    -- Fungsi untuk harvest
+    local function harvestCrop(cropData)
+        if not cropData or not cropData.prompt then return false end
+        
+        local prompt = cropData.prompt
+        
+        -- Trigger prompt (tekan E)
+        local success = pcall(function()
+            prompt:InputHoldBegin()
+            task.wait(0.5) -- HoldDuration 0.5 detik
+            prompt:InputHoldEnd()
+        end)
+        
+        if success then
+            harvestedCount = harvestedCount + 1
+            return true
         end
-    })
+        
+        return false
+    end
     
-    -- ===== CLEAR ALL VISUALS =====
-    Tab:CreateButton({
-        Name = "ClearVisuals",
-        Text = "🧹 Clear All Visuals",
-        Callback = function()
-            -- Disable all toggles
-            Variables.xrayEnabled = false
-            Variables.playerESPEnabled = false
-            
-            -- Clean X-Ray
-            for part, props in pairs(xrayParts) do
-                if part and part.Parent then
-                    pcall(function()
-                        part.Transparency = props.Transparency
-                        part.CastShadow = props.CastShadow
-                    end)
-                end
-            end
-            xrayParts = {}
-            
-            if xrayConnection then
-                xrayConnection:Disconnect()
-                xrayConnection = nil
-            end
-            
-            -- Clean Player ESP highlights
-            for _, hl in pairs(playerHighlights) do
-                if hl and hl.Parent then
-                    pcall(function()
-                        hl:Destroy()
-                    end)
-                end
-            end
-            playerHighlights = {}
-            
-            -- Clean CoreGui
-            local CoreGui = game:GetService("CoreGui")
-            for _, obj in pairs(CoreGui:GetChildren()) do
-                if obj.Name:find("PlayerESP_") then
-                    pcall(function()
-                        obj:Destroy()
-                    end)
-                end
-            end
-            
-            Bdev:Notify({
-                Title = "Visuals",
-                Content = "All visuals cleared!",
-                Duration = 3
-            })
-            
-            --print("🧹 All visuals cleared")
-        end
-    })
-    
-    -- ===== VISUALS SETTINGS =====
-    Tab:CreateLabel({
-        Name = "SettingsLabel",
-        Text = "⚙️ ESP Settings:",
+    -- ===== UI =====
+    local header = Tab:CreateLabel({
+        Name = "Header_AutoHarvest",
+        Text = "───── 🌾 AUTO HARVEST ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
         Alignment = Enum.TextXAlignment.Center
     })
     
-    local espTransparency = 0.7
-    local espColor = Color3.new(0, 0.5, 1)
-    
-    Tab:CreateSlider({
-        Name = "ESPTransparency",
-        Text = "Transparency: " .. espTransparency,
-        Range = {0.1, 0.9},
-        Increment = 0.1,
-        CurrentValue = 0.7,
+    -- Auto Harvest Toggle
+    autoHarvestToggleRef = Tab:CreateToggle({
+        Name = "AutoHarvest",
+        Text = "🌾 AUTO HARVEST TANAMAN",
+        CurrentValue = false,
         Callback = function(value)
-            espTransparency = value
-            --print("📊 ESP Transparency set to:", value)
+            Variables.autoHarvestEnabled = value
             
-            -- Apply to existing ESP if enabled
-            if Variables.playerESPEnabled then
+            if value then
+                harvestedCount = 0
+                Bdev:Notify({Title = "🌾 Auto Harvest ON", Content = "Mencari tanaman siap panen...", Duration = 2})
+                
+                if harvestConnection then harvestConnection:Disconnect() end
+                
+                harvestConnection = RunService.Heartbeat:Connect(function()
+                    if not Variables.autoHarvestEnabled then return end
+                    
+                    local crops = findReadyCrops()
+                    
+                    for _, crop in ipairs(crops) do
+                        -- Cek jeda antar harvest (biar gak spam)
+                        local now = tick()
+                        if now - lastHarvestTime >= 1 then
+                            local success = harvestCrop(crop)
+                            if success then
+                                lastHarvestTime = now
+                                -- Notifikasi setiap 5 kali harvest
+                                if harvestedCount % 5 == 0 then
+                                    Bdev:Notify({
+                                        Title = "🌾 Harvest",
+                                        Content = string.format("%s - Total: %d", crop.type, harvestedCount),
+                                        Duration = 1
+                                    })
+                                end
+                            end
+                            task.wait(0.2) -- Jeda antar tanaman
+                        end
+                    end
+                    
+                    task.wait(0.5) -- Jeda siklus
+                end)
+                
+            else
+                if harvestConnection then
+                    harvestConnection:Disconnect()
+                    harvestConnection = nil
+                end
                 Bdev:Notify({
-                    Title = "Settings",
-                    Content = "Change will apply after ESP refresh",
+                    Title = "🌾 Auto Harvest OFF",
+                    Content = string.format("Total panen: %d tanaman", harvestedCount),
                     Duration = 3
                 })
             end
         end
     })
     
-    --print("✅ Visuals tab initialized")
+    -- Info jenis tanaman
+    local cropInfoLabel = Tab:CreateLabel({
+        Name = "CropInfo",
+        Text = "🍆 Terong | 🌽 Jagung | 🌾 Padi | 🍓 Stroberi | 🍅 Tomat",
+        Color = Color3.fromRGB(150, 150, 160),
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    -- Tombol Test Harvest
+    local ActionFrame = Instance.new("Frame")
+    ActionFrame.Name = "ActionFrame"
+    ActionFrame.Size = UDim2.new(0.95, 0, 0, 40)
+    ActionFrame.BackgroundTransparency = 1
+    ActionFrame.LayoutOrder = #Tab.Elements + 1
+    ActionFrame.Parent = Tab.Content
+    
+    local ActionLayout = Instance.new("UIListLayout")
+    ActionLayout.FillDirection = Enum.FillDirection.Horizontal
+    ActionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    ActionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    ActionLayout.Padding = UDim.new(0, 10)
+    ActionLayout.Parent = ActionFrame
+    
+    -- Tombol Test Harvest
+    local TestBtn = Instance.new("TextButton")
+    TestBtn.Size = UDim2.new(0, 120, 0, 36)
+    TestBtn.Text = "🌾 TEST HARVEST"
+    TestBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TestBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+    TestBtn.BackgroundTransparency = 0
+    TestBtn.TextSize = 12
+    TestBtn.Font = Enum.Font.GothamBold
+    TestBtn.AutoButtonColor = false
+    TestBtn.Parent = ActionFrame
+    
+    local TestCorner = Instance.new("UICorner")
+    TestCorner.CornerRadius = UDim.new(0, 6)
+    TestCorner.Parent = TestBtn
+    
+    TestBtn.MouseButton1Click:Connect(function()
+        local crops = findReadyCrops()
+        if #crops > 0 then
+            local success = harvestCrop(crops[1])
+            if success then
+                Bdev:Notify({Title = "✅ Test Berhasil", Content = crops[1].type, Duration = 2})
+            else
+                Bdev:Notify({Title = "❌ Test Gagal", Duration = 2})
+            end
+        else
+            Bdev:Notify({Title = "❌ Tidak ada", Content = "Tidak ada tanaman siap panen", Duration = 2})
+        end
+    end)
+    
+    -- Tombol Stop
+    local StopBtn = Instance.new("TextButton")
+    StopBtn.Size = UDim2.new(0, 100, 0, 36)
+    StopBtn.Text = "⏹️ STOP"
+    StopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    StopBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    StopBtn.BackgroundTransparency = 0
+    StopBtn.TextSize = 12
+    StopBtn.Font = Enum.Font.GothamBold
+    StopBtn.AutoButtonColor = false
+    StopBtn.Parent = ActionFrame
+    
+    local StopCorner = Instance.new("UICorner")
+    StopCorner.CornerRadius = UDim.new(0, 6)
+    StopCorner.Parent = StopBtn
+    
+    StopBtn.MouseButton1Click:Connect(function()
+        if autoHarvestToggleRef and autoHarvestToggleRef.SetValue then
+            autoHarvestToggleRef:SetValue(false)
+        end
+    end)
+    
+    -- ===== HOVER EFFECTS =====
+    local function setupHover(btn, normalColor, hoverColor)
+        btn.MouseEnter:Connect(function() tween(btn, {BackgroundColor3 = hoverColor}, 0.15) end)
+        btn.MouseLeave:Connect(function() tween(btn, {BackgroundColor3 = normalColor}, 0.15) end)
+    end
+    
+    setupHover(TestBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
+    setupHover(StopBtn, Color3.fromRGB(200, 50, 50), Color3.fromRGB(220, 80, 80))
+    
+    -- ===== CLEANUP =====
+    local function cleanup()
+        if harvestConnection then
+            harvestConnection:Disconnect()
+            harvestConnection = nil
+        end
+        Variables.autoHarvestEnabled = false
+    end
+    
+    print("✅ Auto Harvest module loaded - Tanaman siap panen")
+    
+    return cleanup
 end
 
-return Visuals
+return AutoHarvest
