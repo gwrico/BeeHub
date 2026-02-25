@@ -1,5 +1,5 @@
 -- ==============================================
--- 💰 AUTO FARM TAB MODULE - DENGAN AUTO RECORD POSISI
+-- 💰 AUTO FARM TAB MODULE - DENGAN AUTO RECORD POSISI + AUTO HARVEST
 -- ==============================================
 
 local AutoFarm = {}
@@ -17,20 +17,27 @@ function AutoFarm.Init(Dependencies)
     local Players = game:GetService("Players")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local UserInputService = game:GetService("UserInputService")
+    local VirtualInputManager = game:GetService("VirtualInputManager")
     
     -- Auto-plant variables
     local plantConnection = nil
     
-    -- Default position (dari script Anda)
+    -- Default position
     local defaultPos = Vector3.new(37.042457580566406, 39.296875, -265.78594970703125)
     
-    -- Custom position (akan diupdate dari posisi player)
+    -- Custom position
     local customX = defaultPos.X
     local customY = defaultPos.Y
     local customZ = defaultPos.Z
     
-    -- References untuk slider (agar bisa diupdate nilainya)
+    -- References untuk slider
     local xSlider, ySlider, zSlider
+    
+    -- Auto harvest variables
+    local harvestActive = false
+    local harvestConnection = nil
+    local HOLD_DURATION = 1.0
+    local DELAY_BETWEEN = 0.5
     
     -- Dapatkan remote PlantCrop
     local function getPlantRemote()
@@ -42,7 +49,6 @@ function AutoFarm.Init(Dependencies)
             return remote
         end
         
-        -- Coba cari dengan aman
         local remotes = ReplicatedStorage:FindFirstChild("Remotes")
         if remotes then
             local tutorial = remotes:FindFirstChild("TutorialRemotes")
@@ -74,7 +80,6 @@ function AutoFarm.Init(Dependencies)
         customY = newPos.Y
         customZ = newPos.Z
         
-        -- Update slider jika reference tersedia
         if xSlider then
             xSlider:SetValue(customX)
         end
@@ -85,7 +90,6 @@ function AutoFarm.Init(Dependencies)
             zSlider:SetValue(customZ)
         end
         
-        -- Tampilkan notifikasi
         Bdev:Notify({
             Title = "Position Recorded",
             Content = string.format("📍 X: %.1f, Y: %.1f, Z: %.1f", customX, customY, customZ),
@@ -144,14 +148,13 @@ function AutoFarm.Init(Dependencies)
                     
                     local remote = getPlantRemote()
                     if remote then
-                        -- Gunakan custom position yang sudah direkam
                         local plantPos = Vector3.new(customX, customY, customZ)
                         
                         pcall(function()
                             remote:FireServer(plantPos)
                         end)
                         
-                        task.wait(1.0) -- Default delay 1 detik
+                        task.wait(1.0)
                     end
                 end)
                 
@@ -185,7 +188,6 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
-            -- Gunakan custom position
             local plantPos = Vector3.new(customX, customY, customZ)
             
             local success = pcall(function()
@@ -202,7 +204,7 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== PLANT DI POSISI PLAYER (SEKALIGUS RECORD) =====
+    -- ===== PLANT DI POSISI PLAYER =====
     Tab:CreateButton({
         Name = "PlantAndRecord",
         Text = "📍 Plant & Record My Position",
@@ -227,10 +229,8 @@ function AutoFarm.Init(Dependencies)
                 return
             end
             
-            -- Record posisi ke slider
             updatePositionSliders(playerPos)
             
-            -- Tanam di posisi tersebut
             local success = pcall(function()
                 plantRemote:FireServer(playerPos)
             end)
@@ -245,7 +245,7 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== RECORD POSISI SAJA (TANPA MENANAM) =====
+    -- ===== RECORD POSISI SAJA =====
     Tab:CreateButton({
         Name = "RecordOnly",
         Text = "📝 Record My Position Only",
@@ -270,14 +270,13 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== KEYBIND INSTANT RECORD (tekan R untuk record) =====
+    -- ===== KEYBIND RECORD (tekan R) =====
     Tab:CreateLabel({
         Name = "KeybindInfo",
         Text = "⌨️ Tekan R untuk record posisi",
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Keybind R untuk record cepat
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         
@@ -314,7 +313,98 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    print("✅ AutoFarm Plants module loaded dengan AUTO RECORD POSISI")
+    -- ===== AUTO HARVEST =====
+    local function pressAndHoldE()
+        pcall(function()
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+            task.wait(HOLD_DURATION)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+        end)
+    end
+    
+    local function harvest()
+        local activeCrops = workspace:FindFirstChild("ActiveCrops")
+        if not activeCrops then return end
+        
+        local player = Players.LocalPlayer
+        local character = player.Character
+        if not character then return end
+        
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        
+        for _, crop in ipairs(activeCrops:GetChildren()) do
+            local root = crop:FindFirstChild("Root")
+            if root and root:IsA("BasePart") then
+                local dist = (root.Position - hrp.Position).Magnitude
+                if dist <= 10 then
+                    pressAndHoldE()
+                    break
+                end
+            end
+        end
+    end
+    
+    -- ===== UI AUTO HARVEST =====
+    Tab:CreateLabel({
+        Name = "HarvestSpacer",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    Tab:CreateLabel({
+        Name = "HarvestTitle",
+        Text = "───── 🌾 AUTO HARVEST ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
+    
+    Tab:CreateToggle({
+        Name = "AutoHarvest",
+        Text = "🤖 AUTO HARVEST",
+        CurrentValue = false,
+        Callback = function(val)
+            harvestActive = val
+            
+            if val then
+                if harvestConnection then
+                    harvestConnection:Disconnect()
+                end
+                
+                harvestConnection = RunService.Heartbeat:Connect(function()
+                    if not harvestActive then return end
+                    
+                    harvest()
+                    
+                    local waitTime = DELAY_BETWEEN
+                    while waitTime > 0 and harvestActive do
+                        task.wait(0.1)
+                        waitTime = waitTime - 0.1
+                    end
+                end)
+            else
+                if harvestConnection then
+                    harvestConnection:Disconnect()
+                    harvestConnection = nil
+                end
+            end
+        end
+    })
+    
+    Tab:CreateButton({
+        Name = "StopHarvest",
+        Text = "⏹️ STOP HARVEST",
+        Callback = function()
+            harvestActive = false
+            if harvestConnection then
+                harvestConnection:Disconnect()
+                harvestConnection = nil
+            end
+        end
+    })
+    
+    print("✅ AutoFarm Plants module loaded")
 end
 
 return AutoFarm
