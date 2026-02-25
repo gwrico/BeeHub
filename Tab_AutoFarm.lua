@@ -114,11 +114,24 @@ function AutoFarm.Init(Dependencies)
             Duration = 4
         })
     end
+    -- ===== UI PLANT CROPS =====
+    Tab:CreateLabel({
+        Name = "AutoSpacer",
+        Text = "",
+        Alignment = Enum.TextXAlignment.Center
+    })
     
+    Tab:CreateLabel({
+        Name = "AutoTitle",
+        Text = "───── 🌾 AUTO PLANT ─────",
+        Color = Color3.fromRGB(255, 185, 0),
+        Bold = true,
+        Alignment = Enum.TextXAlignment.Center
+    })
     -- ===== AUTO PLANT CROPS =====
     Tab:CreateToggle({
         Name = "AutoPlant",
-        Text = "🌱 Auto Plant Crops",
+        Text = "🌱 Auto Plant",
         CurrentValue = false,
         Callback = function(value)
             Variables.autoPlantEnabled = value
@@ -176,85 +189,10 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    -- ===== MANUAL PLANT =====
-    Tab:CreateButton({
-        Name = "ManualPlant",
-        Text = "🌿 Plant Now (1x)",
-        Callback = function()
-            local plantRemote = getPlantRemote()
-            if not plantRemote then
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Remote tidak ditemukan!",
-                    Duration = 3
-                })
-                return
-            end
-            
-            -- Gunakan custom position
-            local plantPos = Vector3.new(customX, customY, customZ)
-            
-            local success = pcall(function()
-                plantRemote:FireServer(plantPos)
-            end)
-            
-            if success then
-                Bdev:Notify({
-                    Title = "Success",
-                    Content = "✅ Tanam berhasil!",
-                    Duration = 2
-                })
-            end
-        end
-    })
-    
-    -- ===== PLANT DI POSISI PLAYER (SEKALIGUS RECORD) =====
-    Tab:CreateButton({
-        Name = "PlantAndRecord",
-        Text = "📍 Plant & Record My Position",
-        Callback = function()
-            local plantRemote = getPlantRemote()
-            if not plantRemote then
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Remote tidak ditemukan!",
-                    Duration = 3
-                })
-                return
-            end
-            
-            local playerPos = getPlayerPosition()
-            if not playerPos then
-                Bdev:Notify({
-                    Title = "Error",
-                    Content = "❌ Tidak bisa dapatkan posisi!",
-                    Duration = 2
-                })
-                return
-            end
-            
-            -- Record posisi ke slider
-            updatePositionSliders(playerPos)
-            
-            -- Tanam di posisi tersebut
-            local success = pcall(function()
-                plantRemote:FireServer(playerPos)
-            end)
-            
-            if success then
-                Bdev:Notify({
-                    Title = "Success",
-                    Content = "✅ Posisi direkam & tanaman ditanam!",
-                    Duration = 3
-                })
-            end
-        end
-    })
-    
-    -- ===== RECORD POSISI SAJA (TANPA MENANAM) =====
+    -- ===== RECORD POSISI SAJA =====
     Tab:CreateButton({
         Name = "RecordOnly",
-        Text = "📝 Record My Position Only",
+        Text = "📍 Ambil Lokasi Tanam ( Klik ini )",
         Callback = function()
             local playerPos = getPlayerPosition()
             if not playerPos then
@@ -271,50 +209,6 @@ function AutoFarm.Init(Dependencies)
             Bdev:Notify({
                 Title = "Position Recorded",
                 Content = "✅ Posisi tersimpan di slider!",
-                Duration = 2
-            })
-        end
-    })
-    
-    -- ===== KEYBIND INSTANT RECORD (tekan R untuk record) =====
-    Tab:CreateLabel({
-        Name = "KeybindInfo",
-        Text = "⌨️ Tekan R untuk record posisi",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    -- Keybind R untuk record cepat
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        
-        if input.KeyCode == Enum.KeyCode.R then
-            local playerPos = getPlayerPosition()
-            if playerPos then
-                updatePositionSliders(playerPos)
-                Bdev:Notify({
-                    Title = "Quick Record",
-                    Content = "✅ Posisi direkam (tekan R)",
-                    Duration = 1
-                })
-            end
-        end
-    end)
-    
-    -- ===== STOP AUTO PLANT =====
-    Tab:CreateButton({
-        Name = "StopPlanting",
-        Text = "⏹️ STOP Auto Plant",
-        Callback = function()
-            Variables.autoPlantEnabled = false
-            
-            if plantConnection then
-                plantConnection:Disconnect()
-                plantConnection = nil
-            end
-            
-            Bdev:Notify({
-                Title = "Stopped",
-                Content = "⏹️ Auto planting dihentikan",
                 Duration = 2
             })
         end
@@ -401,7 +295,7 @@ function AutoFarm.Init(Dependencies)
         end
     })
     
-    print("✅ AutoFarm Plants module loaded dengan AUTO RECORD POSISI + AUTO HARVEST")
+    print("✅ AutoFarm Posisi dan Harverst Ready - BeeHub")
 end
 
 return AutoFarm
