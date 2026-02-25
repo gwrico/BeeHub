@@ -1,10 +1,10 @@
 -- ==============================================
--- 🌾 AUTO HARVEST TANAMAN
+-- 💰 AUTO SELL - INVENTORY MODULE
 -- ==============================================
 
-local AutoHarvest = {}
+local AutoSell = {}
 
-function AutoHarvest.Init(Dependencies)
+function AutoSell.Init(Dependencies)
     local Tab = Dependencies.Tab
     local Shared = Dependencies.Shared
     local Bdev = Dependencies.Bdev
@@ -13,265 +13,243 @@ function AutoHarvest.Init(Dependencies)
     local Variables = Shared.Variables or {}
     
     -- Get services
-    local RunService = game:GetService("RunService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local Players = game:GetService("Players")
-    local TweenService = game:GetService("TweenService")
     
-    -- ===== FUNGSI TWEEN =====
-    local function tween(object, properties, duration, easingStyle)
-        if not object then return nil end
-        local tweenInfo = TweenInfo.new(duration or 0.2, easingStyle or Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        local tween = TweenService:Create(object, tweenInfo, properties)
-        tween:Play()
-        return tween
+    -- Dapatkan remote RequestSell
+    local RequestSell = ReplicatedStorage:FindFirstChild("Remotes")
+    if RequestSell then
+        RequestSell = RequestSell:FindFirstChild("TutorialRemotes")
+        if RequestSell then
+            RequestSell = RequestSell:FindFirstChild("RequestSell")
+        end
+    end
+    
+    -- Daftar tanaman
+    local crops = {
+        {Display = "🌾 Padi", Name = "Padi"},
+        {Display = "🌽 Jagung", Name = "Jagung"},
+        {Display = "🍅 Tomat", Name = "Tomat"},
+        {Display = "🍆 Terong", Name = "Terong"},
+        {Display = "🍓 Strawberry", Name = "Strawberry"}
+    }
+    
+    local cropOptions = {}
+    for i, crop in ipairs(crops) do
+        cropOptions[i] = crop.Display
     end
     
     -- Variables
-    local harvestConnection = nil
-    local autoHarvestToggleRef = nil
-    local player = Players.LocalPlayer
-    local harvestedCount = 0
-    local lastHarvestTime = 0
+    local selectedCrop = crops[1].Name
+    local sellAmount = 1
+    local isActive = false
+    local sellConnection = nil
     
-    -- Dapatkan posisi player
-    local function getPlayerPosition()
-        local character = player.Character
-        if not character then return nil end
-        local hrp = character:FindFirstChild("HumanoidRootPart")
-        if not hrp then return nil end
-        return hrp.Position
-    end
-    
-    -- Cari tanaman siap panen di sekitar
-    local function findReadyCrops()
-        local crops = {}
-        local playerPos = getPlayerPosition()
-        if not playerPos then return crops end
-        
-        -- Cari di folder ActiveCrops
-        local activeCrops = workspace:FindFirstChild("ActiveCrops")
-        if not activeCrops then return crops end
-        
-        for _, crop in ipairs(activeCrops:GetDescendants()) do
-            -- Cari ProximityPrompt dengan ActionText "Harvest"
-            if crop:IsA("ProximityPrompt") and crop.ActionText == "Harvest" then
-                if crop.Parent and crop.Parent:IsA("BasePart") then
-                    local dist = (crop.Parent.Position - playerPos).Magnitude
-                    if dist <= crop.MaxActivationDistance then
-                        -- Catat jenis tanaman dari ObjectText
-                        local cropType = "Unknown"
-                        if crop.ObjectText then
-                            if crop.ObjectText:find("Eggplant") then
-                                cropType = "🍆 Terong"
-                            elseif crop.ObjectText:find("Corn") then
-                                cropType = "🌽 Jagung"
-                            elseif crop.ObjectText:find("Padi") or crop.ObjectText:find("Rice") then
-                                cropType = "🌾 Padi"
-                            elseif crop.ObjectText:find("Strawberry") then
-                                cropType = "🍓 Stroberi"
-                            elseif crop.ObjectText:find("Tomat") or crop.ObjectText:find("Tomato") then
-                                cropType = "🍅 Tomat"
-                            end
-                        end
-                        
-                        table.insert(crops, {
-                            prompt = crop,
-                            type = cropType,
-                            dist = dist
-                        })
-                    end
-                end
-            end
+    -- Fungsi jual
+    local function sell()
+        if not RequestSell then 
+            Bdev:Notify({
+                Title = "Error",
+                Content = "❌ Remote RequestSell tidak ditemukan!",
+                Duration = 3
+            })
+            return false
         end
         
-        -- Urutkan berdasarkan jarak (terdekat dulu)
-        table.sort(crops, function(a, b) return a.dist < b.dist end)
+        local arguments = {
+            [1] = "SELL",
+            [2] = selectedCrop,
+            [3] = sellAmount
+        }
         
-        return crops
-    end
-    
-    -- Fungsi untuk harvest
-    local function harvestCrop(cropData)
-        if not cropData or not cropData.prompt then return false end
-        
-        local prompt = cropData.prompt
-        
-        -- Trigger prompt (tekan E)
-        local success = pcall(function()
-            prompt:InputHoldBegin()
-            task.wait(0.5) -- HoldDuration 0.5 detik
-            prompt:InputHoldEnd()
+        local success, result = pcall(function()
+            return RequestSell:InvokeServer(unpack(arguments))
         end)
         
         if success then
-            harvestedCount = harvestedCount + 1
             return true
+        else
+            return false
         end
-        
-        return false
     end
     
     -- ===== UI =====
-    local header = Tab:CreateLabel({
-        Name = "Header_AutoHarvest",
-        Text = "───── 🌾 AUTO HARVEST ─────",
+    Tab:CreateLabel({
+        Name = "Title",
+        Text = "───── 💰 AUTO SELL ─────",
         Color = Color3.fromRGB(255, 185, 0),
         Bold = true,
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Auto Harvest Toggle
-    autoHarvestToggleRef = Tab:CreateToggle({
-        Name = "AutoHarvest",
-        Text = "🌾 AUTO HARVEST TANAMAN",
-        CurrentValue = false,
+    -- Status remote
+    if RequestSell then
+        Tab:CreateLabel({
+            Name = "RemoteStatus",
+            Text = "✅ Remote Ready",
+            Color = Color3.fromRGB(0, 255, 0),
+            Alignment = Enum.TextXAlignment.Center
+        })
+    else
+        Tab:CreateLabel({
+            Name = "RemoteStatus",
+            Text = "❌ Remote Not Found",
+            Color = Color3.fromRGB(255, 0, 0),
+            Alignment = Enum.TextXAlignment.Center
+        })
+    end
+    
+    -- Dropdown pilih tanaman
+    local cropDropdown = Tab:CreateDropdown({
+        Name = "CropDropdown",
+        Text = "Pilih Tanaman:",
+        Options = cropOptions,
+        Default = cropOptions[1],
         Callback = function(value)
-            Variables.autoHarvestEnabled = value
-            
-            if value then
-                harvestedCount = 0
-                Bdev:Notify({Title = "🌾 Auto Harvest ON", Content = "Mencari tanaman siap panen...", Duration = 2})
-                
-                if harvestConnection then harvestConnection:Disconnect() end
-                
-                harvestConnection = RunService.Heartbeat:Connect(function()
-                    if not Variables.autoHarvestEnabled then return end
-                    
-                    local crops = findReadyCrops()
-                    
-                    for _, crop in ipairs(crops) do
-                        -- Cek jeda antar harvest (biar gak spam)
-                        local now = tick()
-                        if now - lastHarvestTime >= 1 then
-                            local success = harvestCrop(crop)
-                            if success then
-                                lastHarvestTime = now
-                                -- Notifikasi setiap 5 kali harvest
-                                if harvestedCount % 5 == 0 then
-                                    Bdev:Notify({
-                                        Title = "🌾 Harvest",
-                                        Content = string.format("%s - Total: %d", crop.type, harvestedCount),
-                                        Duration = 1
-                                    })
-                                end
-                            end
-                            task.wait(0.2) -- Jeda antar tanaman
-                        end
-                    end
-                    
-                    task.wait(0.5) -- Jeda siklus
-                end)
-                
-            else
-                if harvestConnection then
-                    harvestConnection:Disconnect()
-                    harvestConnection = nil
+            for i, crop in ipairs(crops) do
+                if crop.Display == value then
+                    selectedCrop = crop.Name
+                    break
                 end
-                Bdev:Notify({
-                    Title = "🌾 Auto Harvest OFF",
-                    Content = string.format("Total panen: %d tanaman", harvestedCount),
-                    Duration = 3
-                })
             end
+            Bdev:Notify({
+                Title = "Dipilih",
+                Content = selectedCrop,
+                Duration = 1
+            })
         end
     })
     
-    -- Info jenis tanaman
-    local cropInfoLabel = Tab:CreateLabel({
-        Name = "CropInfo",
-        Text = "🍆 Terong | 🌽 Jagung | 🌾 Padi | 🍓 Stroberi | 🍅 Tomat",
+    -- Input jumlah
+    Tab:CreateLabel({
+        Name = "AmountLabel",
+        Text = "Jumlah:",
+        Alignment = Enum.TextXAlignment.Left
+    })
+    
+    local amountInput = Instance.new("TextBox")
+    amountInput.Name = "AmountInput"
+    amountInput.Size = UDim2.new(0.95, 0, 0, 36)
+    amountInput.Position = UDim2.new(0, 0, 0, 0)
+    amountInput.Text = "1"
+    amountInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    amountInput.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    amountInput.BackgroundTransparency = 0
+    amountInput.TextSize = 14
+    amountInput.Font = Enum.Font.Gotham
+    amountInput.ClearTextOnFocus = false
+    amountInput.LayoutOrder = #Tab.Elements + 1
+    amountInput.Parent = Tab.Content
+    
+    local amountCorner = Instance.new("UICorner")
+    amountCorner.CornerRadius = UDim.new(0, 6)
+    amountCorner.Parent = amountInput
+    
+    amountInput.FocusLost:Connect(function()
+        local value = tonumber(amountInput.Text)
+        if value and value >= 1 then
+            sellAmount = math.floor(value)
+            amountInput.Text = tostring(sellAmount)
+        else
+            sellAmount = 1
+            amountInput.Text = "1"
+        end
+    end)
+    
+    -- Status counter
+    local statusLabel = Tab:CreateLabel({
+        Name = "Status",
+        Text = "⚪ SIAP",
         Color = Color3.fromRGB(150, 150, 160),
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Tombol Test Harvest
-    local ActionFrame = Instance.new("Frame")
-    ActionFrame.Name = "ActionFrame"
-    ActionFrame.Size = UDim2.new(0.95, 0, 0, 40)
-    ActionFrame.BackgroundTransparency = 1
-    ActionFrame.LayoutOrder = #Tab.Elements + 1
-    ActionFrame.Parent = Tab.Content
-    
-    local ActionLayout = Instance.new("UIListLayout")
-    ActionLayout.FillDirection = Enum.FillDirection.Horizontal
-    ActionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    ActionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    ActionLayout.Padding = UDim.new(0, 10)
-    ActionLayout.Parent = ActionFrame
-    
-    -- Tombol Test Harvest
-    local TestBtn = Instance.new("TextButton")
-    TestBtn.Size = UDim2.new(0, 120, 0, 36)
-    TestBtn.Text = "🌾 TEST HARVEST"
-    TestBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TestBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
-    TestBtn.BackgroundTransparency = 0
-    TestBtn.TextSize = 12
-    TestBtn.Font = Enum.Font.GothamBold
-    TestBtn.AutoButtonColor = false
-    TestBtn.Parent = ActionFrame
-    
-    local TestCorner = Instance.new("UICorner")
-    TestCorner.CornerRadius = UDim.new(0, 6)
-    TestCorner.Parent = TestBtn
-    
-    TestBtn.MouseButton1Click:Connect(function()
-        local crops = findReadyCrops()
-        if #crops > 0 then
-            local success = harvestCrop(crops[1])
+    -- Tombol SELL MANUAL
+    Tab:CreateButton({
+        Name = "ManualSell",
+        Text = "💰 SELL MANUAL",
+        Callback = function()
+            statusLabel.Text = "🟡 MENJUAL..."
+            statusLabel.TextColor3 = Color3.fromRGB(255, 185, 0)
+            
+            local success = sell()
+            
             if success then
-                Bdev:Notify({Title = "✅ Test Berhasil", Content = crops[1].type, Duration = 2})
+                statusLabel.Text = "✅ BERHASIL"
+                statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                Bdev:Notify({
+                    Title = "Success",
+                    Content = string.format("Menjual %d %s", sellAmount, selectedCrop),
+                    Duration = 2
+                })
             else
-                Bdev:Notify({Title = "❌ Test Gagal", Duration = 2})
+                statusLabel.Text = "❌ GAGAL"
+                statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+                Bdev:Notify({
+                    Title = "Error",
+                    Content = "Gagal menjual",
+                    Duration = 2
+                })
             end
-        else
-            Bdev:Notify({Title = "❌ Tidak ada", Content = "Tidak ada tanaman siap panen", Duration = 2})
+            
+            task.wait(1)
+            statusLabel.Text = "⚪ SIAP"
+            statusLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
         end
-    end)
+    })
     
-    -- Tombol Stop
-    local StopBtn = Instance.new("TextButton")
-    StopBtn.Size = UDim2.new(0, 100, 0, 36)
-    StopBtn.Text = "⏹️ STOP"
-    StopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    StopBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    StopBtn.BackgroundTransparency = 0
-    StopBtn.TextSize = 12
-    StopBtn.Font = Enum.Font.GothamBold
-    StopBtn.AutoButtonColor = false
-    StopBtn.Parent = ActionFrame
-    
-    local StopCorner = Instance.new("UICorner")
-    StopCorner.CornerRadius = UDim.new(0, 6)
-    StopCorner.Parent = StopBtn
-    
-    StopBtn.MouseButton1Click:Connect(function()
-        if autoHarvestToggleRef and autoHarvestToggleRef.SetValue then
-            autoHarvestToggleRef:SetValue(false)
+    -- Tombol AUTO SELL
+    Tab:CreateToggle({
+        Name = "AutoSell",
+        Text = "🤖 AUTO SELL (2 detik)",
+        CurrentValue = false,
+        Callback = function(val)
+            isActive = val
+            
+            if val then
+                statusLabel.Text = "🟢 AUTO ON"
+                statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                
+                if sellConnection then sellConnection:Disconnect() end
+                
+                sellConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if not isActive then return end
+                    
+                    sell()
+                    task.wait(2)
+                end)
+                
+            else
+                statusLabel.Text = "⚪ SIAP"
+                statusLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
+                
+                if sellConnection then
+                    sellConnection:Disconnect()
+                    sellConnection = nil
+                end
+            end
         end
-    end)
+    })
     
-    -- ===== HOVER EFFECTS =====
-    local function setupHover(btn, normalColor, hoverColor)
-        btn.MouseEnter:Connect(function() tween(btn, {BackgroundColor3 = hoverColor}, 0.15) end)
-        btn.MouseLeave:Connect(function() tween(btn, {BackgroundColor3 = normalColor}, 0.15) end)
-    end
-    
-    setupHover(TestBtn, Color3.fromRGB(70, 70, 85), Color3.fromRGB(90, 90, 105))
-    setupHover(StopBtn, Color3.fromRGB(200, 50, 50), Color3.fromRGB(220, 80, 80))
-    
-    -- ===== CLEANUP =====
-    local function cleanup()
-        if harvestConnection then
-            harvestConnection:Disconnect()
-            harvestConnection = nil
+    -- Tombol STOP
+    Tab:CreateButton({
+        Name = "StopSell",
+        Text = "⏹️ STOP SELL",
+        Callback = function()
+            isActive = false
+            if sellConnection then
+                sellConnection:Disconnect()
+                sellConnection = nil
+            end
+            statusLabel.Text = "⏹️ STOPPED"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            task.wait(1)
+            statusLabel.Text = "⚪ SIAP"
+            statusLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
         end
-        Variables.autoHarvestEnabled = false
-    end
+    })
     
-    print("✅ Auto Harvest module loaded - Tanaman siap panen")
-    
-    return cleanup
+    print("✅ Auto Sell module loaded - Inventory")
 end
 
-return AutoHarvest
+return AutoSell
