@@ -114,21 +114,7 @@ function AutoFarm.Init(Dependencies)
             Duration = 4
         })
     end
-    -- ===== UI PLANT CROPS =====
-    Tab:CreateLabel({
-        Name = "AutoSpacer",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    Tab:CreateLabel({
-        Name = "AutoTitle",
-        Text = "───── 🌾 AUTO PLANT ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    -- ===== AUTO PLANT CROPS =====
+     -- ===== AUTO PLANT CROPS =====
     Tab:CreateToggle({
         Name = "AutoPlant",
         Text = "🌱 Auto Plant",
@@ -245,22 +231,7 @@ function AutoFarm.Init(Dependencies)
             end
         end
     end
-    
-    -- ===== UI AUTO HARVEST =====
-    Tab:CreateLabel({
-        Name = "HarvestSpacer",
-        Text = "",
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
-    Tab:CreateLabel({
-        Name = "HarvestTitle",
-        Text = "───── 🌾 AUTO HARVEST ─────",
-        Color = Color3.fromRGB(255, 185, 0),
-        Bold = true,
-        Alignment = Enum.TextXAlignment.Center
-    })
-    
+      
     -- Tombol AUTO HARVEST
     Tab:CreateToggle({
         Name = "AutoHarvest",
