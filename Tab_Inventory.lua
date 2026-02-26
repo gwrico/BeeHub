@@ -82,23 +82,6 @@ function AutoSell.Init(Dependencies)
         Alignment = Enum.TextXAlignment.Center
     })
     
-    -- Status remote
-    if RequestSell then
-        Tab:CreateLabel({
-            Name = "RemoteStatus",
-            Text = "✅ Remote Ready",
-            Color = Color3.fromRGB(0, 255, 0),
-            Alignment = Enum.TextXAlignment.Center
-        })
-    else
-        Tab:CreateLabel({
-            Name = "RemoteStatus",
-            Text = "❌ Remote Not Found",
-            Color = Color3.fromRGB(255, 0, 0),
-            Alignment = Enum.TextXAlignment.Center
-        })
-    end
-    
     -- Dropdown pilih tanaman
     local cropDropdown = Tab:CreateDropdown({
         Name = "CropDropdown",
@@ -248,8 +231,6 @@ function AutoSell.Init(Dependencies)
             statusLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
         end
     })
-    
-    print("✅ Auto Sell module loaded - Inventory")
 end
 
 return AutoSell
