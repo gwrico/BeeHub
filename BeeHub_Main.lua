@@ -144,15 +144,15 @@ function Shared.InitializeModules()
     -- Load and initialize tabs in order
     local tabModules = {
         {Name = "AutoFarm", File = "Tab_AutoFarm.lua", TabName = "💰 Auto Farm"},
+        {Name = "Shop", File = "Tab_Shop.lua", TabName = "🛍️ Shop"},
+        {Name = "Inventory", File = "Tab_Inventory.lua", TabName = "🎒 Inventory"},
         {Name = "PlayerMods", File = "Tab_PlayerMods.lua", TabName = "👤 Player Mods"},
         {Name = "Teleport", File = "Tab_Teleport.lua", TabName = "📍 Teleport"},
         {Name = "Visuals", File = "Tab_Visuals.lua", TabName = "👁️ Visuals"},
         {Name = "Misc", File = "Tab_Misc.lua", TabName = "⚡ Misc"},
         {Name = "Utilities", File = "Tab_Utilities.lua", TabName = "🔧 Utilities"},
-        {Name = "Shop", File = "Tab_Shop.lua", TabName = "🛍️ Shop"},
-        {Name = "Inventory", File = "Tab_Inventory.lua", TabName = "🎒 Inventory"}
     }
-    
+  
     for _, moduleInfo in ipairs(tabModules) do
         local module = Shared.LoadModule(moduleInfo.Name, moduleInfo.File)
         if module and module.Init then

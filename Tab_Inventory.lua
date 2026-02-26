@@ -31,7 +31,8 @@ function AutoSell.Init(Dependencies)
         {Display = "🌽 Jagung", Name = "Jagung"},
         {Display = "🍅 Tomat", Name = "Tomat"},
         {Display = "🍆 Terong", Name = "Terong"},
-        {Display = "🍓 Strawberry", Name = "Strawberry"}
+        {Display = "🍓 Strawberry", Name = "Strawberry"},
+        {Display = "None", Name = "None"},
     }
     
     local cropOptions = {}
